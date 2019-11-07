@@ -11,61 +11,71 @@ L=length(t);%number of snapshots
 m=length(y);%x-dimension
 n=length(x);%y-dimension 
 k=m*n;%each snapshot has x*y-dimensions
-Ux1 = reshape( Ux, [], L);
-Uy1 = reshape( Uy, [], L);
-X=[Ux1;Uy1];
+Ux_reshaped = reshape( Ux, [], L);
+Uy_reshaped = reshape( Uy, [], L);
+X=[Ux_reshaped;Uy_reshaped];
 %% POD
 [U,S,V]=svd(X);
-Tol=0.;
+Tol=0.99;
 sig=diag(S);
 cdS =cumsum(sig.^2)./sum(sig.^2);% cumulative energy
 r =find(cdS>Tol, 1 ); 
 
-% figure(1)
-% plot(sig,'ko','Linewidth',(1.5)),grid on
-% xlabel('k')
-% ylabel('Singular value, \sigma_k')
-% title('Standard plot of singular values')
-% 
-% figure(2)
-% semilogy(diag(S),'bo','LineWidth',1.5), grid on
-% xlabel('k')
-% ylabel('Semilogy of diag(S)')
-% hold off
-% title('log plot of singular values')
-% 
-% figure(3)
-% plot(cdS,'ko','LineWidth',1.2),grid on
-% xlabel('k')
-% ylabel('Cumulative Energy')
+figure(1)
+plot(sig,'ko','Linewidth',(1.5)),grid on
+xlabel('i')
+ylabel('Singular value, \sigma_i')
+title('Standard plot of singular values')
+
+figure(2)
+semilogy(diag(S),'bo','LineWidth',1.5), grid on
+xlabel('i')
+ylabel('Semilogy of diag(S)')
+hold off
+title('log plot of singular values')
+
+figure(3)
+plot(cdS,'ko','LineWidth',1.2),grid on
+xlabel('i')
+ylabel('Cumulative Energy')
 %% Matrix Truncation
 U1=U(:,1:r);S1=S(1:r,1:r);V1=V(:,1:r)';%regenerate U,S,V using the rank r
-X1=U1*S1*V1; %Truncated matrix
-Ux2=X1(1:k,:);
-Uy2=X1(k+1:end,:); 
+Xr=U1*S1*V1; %Truncated matrix
+Uxr_reshaped=Xr(1:k,:);
+Uyr_reshaped=Xr(k+1:end,:); 
 
-Ux3=reshape(Ux2,m,n,L);
-Uy3=reshape(Uy2,m,n,L);
+Uxr_H_Velocity_truncated=reshape(Uxr_reshaped,m,n,L);
+Uyr_V_Velocity_truncated=reshape(Uyr_reshaped,m,n,L);
 %% visulazation
-
+slice=5;
 figure(4)
-surfl(x,y,Ux(:,:,1).^2+Uy(:,:,1).^2);shading interp;
-title ('spatial (velocity) field Ux' )
-figure(5)
-surfl(x,y,Ux3(:,:,end));shading interp;
-title ('spatial (velocity) field Ux_r' )
-%
-figure(6)
-surfl(x,y,Ux(:,:,end));shading interp;
-title ('Time-evolution coefficient Uy' )
-figure(7)
-surfl(x,y,Ux3(:,:,end));shading interp;
-title ('Time-evolution coefficient Uy_r' )
-figure(8)
-waterfall(x,y,Ux(:,:,1).^2 + Uy(:,:,1).^2),set(gca,'xlim',[-3.5 4],'Zlim',[0 8])
+waterfall(x,y,Ux(:,:,slice).^2 + Uy(:,:,slice).^2),set(gca,'xlim',[-3.5 4],'Zlim',[0 8])
 title ('Representation of the speed surface of X' )
-figure(9)
-waterfall(x,y,Ux3(:,:,1).^2 + Uy3(:,:,1).^2), set(gca,'xlim',[-3.5 4],'Zlim',[0 8])
+figure(5)
+waterfall(x,y,Uxr_H_Velocity_truncated(:,:,slice).^2 + Uyr_V_Velocity_truncated(:,:,slice).^2), set(gca,'xlim',[-3.5 4],'Zlim',[0 8])
 title ('Representation of the speed surface of X_r' )
 
-
+figure(6)
+t = tiledlayout(2,2,'TileSpacing','Compact');
+nexttile
+h1=quiver( x, y, Ux(:,:,slice),Uy(:,:,slice)); 
+set(h1,'AutoScale','on', 'AutoScaleFactor', 1.5,'color',[0 0 1])
+set(gca,'xlim',[-0.8 0.8],'Ylim',[0 1])
+title('X')
+%
+nexttile
+h1=quiver( x, y, Uxr_H_Velocity_truncated(:,:,slice),Uyr_V_Velocity_truncated(:,:,slice),'color',[1 0 1]); 
+set(h1,'AutoScale','on', 'AutoScaleFactor', 1.5)
+set(gca,'xlim',[-0.8 0.8],'Ylim',[0 1])
+title('X_r')
+% 
+nexttile([1 2])
+h1=quiver( x, y, Ux(:,:,slice),Uy(:,:,slice),'color',[0 0 1]); 
+hold on
+h2=quiver( x, y, Uxr_H_Velocity_truncated(:,:,slice),Uyr_V_Velocity_truncated(:,:,slice),'color',[1 0 1]); 
+set([h1 h2],'AutoScale','on', 'AutoScaleFactor', 1.5)
+set(gca,'xlim',[-0.8 0.8],'Ylim',[0 1])
+title('Comparison')
+title(t,'\fontsize{16}Velocity vector field of X & X_r ')
+%% save the truncated data as mat file
+save('velocity','Uxr_H_Velocity_truncated','Uyr_V_Velocity_truncated','x','y','t','dt')
