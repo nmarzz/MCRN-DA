@@ -37,12 +37,21 @@ ylabel('Cumulative')
 U_r=U(:,1:r);S_r=S(1:r,1:r);V_r=V(:,1:r)';%Truncate U,S,V using the rank r
 X_r=U_r*S_r*V_r; %Truncated matrix
 
+
 %% Try to visualize the POD effect (difficult to do with 40 dimensions)
-% for i = 1:length(t) 
-%     hold on;
-%     plot(t(i),y(i,:),'o');
-%     pause(0.05)
-% end
+
+figure(4)
+surfl(X(:,:));shading interp;
+title ('X' )
+figure(5)
+surfl(X_r(:,:));shading interp;
+title ('X_r' )
+figure(6)
+waterfall(X(:,:))
+title ('X')
+figure(7)
+waterfall(X_r(:,:))
+title ('X_r' )
 
 
 
