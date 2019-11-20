@@ -11,7 +11,7 @@ iproj=1;
 %Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
 iOPPF=1;
 %Number of particles
-L=100;
+L=50;
 %alpha value for projected resampling
 alpha=1.0;
 %Number of time steps 
