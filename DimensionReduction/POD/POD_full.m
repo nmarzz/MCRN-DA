@@ -155,7 +155,10 @@ title (fff,'Spatial modes of the vertical velocity' )
 
 %% time coefficient mode of matrix X
 figure(13)
-plot(t,V(:,1),'k',t,V(:,2),'-c','Linewidth',(2))
+plot(V(:,1),'k','Linewidth',(2))
+hold on
+plot(V(:,2),'-c','Linewidth',(2))
+hold off
 set(gca,'Fontsize',(8))
 legend('mode 1','mode 2','Location','SouthEast')
 
