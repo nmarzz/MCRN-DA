@@ -25,4 +25,8 @@ function [analysis,xbar,background]=letkfstep(F,time,h,irad,background,yobs,choi
        [analysis,xbar] = create_analysis(irad, background, yobs, choice, Rdiag, rho);
 
        % Generate the next forecast
-       background = rkfixed(F, time, analysis, h);
+ %      background = rkfixed(F, time, analysis, h);
+ sz = size(background);
+ for ii = 1:sz(2)
+     background(:,ii) = formod(time, analysis(:,ii), h, F);
+ end

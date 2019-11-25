@@ -1,4 +1,4 @@
-function run(F,dim,nsol, nsteps, irad, obsfrac, obserr, rho)
+function run(F,truth, dim,nsol, nsteps, irad, obsfrac, obserr, rho)
 %  RUN - Run an analysis/forecast cycle for the model.
 %  NSOL : the number of forecast ensembles to create and analyze.
 %  NSTEPS : the number of time steps that the cycle should run.
@@ -23,8 +23,9 @@ function run(F,dim,nsol, nsteps, irad, obsfrac, obserr, rho)
 %  GNU General Public License for more details.
 %  You should have received a copy of the GNU General Public License
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-    [truth, background] = initswe(F,dim,nsol);
+    pert = 0.1;
+    background = createbackground(truth,pert,nsol);
+    % [truth, background] = initializenew(F,dim,nsol);
     %h = 0.05;
     figure(1);
     %pause
@@ -44,7 +45,8 @@ function run(F,dim,nsol, nsteps, irad, obsfrac, obserr, rho)
        %h=0.05;
        %background = rkfixed(F, k * 0.05, analysis, h);
 
-       truth = rkfixed(F, time, truth, h);
+       % truth = rkfixed(F, time, truth, h);
+       truth = formod(time, truth, h, F);
 
        [q,r]=mgs(analysis); 
        LEs = LEs + log(diag(r));
