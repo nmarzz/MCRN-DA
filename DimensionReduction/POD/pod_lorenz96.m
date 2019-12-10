@@ -1,5 +1,5 @@
 clear; clc;
-% used to create consistent interesting intitial conditions 
+% used to create consistent interesting intitial conditions
 % (sets rng seed)
 rng(1331);
 
@@ -11,27 +11,27 @@ X = y';
 
 %% Find and plot singular values and importance
 sig=diag(S);
-figure(1)
-plot(sig,'ko','Linewidth',(1.5)),grid on
-xlabel('k')
-ylabel('Singular value, \sigma_k')
-title('Standard plot of singular values')
- 
-figure(2)
-semilogy(diag(S),'bo','LineWidth',1.5), grid on
-xlabel('k')
-ylabel('Semilogy of diag(S)')
-hold off
-title('log plot of singular values')
+% figure(1)
+% plot(sig,'ko','Linewidth',(1.5)),grid on
+% xlabel('k')
+% ylabel('Singular value, \sigma_k')
+% title('Standard plot of singular values')
+%
+% figure(2)
+% semilogy(diag(S),'bo','LineWidth',1.5), grid on
+% xlabel('k')
+% ylabel('Semilogy of diag(S)')
+% hold off
+% title('log plot of singular values')
 
 %% Find how many s values are needed to achieve tol% of the information
 Tol=0.5;
-cdS =cumsum(sig.^2)./sum(sig.^2);% cumulative 
-r =find(cdS>Tol, 1 ); 
-figure(3)
-plot(cdS,'ko','LineWidth',1.2),grid on
-xlabel('k')
-ylabel('Cumulative')
+cdS =cumsum(sig.^2)./sum(sig.^2);% cumulative
+r =find(cdS>Tol, 1 );
+% figure(3)
+% plot(cdS,'ko','LineWidth',1.2),grid on
+% xlabel('k')
+% ylabel('Cumulative')
 
 %% Truncate matrix
 U_r=U(:,1:r);S_r=S(1:r,1:r);V_r=V(:,1:r)';%Truncate U,S,V using the rank r
@@ -39,33 +39,21 @@ X_r=U_r*S_r*V_r; %Truncated matrix
 
 
 %% Try to visualize the POD effect (difficult to do with 40 dimensions)
-
-figure(4)
-surfl(X(:,:));shading interp;
-title ('X' )
-figure(5)
-surfl(X_r(:,:));shading interp;
-title ('X_r' )
-figure(6)
-waterfall(X(:,:))
-title ('X')
-figure(7)
-waterfall(X_r(:,:))
-title ('X_r' )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+% figure(4)
+% surfl(X(:,:));shading interp;
+% title ('X' )
+% figure(5)
+% surfl(X_r(:,:));shading interp;
+% title ('X_r' )
+% figure(6)
+% waterfall(X(:,:))
+% title ('X')
+% figure(7)
+% waterfall(X_r(:,:))
+% title ('X_r' )
+%%
+Q=U(:,1);
+P=Q*transpose(Q);
+v = transpose(Q)*X;
+w = Q*v;
 
