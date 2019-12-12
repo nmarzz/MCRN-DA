@@ -61,27 +61,49 @@ title ('X_r' )
 
 rng(1331); % set a random number seed for consistent simulations.
 
-dimension = 400;
-lorenzinit = rand(dimension,1);
-[t,y] = ode45(@lorenz96,[0,10],lorenzinit);
+dimension = 400;  % dimension of the Lorenz96 system.
+lorenzinit = rand(dimension,1);  % initial conditions.
+outputtimes = linspace(0,10,400);  % output times for the ode45 calls.
+[t,y] = ode45(@lorenz96,outputtimes,lorenzinit);
 
-tol = 0.999; % This is the amount of information we keep.
-lorenz96run = y';
+tol = 0.9999; % This is the amount of information we keep in the SVD reduction.
+lorenz96run = y';  % This is the output of the original model run.
+
 [r, X_r, U_r, V_r, S_r] = orderreduction(tol, lorenz96run);
 
 Q = U_r;            % Let Q denote the first r columns of U
 P = Q*transpose(Q);  %  and P = QQ^T.
 v = transpose(Q)*lorenz96run;    % v = Q^T u
-w = Q*v;
+w = Q*v;    % Let w = Q v so that w = QQ^T u.  This is an approximation
+% of u where we've used the reduced basis to represent the data.
 
-% Are we running a differential equation for the reduced order model?
-% (Meaning, does an ode45 call happen here with G(v)?)
-[t,yr] = ode45(@(t,y) reducedlorenz96(t,y,Q),[0,10],transpose(Q)*lorenzinit);
+% We also createa a reduced order diff eq model,
+% and run that.
+% (Meaning, an ode45 call happens here with G(v)):
+% the reduced order model is v' = G(v) where v = Q^T u and G(v) = Q^T F(Q v). 
+% The IC for v is v(0)=Q^T u(0), so transpose(Q)*lorenzinit.
+[t,yr] = ode45(@(t,v) reducedlorenz96(t,v,Q),outputtimes,transpose(Q)*lorenzinit);
 reduced96 = yr';
 wr = Q*reduced96;
 
+%%
+tollist = [0.9, 0.99, 0.999, 0.9999, 0.99999];
 
-
+tol = 0.9999; % This is the amount of information we keep in the SVD reduction.
+for k = 1:5
+subplot(5,1,k)
+tol = tollist(k);
+[lorenz96run,w,wr] = comparereduction(tol);
+hold off
+plot(outputtimes,lorenz96run(1,:),'linewidth',2)
+hold on
+plot(outputtimes,w(1,:),'linewidth',2)
+plot(outputtimes,wr(1,:),'linewidth',2)
+xlabel('time')
+ylabel('output')
+legend({'model output','reduced output','reduced model'},'location','southeast')
+title(['tolerance = ' num2str(tol)])
+end
 %%
 % u' = F(u) -> Pu' = PF(Pu), P=QQ^T -> Q^T u' = Q^T F(QQ^T u) and let 
 % v = Q^T u -> v' = Q^T F(Q v) = G(v) where G(v) = Q^TF(Q v)
@@ -118,7 +140,33 @@ Xr = Ur*Sr*Vr; % Truncated matrix
 end
 
 
+function [lorenz96run,w,wr] = comparereduction(tol)
+rng(1331); % set a random number seed for consistent simulations.
 
+dimension = 400;  % dimension of the Lorenz96 system.
+lorenzinit = rand(dimension,1);  % initial conditions.
+outputtimes = linspace(0,10,400);  % output times for the ode45 calls.
+[t,y] = ode45(@lorenz96,outputtimes,lorenzinit);
+
+lorenz96run = y';  % This is the output of the original model run.
+
+[r, X_r, U_r, V_r, S_r] = orderreduction(tol, lorenz96run);
+
+Q = U_r;            % Let Q denote the first r columns of U
+P = Q*transpose(Q);  %  and P = QQ^T.
+v = transpose(Q)*lorenz96run;    % v = Q^T u
+w = Q*v;    % Let w = Q v so that w = QQ^T u.  This is an approximation
+% of u where we've used the reduced basis to represent the data.
+
+% We also createa a reduced order diff eq model,
+% and run that.
+% (Meaning, an ode45 call happens here with G(v)):
+% the reduced order model is v' = G(v) where v = Q^T u and G(v) = Q^T F(Q v). 
+% The IC for v is v(0)=Q^T u(0), so transpose(Q)*lorenzinit.
+[t,yr] = ode45(@(t,v) reducedlorenz96(t,v,Q),outputtimes,transpose(Q)*lorenzinit);
+reduced96 = yr';
+wr = Q*reduced96;
+end
 
 
 
