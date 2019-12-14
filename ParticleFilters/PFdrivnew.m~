@@ -6,13 +6,6 @@
 % 5) Implement other observation operators. DONE.
 % 6) Implement separate covariances for IC and for resampling. DONE.
 
-%% Attempt to write this PF with Particle Filter:
-% - Rather than use xnew (u_n) equal to dp4(model) use the POD Model
-
-%% Get POD 
-
-
-%% 
 %Initialization
 %Use of projection (iproj=0 => No Projection, iproj=1 => Projection)
 iproj=1;
