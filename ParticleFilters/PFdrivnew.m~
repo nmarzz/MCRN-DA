@@ -11,14 +11,14 @@ clear; clc;
 % Rather than use xnew (u_n) equal to dp4(model) use the POD Model
 
 %% Get POD and define reduced function
-tol = 0.9999; % Set POD tolerance
-N = 400;  % dimension of the Lorenz96 system.
+tol = 0.99999999; % Set POD tolerance
+N = 4000;  % dimension of the Lorenz96 system.
 %ICs for particles
 IC = zeros(N,1);
 IC(1)=1;
 
 outputtimes = 0:0.005:4.9999; % output times for the ode45 calls.
-[t,y] = ode45(@lorenz96,outputtimes,IC);
+[~,y] = ode45(@lorenz96,outputtimes,IC);
 
 lorenz96run = y';  % This is the output of the original model run.
 [r, Xr, Ur, Vr, Sr] = orderReduction(tol, lorenz96run); % Get POD 
@@ -83,32 +83,35 @@ Rinvfixed=Rinv;
 
 %Add noise N(0,ICcov) to ICs to form different particles
 x = zeros(N,L);
+%% The funky (Q'*Q) is my best quess as to what (Q^T Noise )means
 x = repmat(IC,1,L) + mvnrnd(Nzeros,ICcov,L)'; %ICchol*randn(N,L);
 estimate(:,1) = x*w;
 
 y=zeros(M,Numsteps);
 
-
-%Generate observations from "Truth"
-for i = 1:Numsteps
-truth(:,i) = IC;
-if mod(i,ObsMult)==0
-y(:,i)=H*IC + mvnrnd(Mzeros,R,1)'; %Rchol*rand(M,1); % + Noise from N(0,R)
-end
-IC = dp4(Fmod,t,IC,h);
-t = ;
-end
-
 %Initial time and time step
-t=0;
+t = 0;
 t0=t;
 Resamps=0;
 RMSEave=0;
 iRMSE=1;
 
+
+%Generate observations from "Truth"
+for i = 1:Numsteps
+t = outputtimes(i);
+truth(:,i) = IC;
+if mod(i,ObsMult)==0
+    %% The funky (H*Q')*(Q*H') is my best quess at what Q^T*Noise is
+y(:,i)=H*IC + mvnrnd(Mzeros,(H*Q')*(Q*H')*R,1)'; %Rchol*rand(M,1); % + Noise from N(0,R)
+end
+IC = dp4(Fmod,t,IC,h);
+end
+
+
 %Loop over observation times
 for i=1:Numsteps
-
+t = outputtimes(i);
 %Form AUS projection and update LEs
 est=estimate(:,i);
 [q,LE] = getausproj(N,p,Fmod,t,est,h,q,LE);
@@ -118,7 +121,8 @@ if mod(i,ObsMult)==0
 
 if (iOPPF==0)
 %Add noise only at observation times
-x = x + mvnrnd(Nzeros,Sig,L)';
+ %% The funky (Q'*Q) is my best quess at what Q^T*Noise is
+x = x + mvnrnd(Nzeros,(Q'*Q)*Sig,L)';
 %Standard Particle Filter
 if (iproj==0)
 %Standard PF (no projection)
@@ -220,7 +224,7 @@ iRMSE = iRMSE+1;
 
 end
 
-t = t+h
+
 
 end
 
@@ -229,4 +233,11 @@ RMSEave = RMSEave/Numsteps;
 
 ResampPercent = ObsMult*Resamps/Numsteps;
 
-LE = LE/(t-t0)
+LE = LE/(t-t0);
+
+wr = Q*truth;
+plot(lorenz96run(1,:))
+hold on;
+plot(wr(1,:))
+
+max(abs(lorenz96run(1,:) - wr(1,:)))

@@ -83,6 +83,7 @@ Rinvfixed=Rinv;
 
 %Add noise N(0,ICcov) to ICs to form different particles
 x = zeros(N,L);
+%% The funky (Q'*Q) is my best quess as to what (Q^T Noise )means
 x = repmat(IC,1,L) + mvnrnd(Nzeros,ICcov,L)'; %ICchol*randn(N,L);
 estimate(:,1) = x*w;
 
@@ -101,7 +102,8 @@ for i = 1:Numsteps
 t = outputtimes(i);
 truth(:,i) = IC;
 if mod(i,ObsMult)==0
-y(:,i)=H*IC + mvnrnd(Mzeros,R,1)'; %Rchol*rand(M,1); % + Noise from N(0,R)
+    %% The funky (H*Q')*(Q*H') is my best quess at what Q^T*Noise is
+y(:,i)=H*IC + mvnrnd(Mzeros,(H*Q')*(Q*H')*R,1)'; %Rchol*rand(M,1); % + Noise from N(0,R)
 end
 IC = dp4(Fmod,t,IC,h);
 end
@@ -119,7 +121,8 @@ if mod(i,ObsMult)==0
 
 if (iOPPF==0)
 %Add noise only at observation times
-x = x + mvnrnd(Nzeros,Sig,L)';
+ %% The funky (Q'*Q) is my best quess at what Q^T*Noise is
+x = x + mvnrnd(Nzeros,(Q'*Q)*Sig,L)';
 %Standard Particle Filter
 if (iproj==0)
 %Standard PF (no projection)
