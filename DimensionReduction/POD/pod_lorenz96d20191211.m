@@ -104,7 +104,7 @@ tollist = [0.9, 0.99, 0.999, 0.9999, 0.99999];
 tol = 0.9999; % This is the amount of information we keep in the SVD reduction.
 for k = 1:5
 subplot(5,1,k)
-tol = tollist(k);
+tol = tollist(k);1
 [lorenz96run,w,wr] = comparereduction(tol);
 hold off
 plot(outputtimes,lorenz96run(1,:),'linewidth',2)
@@ -153,7 +153,7 @@ end
 
 
 function [lorenz96run,w,wr] = comparereduction(tol)
-rng(1331); % set a random number seed for consistent simulations.
+
 
 dimension = 400;  % dimension of the Lorenz96 system.
 lorenzinit = rand(dimension,1);  % initial conditions.

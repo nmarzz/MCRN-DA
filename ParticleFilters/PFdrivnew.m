@@ -1,3 +1,4 @@
+clear; clc;
 %To do: 
 % 1) Make the observation times more general, typically is an integer multiple of the time step. DONE.
 % 2) Add other models, e.g., Lorenz '96, ... DONE.
@@ -7,12 +8,33 @@
 % 6) Implement separate covariances for IC and for resampling. DONE.
 
 %% Attempt to write this PF with Particle Filter:
-% - Rather than use xnew (u_n) equal to dp4(model) use the POD Model
+% Rather than use xnew (u_n) equal to dp4(model) use the POD Model
 
-%% Get POD 
+%% Get POD and define reduced function
+tol = 0.99999999; % Set POD tolerance
+N = 4000;  % dimension of the Lorenz96 system.
+%ICs for particles
+IC = zeros(N,1);
+IC(1)=1;
 
+outputtimes = 0:0.005:4.9999; % output times for the ode45 calls.
+[~,y] = ode45(@lorenz96,outputtimes,IC);
+
+lorenz96run = y';  % This is the output of the original model run.
+[r, Xr, Ur, Vr, Sr] = orderReduction(tol, lorenz96run); % Get POD 
+
+Q = Ur;            % Let Q denote the first r columns of U
+P = Q*transpose(Q);  %  and P = QQ^T.
+v = transpose(Q)*lorenz96run;    % v = Q^T u
+
+
+
+% Reduced Problem
+Fmod = @(t,x) reducedlorenz96(t,x,Q);
+IC = Q'*IC;
 
 %% 
+N = r;
 %Initialization
 %Use of projection (iproj=0 => No Projection, iproj=1 => Projection)
 iproj=1;
@@ -36,16 +58,11 @@ p=10;
 %%ICs for particles
 %IC = [0 1 0]';
 
-%Dimension of model space
-N=40;
-%Problem
-Fmod = @FLor95
-%ICs for particles
-IC = zeros(N,1);
-IC(1)=1;
+%% Use our reduced function
+N = r;
 
 %Computational time step
-h=5.E-3;
+h=0.005;
 
 %For diagonal (alpha*I) covariance matrices.
 %Observation
@@ -71,27 +88,28 @@ estimate(:,1) = x*w;
 
 y=zeros(M,Numsteps);
 
-t=0;
-%Generate observations from "Truth"
-for i = 1:Numsteps
-truth(:,i) = IC;
-if mod(i,ObsMult)==0
-y(:,i)=H*IC + mvnrnd(Mzeros,R,1)'; %Rchol*rand(M,1); % + Noise from N(0,R)
-end
-IC = dp4(Fmod,t,IC,h);
-t = t+h;
-end
-
 %Initial time and time step
-t=0;
+t = 0;
 t0=t;
 Resamps=0;
 RMSEave=0;
 iRMSE=1;
 
+
+%Generate observations from "Truth"
+for i = 1:Numsteps
+t = outputtimes(i);
+truth(:,i) = IC;
+if mod(i,ObsMult)==0
+y(:,i)=H*IC + mvnrnd(Mzeros,R,1)'; %Rchol*rand(M,1); % + Noise from N(0,R)
+end
+IC = dp4(Fmod,t,IC,h);
+end
+
+
 %Loop over observation times
 for i=1:Numsteps
-
+t = outputtimes(i);
 %Form AUS projection and update LEs
 est=estimate(:,i);
 [q,LE] = getausproj(N,p,Fmod,t,est,h,q,LE);
@@ -175,7 +193,7 @@ x = dp4(Fmod,t,x,h);
 estimate(:,i+1) = x*w;
 
 diff = truth(:,i)-estimate(:,i);
-RMSE = sqrt(diff'*diff/N)
+RMSE = sqrt(diff'*diff/N);
 RMSEave = RMSEave + RMSE;
 
 if mod(i,ObsMult)==0
@@ -185,34 +203,38 @@ RMSEsave(iRMSE)=RMSE;
 iRMSE = iRMSE+1;
 
 %Plot
-yvars=colon(1,inth,N);
-vars = linspace(1,N,N);
-sz=zeros(N,1);
-plots(1) = plot(vars,truth(:,i),'ro-');
-hold on
-plots(2) = plot(vars,estimate(:,i+1),'bo-');
-for j=1:L
-  sz(:)=w(j)*80*L;
-  scatter(vars,x(:,j),sz,'b','filled');
-end
-plots(3) = plot(yvars,y(:,i),'g*','MarkerSize',20);
-title(['Time = ',num2str(t)])
-legend(plots(1:3),'Truth','Estimate','Obs');
-pause(1);
-hold off
+% yvars=colon(1,inth,N);
+% vars = linspace(1,N,N);
+% sz=zeros(N,1);
+% plots(1) = plot(vars,truth(:,i),'ro-');
+% hold on
+% plots(2) = plot(vars,estimate(:,i+1),'bo-');
+% for j=1:L
+%   sz(:)=w(j)*80*L;
+%   scatter(vars,x(:,j),sz,'b','filled');
+% end
+% plots(3) = plot(yvars,y(:,i),'g*','MarkerSize',20);
+% title(['Time = ',num2str(t)])
+% legend(plots(1:3),'Truth','Estimate','Obs');
+% pause(1);
+% hold off
 
 end
 
-t = t+h;
+
 
 end
 
-figure(2)
-plot(Time,RMSEsave);
 
+RMSEave = RMSEave/Numsteps;
 
-RMSEave = RMSEave/Numsteps
+ResampPercent = ObsMult*Resamps/Numsteps;
 
-ResampPercent = ObsMult*Resamps/Numsteps
+LE = LE/(t-t0);
 
-LE = LE/(t-t0)
+wr = Q*truth;
+plot(lorenz96run(1,:))
+hold on;
+plot(wr(1,:))
+
+max(abs(lorenz96run(1,:) - wr(1,:)))
