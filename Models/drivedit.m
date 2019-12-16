@@ -1,8 +1,9 @@
 % Driver file to set up the system, assign its dimensions, and call the run function.
 
-
-% F=@lorenz96;  % Needs to setup something about SWE to indicate we're using that.
-dim=40;  % number of dimensions sounds find.
+[truth,u,v,h,pars,parsanim]=init_swe; % Initialize SWE
+F = pars;       % I'll pass  a bunch of parameters, held in pars, on to run.
+% F=@lorenz96;  % This was for Lorenz96.
+dim=38100;  % number of dimensions.
 irad=5;  % I assume irad is iterates.
-run(F,dim,20,200,irad,0.5,1,1)
+runnew(F,truth,dim,20,200,irad,0.5,1,1)
 

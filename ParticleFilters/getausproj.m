@@ -4,7 +4,7 @@ function [q,LE] = getausproj(N,p,Fmod,t,est,h,q,LE)
 NEWDIFF=zeros(N,p);
 sqrteps=sqrt(eps(1));
 
-%% OVER ALL THE LYAPUNOV EXPONENTS WE WANT, SOME p<=DIM
+% OVER ALL THE LYAPUNOV EXPONENTS WE WANT, SOME p<=DIM
    xnew = dp4(Fmod,t,est,h);
 
 %EVALUATE F(X+eps^{1/2}*Qj)
