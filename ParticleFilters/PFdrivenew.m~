@@ -1,8 +1,5 @@
 clear; clc;
 %To do:
-%% Adjust Noise! Double check all
-
-
 % 1) Make the observation times more general, typically is an integer multiple of the time step. DONE.
 % 2) Add other models, e.g., Lorenz '96, ... DONE.
 % 3) Implement Proj-PF with Proj-Resamp DONE.
@@ -16,10 +13,10 @@ t0 = 0;
 endtime = 10;
 h=5.E-3;
 Numsteps = endtime/h;
-timeSteps = linspace(t0,endtime,Numsteps); % timesteps
+timeSteps = t0:h:endtime; % timesteps
 
 %% Create Reduced Model
-tol = 0.999; % Set POD tolerance
+tol = 0.9; % Set POD tolerance
 fullN = 400;  % dimension of the Lorenz96 system.
 IC = zeros(fullN,1); %ICs for particles
 IC(1)=1;
@@ -222,12 +219,8 @@ end
 % RMSEave = RMSEave/Numsteps
 % ResampPercent = ObsMult*Resamps/Numsteps
 % LE = LE/(t-t0)
-%% Plot our estimates against the background model the 
-truth = Q*truth;
-estimate = Q* estimate;
-plot(timeSteps,lorenz96run(1,:),'color','green')
+
+wr = Q*truth;
+plot(timeSteps,lorenz96run(1,:))
 hold on;
-plot(timeSteps,truth(1,:),'color','blue')
-hold on;
-plot(timeSteps,estimate(1,1:(end - 1)),'color','red')
-legend({'Full Lorenz Model','True values','PF Estimated Values'},'location','southeast')
+plot(timeSteps,wr(1,:))

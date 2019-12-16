@@ -156,7 +156,8 @@ function [lorenz96run,w,wr] = comparereduction(tol)
 
 
 dimension = 400;  % dimension of the Lorenz96 system.
-lorenzinit = rand(dimension,1);  % initial conditions.
+lorenzinit = zeros(dimension,1);  % initial conditions.
+lorenzinit(1) = 1;
 outputtimes = linspace(0,10,400);  % output times for the ode45 calls.
 [t,y] = ode45(@lorenz96,outputtimes,lorenzinit);
 
