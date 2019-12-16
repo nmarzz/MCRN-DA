@@ -2,6 +2,7 @@ clear; clc;
 %To do:
 %% Adjust Noise! Double check all
 
+
 % 1) Make the observation times more general, typically is an integer multiple of the time step. DONE.
 % 2) Add other models, e.g., Lorenz '96, ... DONE.
 % 3) Implement Proj-PF with Proj-Resamp DONE.
@@ -70,9 +71,11 @@ Rinvfixed=Rinv;
 x = repmat(IC,1,L) + mvnrnd(Nzeros,ICcov,L)'; %ICchol*randn(N,L);
 estimate(:,1) = x*w;
 
+y=zeros(M,Numsteps);
+
+
 %% Generate observations from truth
 Qm = Q(1:inth:end,:); % Q matrix but adjusted for observing every 'ith' variable
-y=zeros(M,Numsteps);
 for i = 1:Numsteps
     t = timeSteps(i);
     truth(:,i) = IC;
@@ -88,12 +91,11 @@ RMSEave=0;
 iRMSE=1;
 
 
-%% Run Particle Filter
-% Use reduced model
+%% Run main part of filter
 v = Q' * x;
 Fmod = @(t,x) Q'*Fmod(t,Q'*x);
 
-for i=1:Numsteps   % NOTE: THIS IS UNMODIFIED FROM ERIK'S CODE: KEY QUESTION- What happens to 'M' when using reduced model?
+for i=1:Numsteps
     t = timeSteps(i);
     %Form AUS projection and update LEs
     est=estimate(:,i);
