@@ -240,4 +240,3 @@ plot(lorenz96run(1,:))
 hold on;
 plot(wr(1,:))
 
-max(abs(lorenz96run(1,:) - wr(1,:)))
