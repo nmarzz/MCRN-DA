@@ -17,11 +17,11 @@ endtime = 10;
 h=5.E-3;
 Numsteps = endtime/h;
 timeSteps = linspace(t0,endtime,Numsteps); % timesteps
-
+Fmod = @lorenz96;
 %% Create Reduced Model
 tol = 0.999; % Set POD tolerance
-fullN = 400;  % dimension of the Lorenz96 system.
-IC = zeros(fullN,1); %ICs for particles
+N = 400;  % dimension of the Lorenz96 system.
+IC = zeros(N,1); %ICs for particles
 IC(1)=1;
 
 % Get information from full model
@@ -31,11 +31,7 @@ lorenz96run = w';
 [r, Xr, Ur, Vr, Sr] = orderReduction(tol, lorenz96run); % Get POD
 Q = Ur;            % Let Q denote the first r columns of U
 
-% Create Reduced Model and reassign dimension and initial conditions
-Fmod = @(t,v) reducedlorenz96(t,v,Q);
-N = r;
-IC = Q' * IC;
-
+% Now that we have Q we can build G = Q^T F(QQ^T u) when needed
 %% Initialize Parameters
 %Use of projection (iproj=0 => No Projection, iproj=1 => Projection)
 iproj=1;
@@ -72,8 +68,8 @@ inth=2;
 Rinvfixed=Rinv;
 
 %Add noise N(0,ICcov) to ICs to form different particles
-x = zeros(N,L);
 x = repmat(IC,1,L) + mvnrnd(Nzeros,ICcov,L)'; %ICchol*randn(N,L);
+x = Q' * x;
 estimate(:,1) = x*w;
 
 y=zeros(M,Numsteps);
