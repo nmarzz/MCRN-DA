@@ -180,11 +180,7 @@ h = height - H;
 %size(v)
 %size(h)
 
-%Put into xnew
-u1=reshape(u,nx*ny,1);
-v1=reshape(v,nx*ny,1);
-h1=reshape(h,nx*ny,1);
-xnew=cat(1,u1,v1,h1);
+
 
 %Load parameters
 pars.F=F;
@@ -194,6 +190,14 @@ pars.dy=dy;
 pars.H=H;
 pars.nx=nx;
 pars.ny=ny;
+
+%Put into xnew
+xnew = swe_datatovector(u,v,h,nx, ny);
+% u1=reshape(u,nx*ny,1);
+% v1=reshape(v,nx*ny,1);
+% h1=reshape(h,nx*ny,1);
+% xnew=cat(1,u1,v1,h1);
+
 
 %Load animation parameters
 parsanim.x = x;

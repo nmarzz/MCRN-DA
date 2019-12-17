@@ -12,12 +12,13 @@ nx=pars.nx;
 ny=pars.ny;
 
 %Break up x into u,v,h
-u1=x(1:nx*ny);
-v1=x(nx*ny+1:2*nx*ny);
-h1=x(2*nx*ny+1:3*nx*ny);
-u=reshape(u1,nx,ny);
-v=reshape(v1,nx,ny);
-h=reshape(h1,nx,ny);
+[u,v,h] = swe_vectortodata(x,nx,ny);
+% u1=x(1:nx*ny);
+% v1=x(nx*ny+1:2*nx*ny);
+% h1=x(2*nx*ny+1:3*nx*ny);
+% u=reshape(u1,nx,ny);
+% v=reshape(v1,nx,ny);
+% h=reshape(h1,nx,ny);
 
   % Compute the accelerations
   u_accel = F(2:end-1,2:end-1).*v(2:end-1,2:end-1) ...
@@ -37,9 +38,10 @@ h=reshape(h1,nx,ny);
   h(:,2:end-1) = h_new([end 1:end 1],:);
 
 %Put into xnew
-u1=reshape(u,nx*ny,1);
-v1=reshape(v,nx*ny,1);
-h1=reshape(h,nx*ny,1);
-xnew=cat(1,u1,v1,h1);
+xnew = swe_datatovector(u,v,h,nx,ny);
+% u1=reshape(u,nx*ny,1);
+% v1=reshape(v,nx*ny,1);
+% h1=reshape(h,nx*ny,1);
+% xnew=cat(1,u1,v1,h1);
 
 end

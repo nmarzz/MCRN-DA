@@ -4,10 +4,10 @@ function [Xa,xbar] = create_analysis(irad, background, yobs, choice, Rdiag, rho)
 %  ---------------
 %  IRAD : the number of points ("radius") on each size of the point to be
 %    analyzed.  That is, the (m,n)th spatial point is analyzed using points
-%    m-IRAD:m+IRAD,n-IRAD:n+IRAD; the code handles boundaries by cutting off.
+%    m-IRAD:K+IRAD, ; the code handles the wraparound (point N+1 <=> point 1).
 %  BACKGROUND : the N x NSOL background ensemble solutions.  There are NSOL
 %    members of the ensemble, and each ensemble represents the N states of
-%    the model.
+%    the Lorenz96 model.
 %  RDIAG : We assume uncorrelated observation errors, so RDIAG(k) is the
 %    error (variance) in the Kth observation.
 %  RHO : Variance inflation factor (use 1 for no inflation).
@@ -22,6 +22,9 @@ function [Xa,xbar] = create_analysis(irad, background, yobs, choice, Rdiag, rho)
    nsol = size(background, 2);
    Xa = zeros(size(background));
    for k = 1:n
+%This depends on having periodic BCs
+%      window = circshift([1:n]', irad-k+1);
+%      point = irad+1;
 %This works with non-periodic BCs
       if k-irad >= 1 & k+irad <=n
          window = circshift([1:n]', irad-k+1); %will use center point
