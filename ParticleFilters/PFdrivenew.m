@@ -12,14 +12,14 @@ clear; clc;
 %% Initialization
 % Compute time steps
 t0 = 0;
-endtime = 10;
+endtime = 5;
 h=5.E-3;
 Numsteps = endtime/h;
 timeSteps = linspace(t0,endtime,Numsteps); % timesteps
 Fmod = @lorenz96;
 %% Create Reduced Model
 tol = 0.999; % Set POD tolerance
-N = 400;  % dimension of the Lorenz96 system.
+N = 200;  % dimension of the Lorenz96 system.
 IC = zeros(N,1); %ICs for particles
 IC(1)=1;
 
@@ -30,12 +30,15 @@ lorenz96run = w';
 [r, Xr, Ur, Vr, Sr] = orderReduction(tol, lorenz96run); % Get POD
 Q = Ur;            % Let Q denote the first r columns of U
 
+% Define reduced model
+redF = @(t,x) reducedlorenz96(t,x,Q);
+
 % Now that we have Q we can build G = Q^T F(QQ^T u) when needed
 %% Initialize Parameters
 %Use of projection (iproj=0 => No Projection, iproj=1 => Projection)
 iproj=0;
 %Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
-iOPPF=1;
+iOPPF=0;
 %Number of particles
 L=50;
 %alpha value for projected resampling
@@ -45,7 +48,6 @@ alpha=1.0;
 ObsMult=10;
 %Rank of projection, number of Lyapunov exponents for AUS projection
 p=10;
-
 
 %% Set Covariance Matricies
 %For diagonal (alpha*I) covariance matrices.
@@ -68,10 +70,13 @@ Rinvfixed=Rinv;
 
 %Add noise N(0,ICcov) to ICs to form different particles
 x = repmat(IC,1,L) + mvnrnd(Nzeros,ICcov,L)'; %ICchol*randn(N,L);
-estimate(:,1) = x*w;
+v = Q' * x; % Our reduced values
+estimate(:,1) = v*w;
 
-%% Generate observations from truth
+%% Generate observations from truth 
 Qm = Q(1:inth:end,:); % Q matrix but adjusted for observing every 'ith' variable
+
+
 y=zeros(M,Numsteps);
 for i = 1:Numsteps
     t = timeSteps(i);
@@ -87,28 +92,24 @@ Resamps=0;
 RMSEave=0;
 iRMSE=1;
 
-
 %% Run Particle Filter
-% Use reduced model
-v = Q' * x;
-Fmod = @(t,x) Q'*Fmod(t,Q'*x);
-
-for i=1:Numsteps   % NOTE: THIS IS UNMODIFIED FROM ERIK'S CODE: KEY QUESTION- What happens to 'M' when using reduced model?
+for i=1:Numsteps   % NOTE: THIS IS UNMODIFIED FROM ERIK'S CODE
     t = timeSteps(i);
     %Form AUS projection and update LEs
     est=estimate(:,i);
-    [q,LE] = getausproj(N,p,Fmod,t,est,h,q,LE);
+ %  [q,LE] = getausproj(N,p,Fmod,t,est,h,q,LE);
     
     if mod(i,ObsMult)==0
         %At observation times, Update weights via likelihood
         
         if (iOPPF==0)
             %Add noise only at observation times
-            x = x + mvnrnd(Nzeros,Sig,L)';
+            x = x + mvnrnd(Nzeros,Sig,L)'; % Would want to reduced physical model
+            v = v + Q' * mvnrnd(Nzeros,Sig,L)'; 
             %Standard Particle Filter
             if (iproj==0)
                 %Standard PF (no projection)
-                Innov = repmat(y(:,i),1,L) - H*x;
+                Innov = repmat(y(:,i),1,L) - H*x; % Use UN-reduced physical model
             else
                 %Proj-PF
                 %H -> Q_n^T P_H where P_H = H^T (H H^T)^{-1} H = H^+ H
@@ -147,13 +148,15 @@ for i=1:Numsteps   % NOTE: THIS IS UNMODIFIED FROM ERIK'S CODE: KEY QUESTION- Wh
         tempering = 1.2; %%%% <<< including new parameter here for visibility. Tempering usually a little larger than 1.
         Tdiag = (Tdiag-max(Tdiag))/tempering; %%%%% <<<< Think dividing the exponent is dangerous; this was tempering with an unknown coefficient.
         LH = exp(-Tdiag/2); %%%% <<<< divided exponent by 2; this is part of the normal distribution
-        w=LH.*w;
+        
+        w=LH.*w; % Reassign- weights
         
         %Normalize weights
         w=w/(w'*Lones);
         
         %Resampling (with resamp.m that I provided or using the pseudo code in Peter Jan ,... paper)
-        [w,x,NRS] = resamp(w,x,0.5);
+        
+        [w,v,NRS] = resamp(w,v,0.5); % CHANGE TO V - USE REDUCED
         Resamps = Resamps + NRS;
         
         %Update Particles
@@ -162,7 +165,7 @@ for i=1:Numsteps   % NOTE: THIS IS UNMODIFIED FROM ERIK'S CODE: KEY QUESTION- Wh
         if (NRS==1)
             if (iproj==0)
                 %Standard resampling
-                x = x + mvnrnd(Nzeros,Sig,L)'; %Sigchol*randn(N,L);
+                v = v + Q' * mvnrnd(Nzeros,Sig,L)'; %Sigchol*randn(N,L);
             else
                 %Projected resampling
                 x = x + (alpha*q*q' + (1-alpha))*mvnrnd(Nzeros,Omega,L)'; %Omegachol*randn(N,L);
@@ -173,12 +176,14 @@ for i=1:Numsteps   % NOTE: THIS IS UNMODIFIED FROM ERIK'S CODE: KEY QUESTION- Wh
     end
     
     %Predict, add noise at observation times
+    v = dp4(redF,t,v,h);
     x = dp4(Fmod,t,x,h);
     
-    estimate(:,i+1) = x*w;
+    estimate(:,i+1) = v*w;
     
-    diff = truth(:,i)-estimate(:,i);
-    RMSE = sqrt(diff'*diff/N)
+    diff = Q' * truth(:,i)- estimate(:,i);
+    RMSE = sqrt(diff'*diff/r); % TEMP? Replace with r
+    RMSEvec(i) = RMSE; % TEMP? Replace with r
     RMSEave = RMSEave + RMSE;
     
     if mod(i,ObsMult)==0
@@ -186,24 +191,24 @@ for i=1:Numsteps   % NOTE: THIS IS UNMODIFIED FROM ERIK'S CODE: KEY QUESTION- Wh
         Time(iRMSE)=t;
         RMSEsave(iRMSE)=RMSE;
         iRMSE = iRMSE+1;
-        
-        %Plot
-        yvars=colon(1,inth,N);
-        vars = linspace(1,N,N);
-        sz=zeros(N,1);
-        plots(1) = plot(vars,truth(:,i),'ro-');
-        hold on
-        plots(2) = plot(vars,estimate(:,i+1),'bo-');
-        for j=1:L
-            sz(:)=w(j)*80*L;
-            scatter(vars,x(:,j),sz,'b','filled');
-        end
-        plots(3) = plot(yvars,y(:,i),'g*','MarkerSize',20);
-        title(['Time = ',num2str(t)])
-        legend(plots(1:3),'Truth','Estimate','Obs');
-        pause(1);
-        hold off
-        
+     
+%         %Plot
+%         yvars=colon(1,inth,N);
+%         vars = linspace(1,r,r);
+%         sz=zeros(r,1);
+%         plots(1) = plot(vars,Q'*truth(:,i),'ro-');
+%         hold on
+%         plots(2) = plot(vars,estimate(:,i+1),'bo-');
+%         for j=1:L
+%             sz(:)=w(j)*80*L;
+%             scatter(vars,v(:,j),sz,'b','filled');
+%         end
+% %         plots(3) = plot(yvars,Q'* y(:,i),'g*','MarkerSize',20);
+% %         title(['Time = ',num2str(t)])
+%         legend(plots(1:2),'Truth','Estimate');
+%         pause(1);
+%         hold off
+%         
     end
 end
 
@@ -211,12 +216,5 @@ RMSEave = RMSEave/Numsteps;
 ResampPercent = ObsMult*Resamps/Numsteps;
 LE = LE/(t-t0);
 
-%% Plot our estimates against the background model the 
-truth = Q*truth;
-estimate = Q* estimate;
-plot(timeSteps,lorenz96run(1,:),'color','green')
-hold on;
-plot(timeSteps,truth(1,:),'color','blue')
-hold on;
-plot(timeSteps,estimate(1,1:(end - 1)),'color','red')
-legend({'Full Lorenz Model','True values','PF Estimated Values'},'location','southeast')
+
+
