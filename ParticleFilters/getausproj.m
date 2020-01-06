@@ -5,13 +5,13 @@ NEWDIFF=zeros(N,p);
 sqrteps=sqrt(eps(1));
 
 % OVER ALL THE LYAPUNOV EXPONENTS WE WANT, SOME p<=DIM
-   xnew = dp4(Fmod,t, est,h);
-   
+   xnew = dp4(Fmod,t,est,h);
+
 %EVALUATE F(X+eps^{1/2}*Qj)
    NEWIC = repmat(est,1,p)+sqrteps*q;
    QTAU = dp4(Fmod,t,NEWIC,h);
    NEWDIFF = (QTAU - repmat(xnew,1,p))/sqrteps;
-   
+
 %CALL mgs
    [q,r] = mgs(NEWDIFF);
 
