@@ -2,13 +2,22 @@ clear; clc;
 % used to create consistent interesting intitial conditions 
 % (sets rng seed)
 
+rng(1331);
 
-%% Collect data on full lorenz96 model
+%% Collect data on  full lorenz96 model
+dimension = 400;
+[t,y] = ode45(@lorenz96,[0,10],rand(dimension,1));
+
+X = y';
+[U,S,V] = svd(X,'econ');
+
+
+%% Collect data on full loren z96 model
 
 
 
 %% Find and plot singular values and importance
-
+sig=diag(S);
 figure(1)
 plot(sig,'ko','Linewidth',(1.5)),grid on
 xlabel('k')
@@ -23,14 +32,17 @@ hold off
 title('log plot of singular values')
 
 %% Find how many s values are needed to achieve tol% of the information
-
+Tol=0.5;
+cdS =cumsum(sig.^2)./sum(sig.^2);% cumulative 
+r = find(cdS>Tol, 1 ); 
 figure(3)
 plot(cdS,'ko','LineWidth',1.2),grid on
 xlabel('k')
 ylabel('Cumulative')
 
 %% Truncate matrix
-
+U_r = U(:,1:r);  S_r = S(1:r,1:r);  V_r = V(:,1:r)'; % Truncate U,S,V using the rank r
+X_r = U_r*S_r*V_r; % Truncated matrix
 
 %% Try to visualize the POD effect (difficult to do with 40 dimensions)
 
@@ -92,7 +104,7 @@ tollist = [0.9, 0.99, 0.999, 0.9999, 0.99999];
 tol = 0.9999; % This is the amount of information we keep in the SVD reduction.
 for k = 1:5
 subplot(5,1,k)
-tol = tollist(k);
+tol = tollist(k);1
 [lorenz96run,w,wr] = comparereduction(tol);
 hold off
 plot(outputtimes,lorenz96run(1,:),'linewidth',2)
@@ -141,10 +153,11 @@ end
 
 
 function [lorenz96run,w,wr] = comparereduction(tol)
-rng(1331); % set a random number seed for consistent simulations.
+
 
 dimension = 400;  % dimension of the Lorenz96 system.
-lorenzinit = rand(dimension,1);  % initial conditions.
+lorenzinit = zeros(dimension,1);  % initial conditions.
+lorenzinit(1) = 1;
 outputtimes = linspace(0,10,400);  % output times for the ode45 calls.
 [t,y] = ode45(@lorenz96,outputtimes,lorenzinit);
 
