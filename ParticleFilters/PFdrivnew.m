@@ -5,7 +5,9 @@
 % 4) Implement OP-PF (DONE.) and Proj-OP-PF 
 % 5) Implement other observation operators. DONE.
 % 6) Implement separate covariances for IC and for resampling. DONE.
-%Initialization
+%% Initialization
+load('pod')
+
 %Use of projection (iproj=0 => No Projection, iproj=1 => Projection)
 iproj=1;
 %Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
@@ -29,7 +31,7 @@ p=10;
 %IC = [0 1 0]';
 
 %Dimension of model space
-N=40;
+N=400;
 %Problem
 Fmod = @FLor95
 %ICs for particles
@@ -86,8 +88,9 @@ for i=1:Numsteps
 
 %Form AUS projection and update LEs
 est=estimate(:,i);
-[q,LE] = getausproj(N,p,Fmod,t,est,h,q,LE);
-
+% [q,LE] = getausproj(N,p,Fmod,t,est,h,q,LE);
+[q]=getpod(Ur,p);
+proj=q*q';
 if mod(i,ObsMult)==0
 %At observation times, Update weights via likelihood
 
@@ -162,7 +165,8 @@ end
 end
 
 %Predict, add noise at observation times
-x = dp4(Fmod,t,x,h);
+
+x = proj*dp4(Fmod,t,proj*x,h);
 
 estimate(:,i+1) = x*w;
 

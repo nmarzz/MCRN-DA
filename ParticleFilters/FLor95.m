@@ -4,7 +4,8 @@ function dx = FLor95(T, x)
 % F = 8, DIM=40
 
     F=8;
-    DIM = 40;
+    DIM = size(x,1);
+    
     dx = zeros(DIM,1);
 
     for j=3:DIM-1
