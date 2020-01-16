@@ -1,4 +1,6 @@
 function [A,R] = mgs(A)
+%[q,r]=mgs(qhi) for DMD
+
 %Performs modified Gram-Schmidt to find Q,R
 %such that A=QR.
 %A is over written with orthgonal matrix Q
