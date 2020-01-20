@@ -6,7 +6,9 @@
 % 5) Implement other observation operators. DONE.
 % 6) Implement separate covariances for IC and for resampling. DONE.
 %% Initialization
+clear all;clc;
 load('pod')
+
 
 %Use of projection (iproj=0 => No Projection, iproj=1 => Projection)
 iproj=1;
@@ -31,9 +33,9 @@ p=10;
 %IC = [0 1 0]';
 
 %Dimension of model space
-N=400;
+N=500;
 %Problem
-Fmod = @FLor95
+Fmod = @FLor95;
 %ICs for particles
 IC = zeros(N,1);
 IC(1)=1;
@@ -84,13 +86,16 @@ RMSEave=0;
 iRMSE=1;
 
 %Loop over observation times
+% Sig=proj*Sig*proj;
 for i=1:Numsteps
 
 %Form AUS projection and update LEs
 est=estimate(:,i);
 % [q,LE] = getausproj(N,p,Fmod,t,est,h,q,LE);
+
 [q]=getpod(Ur,p);
 proj=q*q';
+
 if mod(i,ObsMult)==0
 %At observation times, Update weights via likelihood
 
@@ -200,15 +205,12 @@ hold off
 end
 
 t = t+h;
-
+% ERROR=norm(truth(:,i)-estimate(:,i+1),'inf')
 end
 
 figure(2)
 plot(Time,RMSEsave);
-
-
 RMSEave = RMSEave/Numsteps
-
 ResampPercent = ObsMult*Resamps/Numsteps
 
 LE = LE/(t-t0)
