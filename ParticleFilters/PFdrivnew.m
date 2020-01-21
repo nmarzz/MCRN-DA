@@ -8,6 +8,10 @@
 %% Initialization
 clear all;clc;
 load('pod')
+%% DMD
+% load('DMD')
+% 
+%%
 
 
 %Use of projection (iproj=0 => No Projection, iproj=1 => Projection)
@@ -94,6 +98,7 @@ est=estimate(:,i);
 % [q,LE] = getausproj(N,p,Fmod,t,est,h,q,LE);
 
 [q]=getpod(Ur,p);
+% [q,r]=mgs(Phi) ;
 proj=q*q';
 
 if mod(i,ObsMult)==0
