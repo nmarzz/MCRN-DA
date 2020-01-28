@@ -7,19 +7,17 @@
 % 6) Implement separate covariances for IC and for resampling. DONE.
 %% Initialization
 clear all;clc;
-%load('pod')
+load('pod')
 %% DMD
-load('DMD')
+%load('DMD')
 % 
 %%
-
-
 %Use of projection (iproj=0 => No Projection, iproj=1 => Projection)
 iproj=1;
 %Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
 iOPPF=1;
 %Number of particles
-L=50;
+L = 50;
 %alpha value for projected resampling
 alpha=1.0;
 %Number of time steps 
@@ -27,7 +25,7 @@ Numsteps = 1000;
 %Multiple of the step size for observation time
 ObsMult=10;
 %Rank of projection, number of Lyapunov exponents for AUS projection
-p=10;
+p = 10;
 
 %%Dimension of model space
 %N=3;
@@ -37,7 +35,7 @@ p=10;
 %IC = [0 1 0]';
 
 %Dimension of model space
-N=500;
+N=100;
 %Problem
 Fmod = @FLor95;
 %ICs for particles
@@ -89,20 +87,27 @@ Resamps=0;
 RMSEave=0;
 iRMSE=1;
 
+%[q]=getpod(Ur,p);
+%q = getDMD(Phi,p);
+
+%[q,r]=mgs(q);
+%proj=q*q';
+
+
 %Loop over observation times
-% Sig=proj*Sig*proj;
+%Sig=proj*Sig*proj;
 for i=1:Numsteps
 
 %Form AUS projection and update LEs
 est=estimate(:,i);
 % [q,LE] = getausproj(N,p,Fmod,t,est,h,q,LE);
 
-%[q]=getpod(Ur,p);
-q = getDMD(Phi,p);
+[q]=getpod(Ur,p);
+%q = getDMD(Phi,p);
 
-% [q,r]=mgs(Phi) ;
+%[q,r]=mgs(q);
 proj=q*q';
-
+%rank(proj)
 if mod(i,ObsMult)==0
 %At observation times, Update weights via likelihood
 
@@ -133,7 +138,7 @@ else
 %Proj-OP-PF
 %H -> Q_n^T P_H where P_H = H^T (H H^T)^{-1} H = H^+ H
 %R -> Q_n^T H^+ R (H^+)^T Q_n where H^+ = H^T (H H^T)^{-1}
-Qpinv = inv(Sig) + H'*Rinvfixed*H;
+Qpinv = pinv(Sig) + H'*Rinvfixed*H;
 Qp = inv(Qpinv);
 Innov = repmat(y(:,i),1,L) - H*x; 
 x = x + Qp*H'*Rinvfixed*Innov + mvnrnd(Nzeros,Qp,L)';
@@ -169,7 +174,9 @@ if (iproj==0)
 x = x + mvnrnd(Nzeros,Sig,L)'; %Sigchol*randn(N,L);
 else
 %Projected resampling
-x = x + (alpha*q*q' + (1-alpha))*mvnrnd(Nzeros,Omega,L)'; %Omegachol*randn(N,L);
+% look at documentation on MVNRND - other methods of sampling from mvn
+x = x + (alpha*q*q' + (1-alpha))*mvnrnd(Nzeros,Omega,L)'; 
+%Omegachol*randn(N,L)); 
 end
 end
 
@@ -178,8 +185,8 @@ end
 
 %Predict, add noise at observation times
 
-x = proj*dp4(Fmod,t,proj*x,h);
-
+x = dp4(Fmod,t,x,h);
+%proj*
 estimate(:,i+1) = x*w;
 
 diff = truth(:,i)-estimate(:,i);
@@ -193,21 +200,21 @@ RMSEsave(iRMSE)=RMSE;
 iRMSE = iRMSE+1;
 
 %Plot
-yvars=colon(1,inth,N);
-vars = linspace(1,N,N);
-sz=zeros(N,1);
-plots(1) = plot(vars,truth(:,i),'ro-');
-hold on
-plots(2) = plot(vars,estimate(:,i+1),'bo-');
-for j=1:L
-  sz(:)=w(j)*80*L;
-  scatter(vars,x(:,j),sz,'b','filled');
-end
-plots(3) = plot(yvars,y(:,i),'g*','MarkerSize',20);
-title(['Time = ',num2str(t)])
-legend(plots(1:3),'Truth','Estimate','Obs');
-pause(1);
-hold off
+% yvars=colon(1,inth,N);
+% vars = linspace(1,N,N);
+% sz=zeros(N,1);
+% plots(1) = plot(vars,truth(:,i),'ro-');
+% hold on
+% plots(2) = plot(vars,estimate(:,i+1),'bo-');
+% % for j=1:L
+% %   sz(:)=w(j)*80*L;
+% %   scatter(vars,x(:,j),sz,'b','filled');
+% % end
+% plots(3) = plot(yvars,y(:,i),'g*','MarkerSize',20);
+% title(['Time = ',num2str(t)])
+% legend(plots(1:3),'Truth','Estimate','Obs');
+% pause(1);
+% hold off
 
 end
 

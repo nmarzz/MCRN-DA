@@ -1,4 +1,4 @@
-function [Phi,lambda] = orderReduction_DMD(r, modeloutput)
+function [Phi,lambda, r] = orderReduction_DMD(r, modeloutput)
 X1 = modeloutput(:,1:end-1);%The data matrix
 X2 = modeloutput(:,2:end); %shifted data matrix
 
