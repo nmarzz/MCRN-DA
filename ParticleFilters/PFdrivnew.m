@@ -7,7 +7,7 @@
 % 6) Implement separate covariances for IC and for resampling. DONE.
 %% Initialization
 clear all;clc;
-%load('pod')
+% load('pod')
 %% DMD
 load('DMD')
 % 
@@ -37,9 +37,9 @@ p=10;
 %IC = [0 1 0]';
 
 %Dimension of model space
-N=500;
+N=100;
 %Problem
-Fmod = @FLor95;
+Fmod = @lorenz96;
 %ICs for particles
 IC = zeros(N,1);
 IC(1)=1;
@@ -88,21 +88,20 @@ t0=t;
 Resamps=0;
 RMSEave=0;
 iRMSE=1;
-
+q = getDMD(Phi,p);
+proj=q*q';
 %Loop over observation times
-% Sig=proj*Sig*proj;
+Sig=proj*Sig*proj;
 for i=1:Numsteps
 
 %Form AUS projection and update LEs
 est=estimate(:,i);
+%% make this as an option as Data_Prpj
 % [q,LE] = getausproj(N,p,Fmod,t,est,h,q,LE);
-
-%[q]=getpod(Ur,p);
+% [q]=getpod(Ur,p);
 q = getDMD(Phi,p);
-
-% [q,r]=mgs(Phi) ;
 proj=q*q';
-
+%%
 if mod(i,ObsMult)==0
 %At observation times, Update weights via likelihood
 
@@ -179,7 +178,7 @@ end
 %Predict, add noise at observation times
 
 x = proj*dp4(Fmod,t,proj*x,h);
-
+% x = dp4(Fmod,t,x,h);
 estimate(:,i+1) = x*w;
 
 diff = truth(:,i)-estimate(:,i);
@@ -192,27 +191,27 @@ Time(iRMSE)=t;
 RMSEsave(iRMSE)=RMSE;
 iRMSE = iRMSE+1;
 
-%Plot
-yvars=colon(1,inth,N);
-vars = linspace(1,N,N);
-sz=zeros(N,1);
-plots(1) = plot(vars,truth(:,i),'ro-');
-hold on
-plots(2) = plot(vars,estimate(:,i+1),'bo-');
-for j=1:L
-  sz(:)=w(j)*80*L;
-  scatter(vars,x(:,j),sz,'b','filled');
-end
-plots(3) = plot(yvars,y(:,i),'g*','MarkerSize',20);
-title(['Time = ',num2str(t)])
-legend(plots(1:3),'Truth','Estimate','Obs');
-pause(1);
-hold off
-
-end
-
+% Plot
+% yvars=colon(1,inth,N);
+% vars = linspace(1,N,N);
+% sz=zeros(N,1);
+% plots(1) = plot(vars,truth(:,i),'ro-');
+% hold on
+% plots(2) = plot(vars,estimate(:,i+1),'bo-');
+% for j=1:L
+%   sz(:)=w(j)*80*L;
+%   scatter(vars,x(:,j),sz,'b','filled');
+% end
+% plots(3) = plot(yvars,y(:,i),'g*','MarkerSize',20);
+% title(['Time = ',num2str(t)])
+% legend(plots(1:3),'Truth','Estimate','Obs');
+% pause(1);
+% hold off
+% 
+ end
+% 
 t = t+h;
-% ERROR=norm(truth(:,i)-estimate(:,i+1),'inf')
+% % ERROR=norm(truth(:,i)-estimate(:,i+1),'inf')
 end
 
 figure(2)

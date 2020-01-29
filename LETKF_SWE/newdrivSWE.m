@@ -26,6 +26,7 @@ plot_height_range = [9500 10500];
 
 %Initialize: IC, parameters, and parameters for visualizing
 [XNEW,u,v,h,pars,parsanim]=init_swe;
+%loop to solve the DE then POD
 
 %Spatial discretization
 nx=pars.nx;
