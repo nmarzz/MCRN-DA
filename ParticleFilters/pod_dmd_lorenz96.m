@@ -13,6 +13,3 @@ lorenz96run = w';
 r_dmd=90;
 [Phi,lambda] = orderReduction_DMD(r_dmd, lorenz96run);% Get DMD
 
-
-
-% save ('DMD', 'Phi')
