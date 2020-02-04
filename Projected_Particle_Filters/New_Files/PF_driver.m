@@ -1,17 +1,6 @@
-%To do: 
-% 1) Make the observation times more general, typically is an integer multiple of the time step. DONE.
-% 2) Add other models, e.g., Lorenz '96, ... DONE.
-% 3) Implement Proj-PF with Proj-Resamp DONE.
-% 4) Implement OP-PF (DONE.) and Proj-OP-PF 
-% 5) Implement other observation operators. DONE.
-% 6) Implement separate covariances for IC and for resampling. DONE.
 %% Initialization
 clear all;clc;
-%load('pod')
-%% DMD
-load('DMD')
-% 
-%%
+
 
 % Projection toggle
 %Use of projection (iproj=0 => No Projection, iproj=1 => Projection)
@@ -20,8 +9,16 @@ iproj=1;
 % Type of projection method 
 % 0 = off, 1 = on
 
+% Create our model
+tolerance = 0.0001;
+dimension = 100;
+model = @FLor95; 
+model_output = buildModel(dimension,model);
+
 %POD
-usePOD = 1; 
+usePOD = 1; %not in use yet
+Ur = buildPOD(tolerance, model_output);
+
 
 %DMD
 useDMD = 0;
@@ -33,6 +30,14 @@ useAUS = 0;
 % Type of particle filter
 %Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
 iOPPF=1;
+
+%load('pod')
+%% DMD
+%load('DMD')
+% 
+%%
+
+
 
 
 
@@ -117,8 +122,8 @@ for i=1:Numsteps
 est=estimate(:,i);
 %% make this as an option as Data_Prpj
 % [q,LE] = getausproj(N,p,Fmod,t,est,h,q,LE);
-% [q]=getpod(Ur,p);
-q = getDMD(Phi,p);
+[q]=getpod(Ur,p); % WE NEED TO TOGGLE THESE!
+%q = getDMD(Phi,p);   % WE NEED TO TOGGLE THESE!
 proj=q*q';
 %%
 

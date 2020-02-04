@@ -1,0 +1,22 @@
+function [truncationdim, Xr, Ur, Vr, Sr] = orderReduction(dim, model)
+
+% Dimension is in input to function
+
+rng(1331); % set a random number seed for consistent simulations.
+lorenzinit = rand(dimension,1);  % initial conditions.
+outputtimes = linspace(0,10,dimension);  % output times for the ode45 calls.
+[~,w] = ode45(@FLor95,outputtimes,lorenzinit); % Can change the model
+
+
+
+
+%% POD
+tol=.0001;
+lorenz96run = w';
+% [r, Xr, Ur, Vr, Sr] = orderReduction(1-tol, lorenz96run); % Get POD
+% save ('pod', 'Ur')
+%% DMD
+r_dmd=50;
+[Phi,lambda] = orderReduction_DMD(r_dmd, lorenz96run);% Get DMD
+save ('DMD', 'Phi')
+end
