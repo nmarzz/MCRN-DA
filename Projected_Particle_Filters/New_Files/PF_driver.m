@@ -41,17 +41,17 @@ epsIC = 0.1;
 %Observe every inth variable.
 inth=2;
 %% POD
-usePOD = 1; %
-tolerance = 0.0001;
-Ur = buildPOD(tolerance, model_output);
-[M,H,PinvH,IC,q,w,R,Rinv,Sig,Omega,ICcov,Lones,Mzeros,Nzeros] =...
-    Init_pod(Fun_model,IC,h,model_dimension,inth,Numsteps,p,L,epsR,epsSig,epsOmega,epsIC,Ur);
-%% DMD
-% useDMD = 0;
-% numModes=90;%number of DMD_modes you want to use
-% [Phi]=buildDMD(numModes,model_output);
+% usePOD = 1; %
+% tolerance = 0.0001;
+% Ur = buildPOD(tolerance, model_output);
 % [M,H,PinvH,IC,q,w,R,Rinv,Sig,Omega,ICcov,Lones,Mzeros,Nzeros] =...
-%     Init_dmd(Fun_model,IC,h,model_dimension,inth,Numsteps,p,L,epsR,epsSig,epsOmega,epsIC,Phi);
+%     Init_pod(Fun_model,IC,h,model_dimension,inth,Numsteps,p,L,epsR,epsSig,epsOmega,epsIC,Ur);
+%% DMD
+useDMD = 1;
+numModes=90;%number of DMD_modes you want to use
+[Phi]=buildDMD(numModes,model_output);
+[M,H,PinvH,IC,q,w,R,Rinv,Sig,Omega,ICcov,Lones,Mzeros,Nzeros] =...
+    Init_DMD(Fun_model,IC,h,model_dimension,inth,Numsteps,p,L,epsR,epsSig,epsOmega,epsIC,Phi);
 %% AUS
 % useAUS = 0;
 %Call Init
@@ -92,8 +92,8 @@ for i=1:Numsteps
 est=estimate(:,i);
 %% make this as an option as Data_Prpj
 % [q,LE] = getausproj(N,p,Fmod,t,est,h,q,LE);
-[q]=getpod(Ur,p); % WE NEED TO TOGGLE THESE!
-%q = getDMD(Phi,p);   % WE NEED TO TOGGLE THESE!
+% [q]=getpod(Ur,p); % WE NEED TO TOGGLE THESE!
+q = getDMD(Phi,p);   % WE NEED TO TOGGLE THESE!
 proj=q*q';
 %%
 
@@ -187,21 +187,21 @@ RMSEsave(iRMSE)=RMSE;
 iRMSE = iRMSE+1;
 
 %Plot
-% yvars=colon(1,inth,N);
-% vars = linspace(1,N,N);
-% sz=zeros(N,1);
-% plots(1) = plot(vars,truth(:,i),'ro-');
-% hold on
-% plots(2) = plot(vars,estimate(:,i+1),'bo-');
-% for j=1:L
-%   sz(:)=w(j)*80*L;
-%   scatter(vars,x(:,j),sz,'b','filled');
-% end
-% plots(3) = plot(yvars,y(:,i),'g*','MarkerSize',20);
-% title(['Time = ',num2str(t)])
-% legend(plots(1:3),'Truth','Estimate','Obs');
-% pause(1);
-% hold off
+yvars=colon(1,inth,model_dimension);
+vars = linspace(1,model_dimension,model_dimension);
+sz=zeros(model_dimension,1);
+plots(1) = plot(vars,truth(:,i),'ro-');
+hold on
+plots(2) = plot(vars,real(estimate(:,i+1)),'bo-');
+for j=1:L
+  sz(:)=w(j)*80*L;
+  scatter(real(vars),real(x(:,j)),real(sz),'b','filled');
+end
+plots(3) = plot(yvars,y(:,i),'g*','MarkerSize',20);
+title(['Time = ',num2str(t)])
+legend(plots(1:3),'Truth','Estimate','Obs');
+pause(1);
+hold off
 % 
 end
 
