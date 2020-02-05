@@ -84,7 +84,7 @@ Resamps=0;
 RMSEave=0;
 iRMSE=1;
 
-%% Loop over observation times
+%Loop over observation times
 % Sig=proj*Sig*proj;
 for i=1:Numsteps
 
