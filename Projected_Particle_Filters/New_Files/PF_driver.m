@@ -81,7 +81,7 @@ iRMSE=1;
 % Sig=proj*Sig*proj;
 for i=1:Numsteps
 % Perform projection of the Data Model
-q = projectionToggle(PhysicalProjection,DataProjection,Model_Dimension); %chooses which q projection we want
+[q_data,q_physical] = projectionToggle(PhysicalProjection,DataProjection,Model_Dimension); %chooses which q projection we want
 est=estimate(:,i);
 
 if mod(i,ObsMult)==0
@@ -91,42 +91,9 @@ if (iOPPF==0)
 %Add noise only at observation times
 x = x + mvnrnd(Nzeros,Sig,L)';
 %Standard Particle Filter
-if (iproj==0)
+end
 %Standard PF (no projection)
 Innov = repmat(y(:,i),1,L) - H*x; 
-else
-%Proj-PF
-%H -> Q_n^T P_H where P_H = H^T (H H^T)^{-1} H = H^+ H
-%R -> Q_n^T H^+ R (H^+)^T Q_n where H^+ = H^T (H H^T)^{-1}
-Innov = q'*PinvH*(repmat(y(:,i),1,L) - H*x); 
-Rinv = pinv(q'*PinvH*R*PinvH'*q);
-end
-
-else %IOPPF==1
-if (iproj==0)
-Qpinv = inv(Sig) + H'*Rinvfixed*H;
-Qp = inv(Qpinv);
-%Optimal proposal PF
-Innov = repmat(y(:,i),1,L) - H*x; 
-x = x + Qp*H'*Rinv*Innov + mvnrnd(Nzeros,Qp,L)';
-Rinv = inv(R + H*Sig*H');
-else
-%Proj-OP-PF
-%H -> Q_n^T P_H where P_H = H^T (H H^T)^{-1} H = H^+ H
-%R -> Q_n^T H^+ R (H^+)^T Q_n where H^+ = H^T (H H^T)^{-1}
-Qpinv = inv(Sig) + H'*Rinvfixed*H;
-Qp = inv(Qpinv);
-Innov = repmat(y(:,i),1,L) - H*x; 
-x = x + Qp*H'*Rinvfixed*Innov + mvnrnd(Nzeros,Qp,L)';
-Innov = q'*PinvH*Innov;
-%UPDATE: H and R in Qpinv
-%Rnew = q'*PinvH*R*PinvH'*q;
-%Qpinv = inv(Sig) + PinvH*H*q*inv(Rnew)*q'*PinvH*H;
-%Qp = inv(Qpinv);
-Rinv = pinv(q'*PinvH*(R+H*Sig*H')*PinvH'*q);
-
-end
-end
 
 Tdiag = diag(Innov'*Rinv*Innov);
 tempering = 1.2; %%%% <<< including new parameter here for visibility. Tempering usually a little larger than 1.
@@ -145,13 +112,8 @@ Resamps = Resamps + NRS;
 %Note: This can be modified to implement the projected resampling as part of implementation of PROJ-PF:
 %Replace Sigchol*randn(N,L) with (alpha*Q_n*Q_n^T + (1-alpha)I)*Sigchol*randn(N,L)
 if (NRS==1) 
-if (iproj==0)
 %Standard resampling
 x = x + mvnrnd(Nzeros,Sig,L)'; %Sigchol*randn(N,L);
-else
-%Projected resampling
-x = x + (alpha*q*q' + (1-alpha))*mvnrnd(Nzeros,Omega,L)'; %Omegachol*randn(N,L);
-end
 end
 
 %END: At Observation times
@@ -164,7 +126,7 @@ x = dp4(Fmod,t,x,h);
 estimate(:,i+1) = x*w;
 
 diff = truth(:,i)-estimate(:,i);
-RMSE = sqrt(diff'*diff/N)
+RMSE = sqrt(diff'*diff/Model_Dimension)
 RMSEave = RMSEave + RMSE;
 
 if mod(i,ObsMult)==0
