@@ -1,17 +1,22 @@
 %% Initialization
 clear all;clc;
-% Type of projection method 
-% 0 = off, 1 = on
-%% %Use of projection 
-iproj=1;
-% Create our model
-model_dimension = 100;%Dimension of model space
-Fun_model = @FLor95; %function we are using
-model_output = buildModel(model_dimension,Fun_model);%creat snapshots matrix
 
-%% Type of particle filter
+%Build Model (dimension, model)
+Model_Dimension = 100;
+Fmod = @FLor95;
+Built_Model = buildModel(Model_Dimension,@FLor95);
+
+%Projection Parameters
+%(0 = no projection, 1 POD, 2 DMD, 3 AUS)
+PhysicalProjection = 0;
+DataProjection = 0;
+
+%% Particle Filter Information
+
+% Type of particle filter
 %Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
 iOPPF=1;
+
 %Number of particles
 L=50;
 %alpha value for projected resampling
@@ -22,12 +27,13 @@ Numsteps = 1000;
 ObsMult=10;
 %Rank of projection, number of Lyapunov exponents for AUS projection
 p=10;
+
 %ICs for particles
-IC = zeros(model_dimension,1);
+IC = zeros(Model_Dimension,1); % N -> Model_Dimension incase this causes problems
 IC(1)=1;
+
 %Computational time step
 h=5.E-3;
-
 %For diagonal (alpha*I) covariance matrices.
 %Observation
 epsR = 0.01;
@@ -40,41 +46,27 @@ epsIC = 0.1;
 
 %Observe every inth variable.
 inth=2;
-%% POD
-% usePOD = 1; %
-% tolerance = 0.0001;
-% Ur = buildPOD(tolerance, model_output);
-% [M,H,PinvH,IC,q,w,R,Rinv,Sig,Omega,ICcov,Lones,Mzeros,Nzeros] =...
-%     Init_pod(Fun_model,IC,h,model_dimension,inth,Numsteps,p,L,epsR,epsSig,epsOmega,epsIC,Ur);
-%% DMD
-useDMD = 1;
-numModes=90;%number of DMD_modes you want to use
-[Phi]=buildDMD(numModes,model_output);
-[M,H,PinvH,IC,q,w,R,Rinv,Sig,Omega,ICcov,Lones,Mzeros,Nzeros] =...
-    Init_DMD(Fun_model,IC,h,model_dimension,inth,Numsteps,p,L,epsR,epsSig,epsOmega,epsIC,Phi);
 
-%% AUS
-% useAUS = 0;
 %Call Init
-% [M,H,PinvH,IC,q,LE,w,R,Rinv,Sig,Omega,ICcov,Lones,Mzeros,Nzeros] =...
-%     Init_aus(Fun_model,IC,h,model_dimension,inth,Numsteps,p,L,epsR,epsSig,epsOmega,epsIC);
-%%
+[M,H,PinvH,IC,q,LE,w,R,Rinv,Sig,Omega,ICcov,Lones,Mzeros,Nzeros] = ...
+    Init(Fmod,IC,h,Model_Dimension,inth,Numsteps,p,L,epsR,epsSig,epsOmega,epsIC);
 Rinvfixed=Rinv;
 
 %Add noise N(0,ICcov) to ICs to form different particles
+x = zeros(Model_Dimension,L);
 x = repmat(IC,1,L) + mvnrnd(Nzeros,ICcov,L)'; %ICchol*randn(N,L);
 estimate(:,1) = x*w;
 
 y=zeros(M,Numsteps);
 
 t=0;
-%% Generate observations from "Truth"
+%Generate observations from "Truth"
 for i = 1:Numsteps
 truth(:,i) = IC;
 if mod(i,ObsMult)==0
 y(:,i)=H*IC + mvnrnd(Mzeros,R,1)'; %Rchol*rand(M,1); % + Noise from N(0,R)
 end
-IC = dp4(Fun_model,t,IC,h);
+IC = dp4(Fmod,t,IC,h);
 t = t+h;
 end
 
@@ -85,18 +77,12 @@ Resamps=0;
 RMSEave=0;
 iRMSE=1;
 
-%% Loop over observation times
-Sig=q'*Sig*q;
+%Loop over observation times
+% Sig=proj*Sig*proj;
 for i=1:Numsteps
-
-%Form AUS projection and update LEs
+% Perform projection of the Data Model
+q = projectionToggle(PhysicalProjection,DataProjection,Model_Dimension); %chooses which q projection we want
 est=estimate(:,i);
-%% make this as an option as Data_Prpj
-% [q,LE] = getausproj(N,p,Fmod,t,est,h,q,LE);
-% [q]=getpod(Ur,p); % WE NEED TO TOGGLE THESE!
-q = getDMD(Phi,p);   % WE NEED TO TOGGLE THESE!
-proj=q*q';
-%%
 
 if mod(i,ObsMult)==0
 %At observation times, Update weights via likelihood
@@ -173,12 +159,12 @@ end
 
 %Predict, add noise at observation times
 
-% x = proj*dp4(Fun_model,t,proj*x,h);
-x = dp4(Fun_model,t,x,h);
+% x = proj*dp4(Fmod,t,proj*x,h);
+x = dp4(Fmod,t,x,h);
 estimate(:,i+1) = x*w;
 
 diff = truth(:,i)-estimate(:,i);
-RMSE = sqrt(diff'*diff/model_dimension)
+RMSE = sqrt(diff'*diff/N)
 RMSEave = RMSEave + RMSE;
 
 if mod(i,ObsMult)==0
@@ -187,16 +173,16 @@ Time(iRMSE)=t;
 RMSEsave(iRMSE)=RMSE;
 iRMSE = iRMSE+1;
 
-% %Plot
-% yvars=colon(1,inth,model_dimension);
-% vars = linspace(1,model_dimension,model_dimension);
-% sz=zeros(model_dimension,1);
+%Plot
+% yvars=colon(1,inth,N);
+% vars = linspace(1,N,N);
+% sz=zeros(N,1);
 % plots(1) = plot(vars,truth(:,i),'ro-');
 % hold on
-% plots(2) = plot(vars,real(estimate(:,i+1)),'bo-');
+% plots(2) = plot(vars,estimate(:,i+1),'bo-');
 % for j=1:L
 %   sz(:)=w(j)*80*L;
-%   scatter(real(vars),real(x(:,j)),real(sz),'b','filled');
+%   scatter(vars,x(:,j),sz,'b','filled');
 % end
 % plots(3) = plot(yvars,y(:,i),'g*','MarkerSize',20);
 % title(['Time = ',num2str(t)])
@@ -207,11 +193,11 @@ iRMSE = iRMSE+1;
 end
 
 t = t+h;
-
+% ERROR=norm(truth(:,i)-estimate(:,i+1),'inf')
 end
 figure(2)
 plot(Time,RMSEsave);
 RMSEave = RMSEave/Numsteps
 ResampPercent = ObsMult*Resamps/Numsteps
 
-% LE = LE/(t-t0)
+LE = LE/(t-t0)

@@ -1,47 +1,20 @@
 %% Initialization
 clear all;clc;
 
+%Build Model (dimension, model)
+Model_Dimension = 100;
+Model_Output = buildModel(Model_Dimension,@FLor95);
 
-% Projection toggle
-%Use of projection (iproj=0 => No Projection, iproj=1 => Projection)
-iproj=1;
+%Projection Parameters
+%(0 = no projection, 1 POD, 2 DMD, 3 AUS)
+PhysicalProjection = 0;
+DataProjection = 0;
 
-% Type of projection method 
-% 0 = off, 1 = on
-
-% Create our model
-tolerance = 0.0001;
-dimension = 100;
-model = @FLor95;
-model_output = buildModel(model, dimension);
-
-%POD
-usePOD = 1; %not in use yet
-Ur = buildPOD(tolerance, model_output);
-
-
-%DMD
-useDMD = 0;
-
-%AUS
-useAUS = 0;
-
+%% Particle Filter Information
 
 % Type of particle filter
 %Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
 iOPPF=1;
-
-%load('pod')
-%% DMD
-load('DMD')
-% 
-%%
-
-
-
-
-
-
 
 %Number of particles
 L=50;
@@ -54,24 +27,12 @@ ObsMult=10;
 %Rank of projection, number of Lyapunov exponents for AUS projection
 p=10;
 
-%%Dimension of model space
-%N=3;
-%%Problem
-%Fmod = @FLor63
-%%ICs for particles
-%IC = [0 1 0]';
-
-%Dimension of model space
-N=100;
-%Problem
-Fmod = @FLor95;
 %ICs for particles
-IC = zeros(N,1);
+IC = zeros(Model_Dimension,1); % N -> Model_Dimension incase this causes problems
 IC(1)=1;
 
 %Computational time step
 h=5.E-3;
-
 %For diagonal (alpha*I) covariance matrices.
 %Observation
 epsR = 0.01;
@@ -90,7 +51,7 @@ inth=2;
 Rinvfixed=Rinv;
 
 %Add noise N(0,ICcov) to ICs to form different particles
-x = zeros(N,L);
+x = zeros(Model_Dimension,L);
 x = repmat(IC,1,L) + mvnrnd(Nzeros,ICcov,L)'; %ICchol*randn(N,L);
 estimate(:,1) = x*w;
 
@@ -117,15 +78,9 @@ iRMSE=1;
 %Loop over observation times
 % Sig=proj*Sig*proj;
 for i=1:Numsteps
-
-%Form AUS projection and update LEs
+% Perform projection of the Data Model
+q = projectionToggle(PhysicalProjection,DataProjection,Model_Dimension); %chooses which q projection we want
 est=estimate(:,i);
-%% make this as an option as Data_Prpj
-% [q,LE] = getausproj(N,p,Fmod,t,est,h,q,LE);
-% [q]=getpod(Ur,p);
-q = getDMD(Phi,p);
-proj=q*q';
-%%
 
 if mod(i,ObsMult)==0
 %At observation times, Update weights via likelihood
