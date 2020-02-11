@@ -4,6 +4,7 @@ if DataModelProjection == 0
     q_data = eye(Model_Dimension); %identity matrix
 elseif DataModelProjection == 1
     %then q is POD basis
+    
 elseif DataModelProjection == 2
     %then q is the DMD basis
 elseif DataModelProjection == 3
