@@ -81,7 +81,7 @@ iRMSE=1;
 
 %Loop over observation times
 % Sig=proj*Sig*proj;
-for i=1:Numsteps
+for i=1:Numsteps    
     % Perform projection of the Data Model
     [q_data,q_physical] = projectionToggle(PhysicalProjection,DataProjection,Model_Dimension); %chooses which q projection we want
     est=estimate(:,i);
@@ -89,7 +89,7 @@ for i=1:Numsteps
     if mod(i,ObsMult)==0
         %At observation times, Update weights via likelihood
         
-        if (iOPPF==0)
+        if (iOPPF==0)    
             %Add noise only at observation times
             x = x + mvnrnd(Nzeros,Sig,L)';
             %Standard Particle Filter
