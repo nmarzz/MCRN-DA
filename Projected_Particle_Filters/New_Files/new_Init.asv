@@ -1,0 +1,9 @@
+function [M,H,PinvH,IC] = new_Init(Fmod,IC,h,N,inth,q)
+
+%Linear Observation operator, every inth variable
+Heye=eye(N,N);
+H=Heye(1:inth:end,:);
+%M = Dimension of observation space.
+[M,~]=size(H)
+%yvars=linspace(1,M,M);
+PinvH=pinv(H);

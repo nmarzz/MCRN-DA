@@ -6,7 +6,7 @@ clear all;clc;
 Model_Dimension = 40;
 Fmod = @FLor95;
 Built_Model = buildModel(Model_Dimension,@FLor95);
-PhysicalProjection = 1;
+PhysicalProjection = 0;
 DataProjection = 0;
 if PhysicalProjection ==1
     %POD
