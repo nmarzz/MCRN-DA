@@ -7,7 +7,7 @@ elseif DataModelProjection == 1
 elseif DataModelProjection == 2
     q_data = getDMD( Phi,p );
 elseif DataModelProjection == 3
-    %then q is the AUS basis
+%     [q_data,LE] = getausproj(N,p,Fmod,t,est,h,q,LE);
 end
 
 % Type of projection for the Physical Model
