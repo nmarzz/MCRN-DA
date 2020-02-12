@@ -14,8 +14,8 @@ if PhysicalProjection ==1
     Ur= buildPOD(tolerance,Built_Model);
 elseif PhysicalProjection ==2
     %DMD
-    numModes=90;%number of DMD_modes you want to use
-    [Phi]=buildDMD(numModes,Built_Model);
+    numModes=50;%number of DMD_modes you want to use
+    Ur=buildDMD(numModes,Built_Model);
 end
 %% Particle Filter Information
 % Type of particle filter
@@ -75,17 +75,17 @@ t0=t;
 Resamps=0;
 RMSEave=0;
 iRMSE=1;
-[q_physical] =projectionToggle_Physical(PhysicalModelProjection,Model_Dimension,Ur,p,Phi);
+[q_physical] =projectionToggle_Physical(PhysicalProjection,Model_Dimension,Ur,p);
 %Loop over observation times
-[M,H,PinvH] = new_Init(N,inth,q_physical);
+[M,H,PinvH] = new_Init(Model_Dimension,inth,q_physical);
 Sig=q_physical'*Sig*q_physical;
 x=q_physical'*x;
 for i=1:Numsteps
     % Perform projection of the Data Model
-    [q_data] = projectionToggle_data(DataProjection,Model_Dimension,Ur,p,Phi); %chooses which q projection we want
-    est=estimate(:,i);  
+    [q_data] = projectionToggle_data(DataProjection,Model_Dimension,Ur,p); %chooses which q projection we want
+    est=estimate(:,i);
     if mod(i,ObsMult)==0
-        %At observation times, Update weights via likelihood 
+        %At observation times, Update weights via likelihood
         if (iOPPF==0)
             %Add noise only at observation times
             x = x + mvnrnd(Nzeros,Sig,L)';
@@ -111,7 +111,6 @@ for i=1:Numsteps
         %Resampling (with resamp.m that I provided or using the pseudo code in Peter Jan ,... paper)
         [w,x,NRS] = resamp(w,x,0.5);
         Resamps = Resamps + NRS;
-        
         %Update Particles
         %Note: This can be modified to implement the projected resampling as part of implementation of PROJ-PF:
         %Replace Sigchol*randn(N,L) with (alpha*Q_n*Q_n^T + (1-alpha)I)*Sigchol*randn(N,L)
@@ -119,12 +118,11 @@ for i=1:Numsteps
             %Standard resampling
             x = x + mvnrnd(Nzeros,Sig,L)'; %Sigchol*randn(N,L);
         end
-        
         %END: At Observation times
     end
     
-    %Predict, add noise at observation times 
-    % x = proj*dp4(Fmod,t,proj*x,h);
+    %Predict, add noise at observation times
+%     x = proj*dp4(Fmod,t,proj*x,h); 
     x = q_physical'*dp4(Fmod,t,q_physical*x,h);
     estimate(:,i+1) = x*w;
     diff = truth(:,i)-estimate(:,i);
@@ -155,9 +153,7 @@ for i=1:Numsteps
         % hold off
         %
     end
-    
     t = t+h;
-    % ERROR=norm(truth(:,i)-estimate(:,i+1),'inf')
 end
 figure(2)
 plot(Time,RMSEsave);
