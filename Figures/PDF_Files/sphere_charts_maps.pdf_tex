@@ -1,0 +1,62 @@
+%% Creator: Inkscape inkscape 0.92.2, www.inkscape.org
+%% PDF/EPS/PS + LaTeX output extension by Johan Engelen, 2010
+%% Accompanies image file 'sphere_charts_maps.pdf' (pdf, eps, ps)
+%%
+%% To include the image in your LaTeX document, write
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics{<filename>.pdf}
+%% To scale the image, write
+%%   \def\svgwidth{<desired width>}
+%%   \input{<filename>.pdf_tex}
+%%  instead of
+%%   \includegraphics[width=<desired width>]{<filename>.pdf}
+%%
+%% Images with a different path to the parent latex file can
+%% be accessed with the `import' package (which may need to be
+%% installed) using
+%%   \usepackage{import}
+%% in the preamble, and then including the image with
+%%   \import{<path to file>}{<filename>.pdf_tex}
+%% Alternatively, one can specify
+%%   \graphicspath{{<path to file>/}}
+%% 
+%% For more information, please see info/svg-inkscape on CTAN:
+%%   http://tug.ctan.org/tex-archive/info/svg-inkscape
+%%
+\begingroup%
+  \makeatletter%
+  \providecommand\color[2][]{%
+    \errmessage{(Inkscape) Color is used for the text in Inkscape, but the package 'color.sty' is not loaded}%
+    \renewcommand\color[2][]{}%
+  }%
+  \providecommand\transparent[1]{%
+    \errmessage{(Inkscape) Transparency is used (non-zero) for the text in Inkscape, but the package 'transparent.sty' is not loaded}%
+    \renewcommand\transparent[1]{}%
+  }%
+  \providecommand\rotatebox[2]{#2}%
+  \ifx\svgwidth\undefined%
+    \setlength{\unitlength}{762.55679634bp}%
+    \ifx\svgscale\undefined%
+      \relax%
+    \else%
+      \setlength{\unitlength}{\unitlength * \real{\svgscale}}%
+    \fi%
+  \else%
+    \setlength{\unitlength}{\svgwidth}%
+  \fi%
+  \global\let\svgwidth\undefined%
+  \global\let\svgscale\undefined%
+  \makeatother%
+  \begin{picture}(1,0.71235684)%
+    \put(0,0){\includegraphics[width=\unitlength,page=1]{sphere_charts_maps.pdf}}%
+    \put(0.00281464,0.50118309){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$M$}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=2]{sphere_charts_maps.pdf}}%
+    \put(0.38029739,0.63117232){\color[rgb]{0,0,1}\makebox(0,0)[lb]{\smash{$\varphi_\alpha$}}}%
+    \put(0.45980193,0.0674438){\color[rgb]{1,0,0}\makebox(0,0)[lb]{\smash{$\varphi_\beta$}}}%
+    \put(0,0){\includegraphics[width=\unitlength,page=3]{sphere_charts_maps.pdf}}%
+    \put(0.81901894,0.3492678){\color[rgb]{0.56078431,0,1}\makebox(0,0)[lb]{\smash{$\varphi_{\alpha \beta}=\varphi_\alpha^{-1} \circ \varphi_\beta$}}}%
+    \put(0.79580845,0.68354086){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$\R^m$}}}%
+    \put(0.79869341,0.26502512){\color[rgb]{0,0,0}\makebox(0,0)[lb]{\smash{$\R^m$}}}%
+  \end{picture}%
+\endgroup%
