@@ -6,16 +6,28 @@ clear all;clc;
 Model_Dimension = 40;
 Fmod = @FLor95;
 Built_Model = buildModel(Model_Dimension,@FLor95);
-PhysicalProjection = 1;
-DataProjection = 0;
+PhysicalProjection =0;
+DataProjection = 1;
+Ur_physical=0;
+Ur_data=0;
 if PhysicalProjection ==1
     %POD
     tolerance = 0.0001;
-    Ur= buildPOD(tolerance,Built_Model);
+    Ur_physical= buildPOD(tolerance,Built_Model);
 elseif PhysicalProjection ==2
     %DMD
     numModes=50;%number of DMD_modes you want to use
-    Ur=buildDMD(numModes,Built_Model);
+    Ur_physical=buildDMD(numModes,Built_Model);
+end
+%%
+if DataProjection ==1
+    %POD
+    tolerance = 0.0001;
+    Ur_data= buildPOD(tolerance,Built_Model);
+elseif DataProjection ==2
+    %DMD
+    numModes=50;%number of DMD_modes you want to use
+    Ur_data=buildDMD(numModes,Built_Model);
 end
 %% Particle Filter Information
 % Type of particle filter
@@ -75,14 +87,14 @@ t0=t;
 Resamps=0;
 RMSEave=0;
 iRMSE=1;
-[q_physical] =projectionToggle_Physical(PhysicalProjection,Model_Dimension,Ur,p);
+[q_physical] =projectionToggle_Physical(PhysicalProjection,Model_Dimension,Ur_physical,p);
 %Loop over observation times
 [M,H,PinvH] = new_Init(Model_Dimension,inth,q_physical);
 Sig=q_physical'*Sig*q_physical;
 x=q_physical'*x;
 for i=1:Numsteps
     % Perform projection of the Data Model
-    [q_data] = projectionToggle_data(DataProjection,Model_Dimension,Ur,p); %chooses which q projection we want
+    [q_data] = projectionToggle_data(DataProjection,Model_Dimension,Ur_data,p); %chooses which q projection we want
     est=estimate(:,i);
     if mod(i,ObsMult)==0
         %At observation times, Update weights via likelihood
