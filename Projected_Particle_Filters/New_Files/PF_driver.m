@@ -7,7 +7,7 @@ Model_Dimension = 40;
 Fmod = @FLor95;
 Built_Model = buildModel(Model_Dimension,@FLor95);
 PhysicalProjection =0;
-DataProjection = 1;
+DataProjection = 0;
 Ur_physical=0;
 Ur_data=0;
 if PhysicalProjection ==1
