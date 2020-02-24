@@ -6,3 +6,5 @@ H=Heye(1:inth:end,:)*q;
 [M,~]=size(H)
 %yvars=linspace(1,M,M);
 PinvH=pinv(H);
+
+
