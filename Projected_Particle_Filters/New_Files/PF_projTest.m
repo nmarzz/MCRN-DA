@@ -3,7 +3,7 @@ clear all;clc;
 %Projection Parameters
 %(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 %Build Model (dimension, model)
-Model_Dimension = 400;
+Model_Dimension = 600;
 Fmod = @FLor95;
 Built_Model = buildModel(Model_Dimension,@FLor95);
 PhysicalProjection =1;
