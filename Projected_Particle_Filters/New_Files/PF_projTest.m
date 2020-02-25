@@ -3,7 +3,7 @@ clear all;clc;
 %Projection Parameters
 %(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 %Build Model (dimension, model)
-Model_Dimension = 100;
+Model_Dimension = 400;
 Fmod = @FLor95;
 Built_Model = buildModel(Model_Dimension,@FLor95);
 PhysicalProjection =1;
@@ -12,7 +12,7 @@ Ur_physical=0;
 Ur_data=0;
 
 %Rank of projection, number of Lyapunov exponents for AUS projection
-p=20;
+p=10;
 if PhysicalProjection == 0
     Nzeros=zeros(Model_Dimension,1);
 elseif PhysicalProjection ==1
@@ -22,10 +22,9 @@ elseif PhysicalProjection ==1
     Nzeros=zeros(p,1);
 elseif PhysicalProjection ==2
     %DMD
-    numModes=50;%number of DMD_modes you want to use
+    numModes=300;%number of DMD_modes you want to use
     Ur_physical=buildDMD(numModes,Built_Model);
-    % Nzeros=zeros(N,1); %Maybe
-
+    Nzeros=zeros(p,1);
 end
 
 
