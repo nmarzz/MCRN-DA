@@ -152,8 +152,8 @@ for i=1:Numsteps
     x = q_physical'*dp4(Fmod,t,q_physical*x,h);
     
     estimate(:,i+1) = x*w;
-
-    diff = truth(:,i)-q_physical*estimate(:,i); % Replace estimate with q_physical*estimate? Does that make sense (dimensions agree)
+    % diff = truth(:,i) - (q_physical*estimate(:,i));
+    diff = (q_physical * q_physical' * truth(:,i)) - (q_physical*estimate(:,i)); % Replace estimate with q_physical*estimate? Does that make sense (dimensions agree)
     RMSE = sqrt(diff'*diff/Model_Dimension)
     RMSEave = RMSEave + RMSE;
     
