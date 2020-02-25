@@ -152,7 +152,7 @@ for i=1:Numsteps
     
     estimate(:,i+1) = x*w;
     % diff = truth(:,i) - (q_physical*estimate(:,i));
-    diff = (q_physical * q_physical' * truth(:,i)) - (q_physical*estimate(:,i)); % Replace estimate with q_physical*estimate? Does that make sense (dimensions agree)
+    diff = (q_physical * q_physical' * truth(:,i)) - (q_physical*estimate(:,i)); % Compare truth and estimate (both terms are projected using the physical model's projection)
     RMSE = sqrt(diff'*diff/Model_Dimension)
     RMSEave = RMSEave + RMSE;
     
@@ -187,4 +187,4 @@ plot(Time,RMSEsave);
 RMSEave = RMSEave/Numsteps
 ResampPercent = ObsMult*Resamps/Numsteps
 
-LE = LE/(t-t0)
+%LE = LE/(t-t0)
