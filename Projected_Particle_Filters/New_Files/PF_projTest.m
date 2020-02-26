@@ -3,11 +3,10 @@ clear all;clc;
 %Projection Parameters
 %(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 %Build Model (dimension, model)
-
-Model_Dimension = 600;
->>>>>>> 7da42fdde583b0142f0f80767f7204040c688d92
+Model_Dimension = 100;
 Fmod = @FLor95;
-Built_Model = buildModel(Model_Dimension,@FLor95);
+dt=10;
+Built_Model = buildModel(Model_Dimension,@FLor95,dt);
 PhysicalProjection =2;
 DataProjection = 0;
 Ur_physical=0;
@@ -26,8 +25,8 @@ elseif PhysicalProjection ==1
     Nzeros=zeros(p,1);
 elseif PhysicalProjection ==2
     %DMD
-    numModes=90;%number of DMD_modes you want to use
-    Ur_physical=buildDMD(numModes,Built_Model);
+    numModes=20;%number of DMD_modes you want to use
+    Ur_physical=buildDMD(numModes,Built_Model,dt);
     p = size(Ur_physical,2);
     Nzeros=zeros(p,1);
 end
@@ -40,7 +39,7 @@ if DataProjection ==1
     Ur_data= buildPOD(tolerance,Built_Model);
 elseif DataProjection ==2
     %DMD
-    numModes=50;%number of DMD_modes you want to use
+    numModes=100;%number of DMD_modes you want to use
     Ur_data=buildDMD(numModes,Built_Model);
 end
 %% Particle Filter Information
