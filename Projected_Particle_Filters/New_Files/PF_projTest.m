@@ -3,27 +3,30 @@ clear all;clc;
 %Projection Parameters
 %(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 %Build Model (dimension, model)
-Model_Dimension = 400;
+Model_Dimension = 100;
 Fmod = @FLor95;
 Built_Model = buildModel(Model_Dimension,@FLor95);
-PhysicalProjection =1;
+PhysicalProjection =2;
 DataProjection = 0;
 Ur_physical=0;
 Ur_data=0;
 
 %Rank of projection, number of Lyapunov exponents for AUS projection
-p=10;
+p=20;
+
 if PhysicalProjection == 0
     Nzeros=zeros(Model_Dimension,1);
 elseif PhysicalProjection ==1
     %POD
-    tolerance = 0.0001;
+    tolerance = 0.00001;
     Ur_physical= buildPOD(tolerance,Built_Model);
+    p = size(Ur_physical,2); 
     Nzeros=zeros(p,1);
 elseif PhysicalProjection ==2
     %DMD
-    numModes=300;%number of DMD_modes you want to use
+    numModes=90;%number of DMD_modes you want to use
     Ur_physical=buildDMD(numModes,Built_Model);
+    p = size(Ur_physical,2); 
     Nzeros=zeros(p,1);
 end
 
@@ -94,7 +97,8 @@ end
 t=0;
 t0=t;
 Resamps=0;
-RMSEave=0;
+RMSEave_orig=0;
+RMSEave_proj=0;
 iRMSE=1;
 [q_physical] =projectionToggle_Physical(PhysicalProjection,Model_Dimension,Ur_physical,p);
 %Loop over observation times
@@ -102,7 +106,6 @@ iRMSE=1;
 Sig=q_physical'*Sig*q_physical;
 x=q_physical'*x;
 estimate(:,1) = x*w;
-
 
 
 for i=1:Numsteps
@@ -151,15 +154,21 @@ for i=1:Numsteps
     x = q_physical'*dp4(Fmod,t,q_physical*x,h);
     
     estimate(:,i+1) = x*w;
-    % diff = truth(:,i) - (q_physical*estimate(:,i));
-    diff = (q_physical * q_physical' * truth(:,i)) - (q_physical*estimate(:,i)); % Compare truth and estimate (both terms are projected using the physical model's projection)
-    RMSE = sqrt(diff'*diff/Model_Dimension)
-    RMSEave = RMSEave + RMSE;
+    diff_orig= truth(:,i) - (q_physical*estimate(:,i));
+    diff_proj= (q_physical * q_physical'* truth(:,i)) - (q_physical*estimate(:,i));
+    
+    % if u is in orginal dimension (ex = 800) the estimate = q_physical' * u, 
+    % proj = QQ'
+    RMSE_orig = sqrt(diff_orig'*diff_orig/Model_Dimension)
+    RMSE_proj = sqrt(diff_proj'*diff_proj/Model_Dimension)
+    RMSEave_orig = RMSEave_orig + RMSE_orig;
+    RMSEave_proj = RMSEave_proj + RMSE_proj;
     
     if mod(i,ObsMult)==0
         %Save RMSE values
         Time(iRMSE)=t;
-        RMSEsave(iRMSE)=RMSE;
+        RMSEsave(iRMSE)=RMSE_orig;
+        RMSEsave_proj(iRMSE)=RMSE_proj;
         iRMSE = iRMSE+1;
         
         %Plot
@@ -184,7 +193,11 @@ for i=1:Numsteps
 end
 figure(2)
 plot(Time,RMSEsave);
-RMSEave = RMSEave/Numsteps
+hold on;
+plot(Time,RMSEsave_proj)
+legend('RMSE Original','RMSE Projected')
+RMSEave_orig = RMSEave_orig/Numsteps
+RMSEave_proj = RMSEave_proj/Numsteps
 ResampPercent = ObsMult*Resamps/Numsteps
 
 %LE = LE/(t-t0)
