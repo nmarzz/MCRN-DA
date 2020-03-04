@@ -1,0 +1,16 @@
+%TEST FILE FOR PDF_TEX
+\documentclass[12pt]{article}
+\usepackage{svg}
+\usepackage{color, soul, xcolor}
+\usepackage{float}
+\usepackage{morefloats}
+
+\begin{document}
+
+\begin{figure}[H]
+	\centering
+	\def\svgwidth{0.75\columnwidth}
+	\input{filename.pdf_tex}
+\end{figure}
+
+\end{document}
