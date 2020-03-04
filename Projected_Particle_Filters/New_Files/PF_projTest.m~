@@ -3,7 +3,7 @@ clear all;clc;
 %Projection Parameters
 %(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 %Build Model (dimension, model)
-Model_Dimension = 400;
+Model_Dimension = 40;
 Fmod = @FLor95;
 dt=10;
 Built_Model = buildModel(Model_Dimension,@FLor95,dt);
@@ -25,7 +25,7 @@ elseif PhysicalProjection ==1
     Nzeros=zeros(p,1);
 elseif PhysicalProjection ==2
     %DMD
-    numModes=30;  % number of DMD_modes you want to use
+    numModes=30;%number of DMD_modes you want to use
     Ur_physical=buildDMD(numModes,Built_Model,dt);
     p = size(Ur_physical,2);
     Nzeros=zeros(p,1);
