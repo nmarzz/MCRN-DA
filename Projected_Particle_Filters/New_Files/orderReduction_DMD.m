@@ -4,13 +4,30 @@ X1 = modeloutput(:,1:end-1);%The data matrix
 X2 = modeloutput(:,2:end); %shifted data matrix
 
 [U, S, V] = svd(X1,'econ');
-
-figure()
-semilogy(diag(S))
-
+%%
+sig=diag(S);
+figure(1)
+plot(sig,'ko','Linewidth',(1.5)),grid on
+xlabel('k')
+ylabel('Singular value, \sigma_k')
+title('Standard plot of singular values')
+ 
+% figure(2)
+% semilogy(diag(S),'bo','LineWidth',1.5), grid on
+% xlabel('k')
+% ylabel('Semilogy of diag(S)')
+% hold off
+% title('log plot of singular values')
+% cdS =cumsum(sig.^2)./sum(sig.^2);% cumulative 
+% figure(3)
+% plot(cdS,'ko','LineWidth',1.2),grid on
+% xlabel('k')
+% ylabel('Cumulative')
+%%
 % Marko: choice of the following parameters is really not set in stone, compare
 Rsmall = min(r, size(U,2)); % order-reduction parameter (modeling choice)
-Rlarge = 350 % numerical stabilization (numerical choice)
+Rlarge = size(U, 2) - 10; % numerical stabilization (numerical choice)
+% Rlarge = rank(modeloutput) - 10;
 
 
 U_r = U(:, 1:Rlarge); % truncate to rank -r
@@ -27,7 +44,7 @@ omega = log(lambda)/dt; % continuous -time eigenvalues
 % THE TRUE SORTING HAPPENS HERE
 [~, omega_index]=sort(real(omega),'descend');
 
-omega = omega(omega_index); % sort continuous-time eigenvalues
+% omega = omega(omega_index); % sort continuous-time eigenvalues
 Phi=Phi(:,omega_index);% sort DMD modes
 
 % this is one option: keep only real parts of modes

@@ -3,7 +3,7 @@ clear all;clc;
 %Projection Parameters
 %(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 %Build Model (dimension, model)
-Model_Dimension = 400;
+Model_Dimension = 900;
 Fmod = @FLor95;
 dt=10;
 Built_Model = buildModel(Model_Dimension,@FLor95,dt);
@@ -19,13 +19,13 @@ if PhysicalProjection == 0
     Nzeros=zeros(Model_Dimension,1);
 elseif PhysicalProjection ==1
     %POD
-    tolerance = 0.00001;
+    tolerance = 0.0001;
     Ur_physical= buildPOD(tolerance,Built_Model);
-    p = size(Ur_physical,2);
+    p = size(Ur_physical,2)
     Nzeros=zeros(p,1);
 elseif PhysicalProjection ==2
     %DMD
-    numModes=30;  % number of DMD_modes you want to use
+    numModes=10;  % number of DMD_modes you want to use
     Ur_physical=buildDMD(numModes,Built_Model,dt);
     p = size(Ur_physical,2);
     Nzeros=zeros(p,1);
@@ -127,7 +127,7 @@ for i=1:Numsteps
             x = x + Qp*H'*Rinv*Innov + mvnrnd(Nzeros,Qp,L)';
             Rinv = inv(R + H*Sig*H');
         end
-
+        
         Tdiag = diag(Innov'*Rinv*Innov);
         tempering = 1.2; %%%% <<< including new parameter here for visibility. Tempering usually a little larger than 1.
         Tdiag = (Tdiag-max(Tdiag))/tempering; %%%%% <<<< Think dividing the exponent is dangerous; this was tempering with an unknown coefficient.
@@ -147,29 +147,29 @@ for i=1:Numsteps
         end
         %END: At Observation times
     end
-
+    
     %Predict, add noise at observation times
-%     x = proj*dp4(Fmod,t,proj*x,h);
+    %     x = proj*dp4(Fmod,t,proj*x,h);
     x = q_physical'*dp4(Fmod,t,q_physical*x,h);
-
+    
     estimate(:,i+1) = x*w;
     diff_orig= truth(:,i) - (q_physical*estimate(:,i));
     diff_proj= (q_physical * q_physical'* truth(:,i)) - (q_physical*estimate(:,i));
-
+    
     % if u is in orginal dimension (ex = 800) the estimate = q_physical' * u,
     % proj = QQ'
     RMSE_orig = sqrt(diff_orig'*diff_orig/Model_Dimension)
     RMSE_proj = sqrt(diff_proj'*diff_proj/Model_Dimension)
     RMSEave_orig = RMSEave_orig + RMSE_orig;
     RMSEave_proj = RMSEave_proj + RMSE_proj;
-
+    
     if mod(i,ObsMult)==0
         %Save RMSE values
         Time(iRMSE)=t;
         RMSEsave(iRMSE)=RMSE_orig;
         RMSEsave_proj(iRMSE)=RMSE_proj;
         iRMSE = iRMSE+1;
-
+        
         %Plot
         % yvars=colon(1,inth,N);
         % vars = linspace(1,N,N);
@@ -190,7 +190,7 @@ for i=1:Numsteps
     end
     t = t+h;
 end
-figure(2)
+figure(4)
 plot(Time,RMSEsave);
 hold on;
 plot(Time,RMSEsave_proj)
