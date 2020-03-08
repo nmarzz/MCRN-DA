@@ -1,13 +1,14 @@
 %% Initialization
 clear all;clc;
+rng(1331);
 %Projection Parameters
 %(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 %Build Model (dimension, model)
-Model_Dimension = 900;
+Model_Dimension = 400;
 Fmod = @FLor95;
 dt=10;
 Built_Model = buildModel(Model_Dimension,@FLor95,dt);
-PhysicalProjection =2;
+PhysicalProjection =0;
 DataProjection = 0;
 Ur_physical=0;
 Ur_data=0;
@@ -20,12 +21,13 @@ if PhysicalProjection == 0
 elseif PhysicalProjection ==1
     %POD
     tolerance = 0.0001;
+
     Ur_physical= buildPOD(tolerance,Built_Model);
     p = size(Ur_physical,2)
     Nzeros=zeros(p,1);
 elseif PhysicalProjection ==2
     %DMD
-    numModes=10;  % number of DMD_modes you want to use
+    numModes=40;  % number of DMD_modes you want to use
     Ur_physical=buildDMD(numModes,Built_Model,dt);
     p = size(Ur_physical,2);
     Nzeros=zeros(p,1);
@@ -129,14 +131,33 @@ for i=1:Numsteps
         end
         
         Tdiag = diag(Innov'*Rinv*Innov);
-        tempering = 1.2; %%%% <<< including new parameter here for visibility. Tempering usually a little larger than 1.
+        tempering = 1; %%%% <<< including new parameter here for visibility. Tempering usually a little larger than 1.
         Tdiag = (Tdiag-max(Tdiag))/tempering; %%%%% <<<< Think dividing the exponent is dangerous; this was tempering with an unknown coefficient.
-        LH = exp(-Tdiag/2); %%%% <<<< divided exponent by 2; this is part of the normal distribution
-        w=LH.*w;
-        %Normalize weights
-        w=w/(w'*Lones);
+        
+        
+        % NEW CODE: Re weight while avoiding taking large exponentials -
+        % avoids NAN more often
+        Tdiag = -Tdiag/2;
+        logw = Tdiag + log(w);
+        
+        % Identity used to redo normalization: log(sum(a)) = log(a_0) + log(1 + sum exp(log(w0(2:end)) - log(w0(1))))
+        toEXP = logw(2:end) - logw(1);
+        toSum = exp(toEXP);
+        normalizer = logw(1) + log1p(sum(toSum));
+        logw = logw - normalizer;
+        w = exp(logw);
+        % End new code
+    
+        
+% LEGACY CODE - normalizing and reweighting        
+%         LH = exp(-Tdiag/2); %%%% <<<< divided exponent by 2; this is part of the normal distribution
+%         w=LH.*w;
+%         %Normalize weights
+%         w=w/(w'*Lones);
+
+
         %Resampling (with resamp.m that I provided or using the pseudo code in Peter Jan ,... paper)
-        [w,x,NRS] = resamp(w,x,0.5);
+        [w,x,NRS] = resamp(w,x,0.2);
         Resamps = Resamps + NRS;
         %Update Particles
         %Note: This can be modified to implement the projected resampling as part of implementation of PROJ-PF:
@@ -169,6 +190,26 @@ for i=1:Numsteps
         RMSEsave(iRMSE)=RMSE_orig;
         RMSEsave_proj(iRMSE)=RMSE_proj;
         iRMSE = iRMSE+1;
+
+
+%         Plot
+%         yvars=colon(1,inth,N);
+%         vars = linspace(1,N,N);
+%         sz=zeros(N,1);
+%         plots(1) = plot(vars,truth(:,i),'ro-');
+%         hold on
+%         plots(2) = plot(vars,estimate(:,i+1),'bo-');
+%         for j=1:L
+%           sz(:)=w(j)*80*L;
+%           scatter(vars,x(:,j),sz,'b','filled');
+%         end
+%         plots(3) = plot(yvars,y(:,i),'g*','MarkerSize',20);
+%         title(['Time = ',num2str(t)])
+%         legend(plots(1:3),'Truth','Estimate','Obs');
+%         pause(1);
+%         hold off
+%         
+
         
         %Plot
         % yvars=colon(1,inth,N);
@@ -187,6 +228,7 @@ for i=1:Numsteps
         % pause(1);
         % hold off
         %
+
     end
     t = t+h;
 end
