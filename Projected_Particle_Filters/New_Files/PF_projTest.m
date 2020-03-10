@@ -4,7 +4,7 @@ rng(1331);
 %Projection Parameters
 %(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 %Build Model (dimension, model)
-Model_Dimension = 400;
+Model_Dimension = 40;
 Fmod = @FLor95;
 dt=10;
 Built_Model = buildModel(Model_Dimension,@FLor95,dt);
@@ -13,6 +13,9 @@ DataProjection = 0;
 Ur_physical=0;
 Ur_data=0;
 
+% Type of particle filter
+%Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
+iOPPF=1;
 %Rank of projection, number of Lyapunov exponents for AUS projection
 p=20;
 
@@ -21,13 +24,13 @@ if PhysicalProjection == 0
 elseif PhysicalProjection ==1
     %POD
     tolerance = 0.0001;
-
+    
     Ur_physical= buildPOD(tolerance,Built_Model);
     p = size(Ur_physical,2)
     Nzeros=zeros(p,1);
 elseif PhysicalProjection ==2
     %DMD
-    numModes=40;  % number of DMD_modes you want to use
+    numModes=10;  % number of DMD_modes you want to use
     Ur_physical=buildDMD(numModes,Built_Model,dt);
     p = size(Ur_physical,2);
     Nzeros=zeros(p,1);
@@ -44,11 +47,8 @@ elseif DataProjection ==2
     Ur_data=buildDMD(numModes,Built_Model);
 end
 %% Particle Filter Information
-% Type of particle filter
-%Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
-iOPPF=1;
 %Number of particles
-L=50;
+L=60;
 %alpha value for projected resampling
 alpha=1;
 %Number of time steps
@@ -131,7 +131,7 @@ for i=1:Numsteps
         end
         
         Tdiag = diag(Innov'*Rinv*Innov);
-        tempering = 1; %%%% <<< including new parameter here for visibility. Tempering usually a little larger than 1.
+        tempering = 1.2; %%%% <<< including new parameter here for visibility. Tempering usually a little larger than 1.
         Tdiag = (Tdiag-max(Tdiag))/tempering; %%%%% <<<< Think dividing the exponent is dangerous; this was tempering with an unknown coefficient.
         
         
@@ -141,21 +141,28 @@ for i=1:Numsteps
         logw = Tdiag + log(w);
         
         % Identity used to redo normalization: log(sum(a)) = log(a_0) + log(1 + sum exp(log(w0(2:end)) - log(w0(1))))
-        toEXP = logw(2:end) - logw(1);
+        
+        % Re-order weights to ensure we take the smallest possible exponents
+        [~,idx] = min(abs(logw-((max(logw) - min(logw))/2))); % find index of weight closest to middle value
+        logw([1 idx]) = logw([idx 1]);
+        x(:,[1 idx]) = x(:,[idx 1]);
+         
+        toEXP = logw(2:end) - logw(1); 
         toSum = exp(toEXP);
         normalizer = logw(1) + log1p(sum(toSum));
         logw = logw - normalizer;
         w = exp(logw);
+        %w = eye(L,1);   % Use to force weights to collapse
         % End new code
-    
         
-% LEGACY CODE - normalizing and reweighting        
-%         LH = exp(-Tdiag/2); %%%% <<<< divided exponent by 2; this is part of the normal distribution
-%         w=LH.*w;
-%         %Normalize weights
-%         w=w/(w'*Lones);
-
-
+        
+        % LEGACY CODE - normalizing and reweighting
+        %         LH = exp(-Tdiag/2); %%%% <<<< divided exponent by 2; this is part of the normal distribution
+        %         w=LH.*w;
+        %         %Normalize weights
+        %         w=w/(w'*Lones);
+        
+        
         %Resampling (with resamp.m that I provided or using the pseudo code in Peter Jan ,... paper)
         [w,x,NRS] = resamp(w,x,0.2);
         Resamps = Resamps + NRS;
@@ -190,26 +197,26 @@ for i=1:Numsteps
         RMSEsave(iRMSE)=RMSE_orig;
         RMSEsave_proj(iRMSE)=RMSE_proj;
         iRMSE = iRMSE+1;
-
-
-%         Plot
-%         yvars=colon(1,inth,N);
-%         vars = linspace(1,N,N);
-%         sz=zeros(N,1);
-%         plots(1) = plot(vars,truth(:,i),'ro-');
-%         hold on
-%         plots(2) = plot(vars,estimate(:,i+1),'bo-');
-%         for j=1:L
-%           sz(:)=w(j)*80*L;
-%           scatter(vars,x(:,j),sz,'b','filled');
-%         end
-%         plots(3) = plot(yvars,y(:,i),'g*','MarkerSize',20);
-%         title(['Time = ',num2str(t)])
-%         legend(plots(1:3),'Truth','Estimate','Obs');
-%         pause(1);
-%         hold off
-%         
-
+        
+        
+        %         Plot
+        %         yvars=colon(1,inth,N);
+        %         vars = linspace(1,N,N);
+        %         sz=zeros(N,1);
+        %         plots(1) = plot(vars,truth(:,i),'ro-');
+        %         hold on
+        %         plots(2) = plot(vars,estimate(:,i+1),'bo-');
+        %         for j=1:L
+        %           sz(:)=w(j)*80*L;
+        %           scatter(vars,x(:,j),sz,'b','filled');
+        %         end
+        %         plots(3) = plot(yvars,y(:,i),'g*','MarkerSize',20);
+        %         title(['Time = ',num2str(t)])
+        %         legend(plots(1:3),'Truth','Estimate','Obs');
+        %         pause(1);
+        %         hold off
+        %
+        
         
         %Plot
         % yvars=colon(1,inth,N);
@@ -228,7 +235,7 @@ for i=1:Numsteps
         % pause(1);
         % hold off
         %
-
+        
     end
     t = t+h;
 end
