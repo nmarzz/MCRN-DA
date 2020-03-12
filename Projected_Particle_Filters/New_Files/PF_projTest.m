@@ -4,11 +4,11 @@ rng(1331);
 %Projection Parameters
 %(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 %Build Model (dimension, model)
-Model_Dimension = 40;
+Model_Dimension = 900;
 Fmod = @FLor95;
 dt=10;
 Built_Model = buildModel(Model_Dimension,@FLor95,dt);
-PhysicalProjection =0;
+PhysicalProjection =1;
 DataProjection = 0;
 Ur_physical=0;
 Ur_data=0;
@@ -48,7 +48,7 @@ elseif DataProjection ==2
 end
 %% Particle Filter Information
 %Number of particles
-L=60;
+L=50;
 %alpha value for projected resampling
 alpha=1;
 %Number of time steps
@@ -130,11 +130,21 @@ for i=1:Numsteps
             Rinv = inv(R + H*Sig*H');
         end
         
+        
+        
+        
+        
+        
         Tdiag = diag(Innov'*Rinv*Innov);
+        if sum(sum(isnan(Tdiag)+isinf(Tdiag)))
+            notnumber=3;
+        end
         tempering = 1.2; %%%% <<< including new parameter here for visibility. Tempering usually a little larger than 1.
         Tdiag = (Tdiag-max(Tdiag))/tempering; %%%%% <<<< Think dividing the exponent is dangerous; this was tempering with an unknown coefficient.
         
-        
+        if sum(sum(isnan(Tdiag)+isinf(Tdiag)))
+            notnumber=3;
+        end
         % NEW CODE: Re weight while avoiding taking large exponentials -
         % avoids NAN more often
         Tdiag = -Tdiag/2;
@@ -146,8 +156,8 @@ for i=1:Numsteps
         [~,idx] = min(abs(logw-((max(logw) - min(logw))/2))); % find index of weight closest to middle value
         logw([1 idx]) = logw([idx 1]);
         x(:,[1 idx]) = x(:,[idx 1]);
-         
-        toEXP = logw(2:end) - logw(1); 
+        
+        toEXP = logw(2:end) - logw(1);
         toSum = exp(toEXP);
         normalizer = logw(1) + log1p(sum(toSum));
         logw = logw - normalizer;
@@ -164,6 +174,9 @@ for i=1:Numsteps
         
         
         %Resampling (with resamp.m that I provided or using the pseudo code in Peter Jan ,... paper)
+        if sum(w.^2)<1e-6
+            notnumber=3;
+        end
         [w,x,NRS] = resamp(w,x,0.2);
         Resamps = Resamps + NRS;
         %Update Particles
@@ -190,7 +203,9 @@ for i=1:Numsteps
     RMSE_proj = sqrt(diff_proj'*diff_proj/Model_Dimension)
     RMSEave_orig = RMSEave_orig + RMSE_orig;
     RMSEave_proj = RMSEave_proj + RMSE_proj;
-    
+    if RMSE_orig>4
+        notnumber=3;
+    end
     if mod(i,ObsMult)==0
         %Save RMSE values
         Time(iRMSE)=t;
