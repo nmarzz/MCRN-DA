@@ -15,7 +15,8 @@ DataProjection = 0;
 tolerance = 0.0001;%POD_modes
 numModes=100;%DMD_modes
 p=10;%Rank of projection for the case PhysicalProjection =0;DataProjection = 0;
-[Ur_physical,p,Nzeros] = Projection_type(PhysicalProjection ,numModes,tolerance,Model_Dimension,Built_Model,dt,p);
+[Ur_physical,p,Nzeros] = ...
+    Projection_type(PhysicalProjection ,numModes,tolerance,Model_Dimension,Built_Model,dt,p);
 [Ur_data] = Projection_type(DataProjection ,numModes,tolerance,Model_Dimension,Built_Model,dt,p);
 
 %% Particle Filter Information
