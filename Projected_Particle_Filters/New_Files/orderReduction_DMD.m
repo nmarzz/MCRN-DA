@@ -6,11 +6,11 @@ X2 = modeloutput(:,2:end); %shifted data matrix
 [U, S, V] = svd(X1,'econ');
 %%
 sig=diag(S);
-figure(1)
-plot(sig,'ko','Linewidth',(1.5)),grid on
-xlabel('k')
-ylabel('Singular value, \sigma_k')
-title('Standard plot of singular values')
+% figure(1)
+% plot(sig,'ko','Linewidth',(1.5)),grid on
+% xlabel('k')
+% ylabel('Singular value, \sigma_k')
+% title('Standard plot of singular values')
  
 % figure(2)
 % semilogy(diag(S),'bo','LineWidth',1.5), grid on

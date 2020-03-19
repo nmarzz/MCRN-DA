@@ -4,33 +4,32 @@ rng(1331);
 %Projection Parameters
 %(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 %Build Model (dimension, model)
-Model_Dimension = 900;
+Model_Dimension = 1000;
 Fmod = @FLor95;
 dt=10;
 Built_Model = buildModel(Model_Dimension,@FLor95,dt);
-PhysicalProjection =1;
+PhysicalProjection =0;
 DataProjection = 0;
 Ur_physical=0;
 Ur_data=0;
 
 % Type of particle filter
 %Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
-iOPPF=1;
+iOPPF=0;
 %Rank of projection, number of Lyapunov exponents for AUS projection
 p=20;
-
+%Physical Projection
 if PhysicalProjection == 0
     Nzeros=zeros(Model_Dimension,1);
 elseif PhysicalProjection ==1
     %POD
     tolerance = 0.0001;
-    
     Ur_physical= buildPOD(tolerance,Built_Model);
-    p = size(Ur_physical,2)
+    p = size(Ur_physical,2);
     Nzeros=zeros(p,1);
 elseif PhysicalProjection ==2
     %DMD
-    numModes=10;  % number of DMD_modes you want to use
+    numModes=300;  % number of DMD_modes you want to use
     Ur_physical=buildDMD(numModes,Built_Model,dt);
     p = size(Ur_physical,2);
     Nzeros=zeros(p,1);
@@ -130,17 +129,13 @@ for i=1:Numsteps
             Rinv = inv(R + H*Sig*H');
         end
         
-        
-        
-        
-        
-        
         Tdiag = diag(Innov'*Rinv*Innov);
         if sum(sum(isnan(Tdiag)+isinf(Tdiag)))
             notnumber=3;
         end
-        tempering = 1.2; %%%% <<< including new parameter here for visibility. Tempering usually a little larger than 1.
-        Tdiag = (Tdiag-max(Tdiag))/tempering; %%%%% <<<< Think dividing the exponent is dangerous; this was tempering with an unknown coefficient.
+        tempering = 2; % including new parameter here for visibility. Tempering usually a little larger than 1.
+        Avg=(max(Tdiag)+min(Tdiag))/2;
+        Tdiag = (Tdiag-Avg)/tempering; % Think dividing the exponent is dangerous; this was tempering with an unknown coefficient.
         
         if sum(sum(isnan(Tdiag)+isinf(Tdiag)))
             notnumber=3;
