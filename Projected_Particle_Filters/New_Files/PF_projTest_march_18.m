@@ -1,38 +1,33 @@
 %% Initialization
 clear all;clc;
 rng(1331);
-Model_Dimension =600;
+Model_Dimension =700;
 Fmod = @FLor95;
 dt=10;
 Built_Model = buildModel(Model_Dimension,@FLor95,dt);
-
-%Type of particle filter
+%% Type of particle filter
 %Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
-iOPPF=1;
-%Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =2;
+iOPPF=0;
+%%Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
+PhysicalProjection =0;
 DataProjection = 0;
 tolerance = 0.0001;%POD_modes
-numModes=100;%DMD_modes
+numModes=500;%DMD_modes
 p=10;%Rank of projection for the case PhysicalProjection =0;DataProjection = 0;
 [Ur_physical,p,Nzeros] = ...
     Projection_type(PhysicalProjection ,numModes,tolerance,Model_Dimension,Built_Model,dt,p);
-[Ur_data] = Projection_type(DataProjection ,numModes,tolerance,Model_Dimension,Built_Model,dt,p);
+[Ur_data,p_data,Nzeros_data] = Projection_type(DataProjection ,numModes,tolerance,Model_Dimension,Built_Model,dt,p);
 
 %% Particle Filter Information
-%Number of particles
-L=50;
-%alpha value for projected resampling
-alpha=1;
-%Number of time steps
-Numsteps = 1000;
-%Multiple of the step size for observation time
-ObsMult=10;
+L=50;%Number of particles
+alpha=1;%alpha value for projected resampling
+Numsteps = 1000;%Number of time steps
+ObsMult=10;%Multiple of the step size for observation time
 %ICs for particles
 IC = zeros(Model_Dimension,1);
 IC(1)=1;
-%Computational time step
-h=5.E-3;
+
+h=5.E-3;%Computational time step
 %For diagonal (alpha*I) covariance matrices.
 %Observation
 epsR = 0.01;
@@ -65,7 +60,8 @@ for i = 1:Numsteps
     t = t+h;
 end
 
-%% Initial time and time step
+%% 
+%Initial time and time step
 t=0;
 t0=t;
 Resamps=0;
@@ -88,6 +84,7 @@ for i=1:Numsteps
         if (iOPPF==0)%Standard Particle Filter(no projection)
             %Add noise only at observation times
             x = x + mvnrnd(Nzeros,Sig,L)';
+            
             Innov = repmat(y(:,i),1,L) - H*x;
         else % Ioppf ==1
             Qpinv = inv(Sig) + H'*Rinvfixed*H;
@@ -97,14 +94,40 @@ for i=1:Numsteps
             x = x + Qp*H'*Rinv*Innov + mvnrnd(Nzeros,Qp,L)';
             Rinv = inv(R + H*Sig*H');
         end
-        Tdiag = diag(Innov'*Rinv*Innov); 
+        Tdiag = diag(Innov'*Rinv*Innov);
         tempering = 2; % including new parameter here for visibility. Tempering usually a little larger than 1.
         Avg=(max(Tdiag)+min(Tdiag))/2;
         Tdiag = (Tdiag-Avg)/tempering;
-        LH = exp(-Tdiag/2); %%%% <<<< divided exponent by 2; this is part of the normal distribution
-        w=LH.*w;
-        %Normalize weights
-        w=w/(w'*Lones);
+%         % NEW CODE: Re weight while avoiding taking large exponentials -
+%         % avoids NAN more often
+        Tdiag = -Tdiag/2;
+        logw = Tdiag + log(w);
+        
+        % Identity used to redo normalization: log(sum(a)) = log(a_0) + log(1 + sum exp(log(w0(2:end)) - log(w0(1))))
+        % Re-order weights to ensure we take the smallest possible exponents
+        [~,idx] = min(abs(logw-((max(logw) - min(logw))/2))); % find index of weight closest to middle value
+        logw([1 idx]) = logw([idx 1]);
+        x(:,[1 idx]) = x(:,[idx 1]);
+        
+        toEXP = logw(2:end) - logw(1);
+        toEXP=min(toEXP,700);
+        toEXP=max(toEXP,-700);
+        toSum = exp(toEXP);
+        normalizer = logw(1) + log1p(sum(toSum));
+        logw = logw - normalizer;
+        w = exp(logw);
+        %w = eye(L,1);   % Use to force weights to collapse
+        % End new code
+        
+        
+%         % LEGACY CODE - normalizing and reweighting
+%         toEXP =(-Tdiag/2); %%%% <<<< divided exponent by 2; this is part of the normal distribution
+% %         toEXP=max(toEXP,-700);%700
+% %         toEXP=min(toEXP,700);
+%         LH=exp(toEXP);
+%         w=LH.*w;
+%         %Normalize weights
+%         w=w/(w'*Lones);
         %Resampling (with resamp.m that I provided or using the pseudo code in Peter Jan ,... paper)
         [w,x,NRS] = resamp(w,x,0.2);
         Resamps = Resamps + NRS;

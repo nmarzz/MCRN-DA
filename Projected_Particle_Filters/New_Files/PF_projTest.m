@@ -15,7 +15,7 @@ Ur_data=0;
 
 % Type of particle filter
 %Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
-iOPPF=0;
+iOPPF=1;
 %Rank of projection, number of Lyapunov exponents for AUS projection
 p=20;
 %Physical Projection

@@ -3,9 +3,10 @@ clear all;clc;
 %Projection Parameters
 %(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 %Build Model (dimension, model)
-Model_Dimension = 40;
+Model_Dimension = 700;
 Fmod = @FLor95;
-Built_Model = buildModel(Model_Dimension,@FLor95);
+dt=10;
+Built_Model = buildModel(Model_Dimension,@FLor95,dt);
 PhysicalProjection =0;
 DataProjection = 0;
 Ur_physical=0;
@@ -32,7 +33,7 @@ end
 %% Particle Filter Information
 % Type of particle filter
 %Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
-iOPPF=1;
+iOPPF=0;
 %Number of particles
 L=50;
 %alpha value for projected resampling
@@ -111,8 +112,7 @@ for i=1:Numsteps
             Innov = repmat(y(:,i),1,L) - H*x;
             x = x + Qp*H'*Rinv*Innov + mvnrnd(Nzeros,Qp,L)';
             Rinv = inv(R + H*Sig*H');
-        end
-        
+        end    
         Tdiag = diag(Innov'*Rinv*Innov);
         tempering = 1.2; %%%% <<< including new parameter here for visibility. Tempering usually a little larger than 1.
         Tdiag = (Tdiag-max(Tdiag))/tempering; %%%%% <<<< Think dividing the exponent is dangerous; this was tempering with an unknown coefficient.

@@ -5,7 +5,7 @@ X2 = modeloutput(:,2:end); %shifted data matrix
 
 [U, S, V] = svd(X1,'econ');
 %%
-sig=diag(S);
+%sig=diag(S);
 % figure(1)
 % plot(sig,'ko','Linewidth',(1.5)),grid on
 % xlabel('k')
@@ -67,7 +67,7 @@ index_sort=sort(index);
 
 Phi=Phi(:,index_sort);
 
-
+Rsmall=min(Rsmall,size(index_sort));
 Phi = Phi(:, 1:Rsmall);
 size(Phi)
 rank(Phi)
