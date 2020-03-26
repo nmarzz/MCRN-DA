@@ -10,6 +10,6 @@ lorenz96run = w';
 % [r, Xr, Ur, Vr, Sr] = orderReduction(1-tol, lorenz96run); % Get POD
 % save ('pod', 'Ur')
 %% DMD
-r_dmd=50;
+r_dmd=70;
 [Phi,lambda] = orderReduction_DMD(r_dmd, lorenz96run);% Get DMD
 save ('DMD', 'Phi')

@@ -8,20 +8,18 @@ Built_Model = buildModel(Model_Dimension,@FLor95,dt);
 %% Type of particle filter
 % Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
 iOPPF=1;
-proj_data =1;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =1;
-DataProjection = 2;
-tolerance_physical = 0.0001; % POD_modes
-tolerance_data = 0.0001; % POD_modes
+PhysicalProjection =0;
+DataProjection = 0;
+tolerance = 0.0001; % POD_modes
 numModes_physical = 30;% DMD_modes, for physical
-numModes_data = 30; % DMD_modes, for data
+numModes_data = 30; % DMD_mo
 p_physical = 6;%Rank of projection for physical, in the case PhysicalProjection =0;DataProjection = 0;
 p_data = 6; % rank of projection for data
-[Ur_physical,p_physical,Nzeros] = ...
-    Projection_physical_type(PhysicalProjection ,numModes_physical,tolerance_physical,Model_Dimension,Built_Model,dt,p_physical);
-[Ur_data,p_data,Nzeros_data] = Projection_data_type(DataProjection ,numModes_data,tolerance_data,Model_Dimension,Built_Model,dt,p_data);
+[Ur_physical,p,Nzeros] = ...
+    Projection_physical_type(PhysicalProjection ,numModes,tolerance,Model_Dimension,Built_Model,dt,p, Fmod);
+[Ur_data,p_data,Nzeros_data] = Projection_data_type(DataProjection ,numModes,tolerance,Model_Dimension,Built_Model,dt,p);
 
 %% Particle Filter Information
 L=2000;%Number of particles
@@ -47,7 +45,7 @@ epsIC = 0.01;
 inth=1;
 %Call Init
 [M,H,PinvH,IC,q,LE,w,R,Rinv,Sig,Omega,ICcov,Lones,Mzeros] = ...
-    Init(Fmod,IC,h,Model_Dimension,inth,Numsteps,p_physical,L,epsR,epsSig,epsOmega,epsIC);
+    Init(Fmod,IC,h,Model_Dimension,inth,Numsteps,p,L,epsR,epsSig,epsOmega,epsIC);
 Rinvfixed=Rinv;
 %Add noise N(0,ICcov) to ICs to form different particles
 x = zeros(Model_Dimension,L);
@@ -74,7 +72,7 @@ Resamps=0;
 RMSEave_orig=0;
 RMSEave_proj=0;
 iRMSE=1;
-[q_physical] =projectionToggle_Physical(PhysicalProjection,Model_Dimension,Ur_physical,p_physical);
+[q_physical] =projectionToggle_Physical(PhysicalProjection,Model_Dimension,Ur_physical,p,LE,t,est,h);
 %Loop over observation times
 [M,H,PinvH] = new_Init(Model_Dimension,inth,q_physical);
 Sig=q_physical'*Sig*q_physical;
@@ -83,8 +81,8 @@ estimate(:,1) = x*w;
 
 for i=1:Numsteps
     % Perform projection of the Data Model
-      est=estimate(:,i);
-    [q_data] = projectionToggle_data(DataProjection,Model_Dimension,Ur_data,p_data, LE, t, est, h); %chooses which q projection we want  
+    [q_data] = projectionToggle_data(DataProjection,Model_Dimension,Ur_data,p); %chooses which q projection we want
+    est=estimate(:,i);
     if mod(i,ObsMult)==0
         %At observation times, Update weights via likelihood
         if (iOPPF==0)%Standard Particle Filter(no projection)

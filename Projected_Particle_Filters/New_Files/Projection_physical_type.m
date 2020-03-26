@@ -1,4 +1,4 @@
-function [Ur_physical,p,Nzeros] = Projection_type(PhysicalProjection,numModes,tolerance,Model_Dimension,Built_Model,dt,p )
+function [Ur_physical,p,Nzeros] = Projection_physical_type(PhysicalProjection,numModes,tolerance,Model_Dimension,Built_Model,dt,p )
 
 %Physical Projection
 if PhysicalProjection == 0

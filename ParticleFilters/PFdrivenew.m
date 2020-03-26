@@ -20,7 +20,7 @@ Numsteps = 1000;
 %Multiple of the step size for observation time
 ObsMult=10;
 %Rank of projection, number of Lyapunov exponents for AUS projection
-p=10;
+p=50;
 
 %%Dimension of model space
 %N=3;
@@ -134,7 +134,7 @@ end
 end
 
 Tdiag = diag(Innov'*Rinv*Innov);
-tempering = 1.2; %%%% <<< including new parameter here for visibility. Tempering usually a little larger than 1.
+tempering = 1.5%1.2; %%%% <<< including new parameter here for visibility. Tempering usually a little larger than 1.
 Tdiag = (Tdiag-max(Tdiag))/tempering; %%%%% <<<< Think dividing the exponent is dangerous; this was tempering with an unknown coefficient. 
 LH = exp(-Tdiag/2); %%%% <<<< divided exponent by 2; this is part of the normal distribution
 w=LH.*w;

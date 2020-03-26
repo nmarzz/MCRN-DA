@@ -21,10 +21,10 @@ iproj=1;
 % 0 = off, 1 = on
 
 %POD
-usePOD = 1; 
+usePOD = 0; 
 
 %DMD
-useDMD = 0;
+useDMD = 1;
 
 %AUS
 useAUS = 0;
@@ -43,11 +43,11 @@ L=50;
 %alpha value for projected resampling
 alpha=1.0;
 %Number of time steps 
-Numsteps = 1000;
+Numsteps = 5000;
 %Multiple of the step size for observation time
 ObsMult=10;
 %Rank of projection, number of Lyapunov exponents for AUS projection
-p=10;
+p=70;
 
 %%Dimension of model space
 %N=3;

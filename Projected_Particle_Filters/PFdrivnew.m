@@ -21,13 +21,13 @@ iproj=1;
 % 0 = off, 1 = on
 
 %POD
-usePOD = 1;
+usePOD = 0;
 
 %DMD
 useDMD = 0;
 
 %AUS
-useAUS = 0;
+useAUS = 1;
 
 
 % Type of particle filter
@@ -116,9 +116,9 @@ for i=1:Numsteps
     %Form AUS projection and update LEs
     est=estimate(:,i);
     %% make this as an option as Data_Prpj
-    % [q,LE] = getausproj(N,p,Fmod,t,est,h,q,LE);
+    [q,LE] = getausproj(N,p,Fmod,t,est,h,q,LE);
     % [q]=getpod(Ur,p);
-    q = getDMD(Phi,p);
+    %q = getDMD(Phi,p);
     proj=q*q';
     %%
     
