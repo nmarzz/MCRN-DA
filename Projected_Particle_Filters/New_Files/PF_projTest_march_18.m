@@ -1,44 +1,45 @@
 %% Initialization
 clear all;clc;
 rng(1331);
-Model_Dimension =700;
+Model_Dimension =40;
 Fmod = @FLor95;
-dt=10;
+dt=1.E-2;
 Built_Model = buildModel(Model_Dimension,@FLor95,dt);
 %% Type of particle filter
 %Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
-iOPPF=0;
+iOPPF=1;
 %%Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 PhysicalProjection =0;
 DataProjection = 0;
 tolerance = 0.0001;%POD_modes
-numModes=500;%DMD_modes
-p=10;%Rank of projection for the case PhysicalProjection =0;DataProjection = 0;
+numModes=30;%DMD_modes
+p=6;%Rank of projection for the case PhysicalProjection =0;DataProjection = 0;
 [Ur_physical,p,Nzeros] = ...
     Projection_type(PhysicalProjection ,numModes,tolerance,Model_Dimension,Built_Model,dt,p);
 [Ur_data,p_data,Nzeros_data] = Projection_type(DataProjection ,numModes,tolerance,Model_Dimension,Built_Model,dt,p);
 
 %% Particle Filter Information
-L=50;%Number of particles
+L=2000;%Number of particles
 alpha=1;%alpha value for projected resampling
 Numsteps = 1000;%Number of time steps
-ObsMult=10;%Multiple of the step size for observation time
+ObsMult=5;%Multiple of the step size for observation time
 %ICs for particles
 IC = zeros(Model_Dimension,1);
 IC(1)=1;
 
-h=5.E-3;%Computational time step
+h=1.E-3;%Computational time step
 %For diagonal (alpha*I) covariance matrices.
 %Observation
 epsR = 0.01;
 %Model
 epsSig = 0.01;
 %Resampling
-epsOmega = 2.E-3;
+% epsOmega = 2.E-3;
+epsOmega =0.0027;
 %Initial condition
-epsIC = 0.1;
+epsIC = 0.01;
 %Observe every inth variable.
-inth=2;
+inth=1;
 %Call Init
 [M,H,PinvH,IC,q,LE,w,R,Rinv,Sig,Omega,ICcov,Lones,Mzeros] = ...
     Init(Fmod,IC,h,Model_Dimension,inth,Numsteps,p,L,epsR,epsSig,epsOmega,epsIC);
@@ -60,7 +61,7 @@ for i = 1:Numsteps
     t = t+h;
 end
 
-%% 
+%%
 %Initial time and time step
 t=0;
 t0=t;
@@ -84,7 +85,6 @@ for i=1:Numsteps
         if (iOPPF==0)%Standard Particle Filter(no projection)
             %Add noise only at observation times
             x = x + mvnrnd(Nzeros,Sig,L)';
-            
             Innov = repmat(y(:,i),1,L) - H*x;
         else % Ioppf ==1
             Qpinv = inv(Sig) + H'*Rinvfixed*H;
@@ -110,23 +110,23 @@ for i=1:Numsteps
         x(:,[1 idx]) = x(:,[idx 1]);
         
         toEXP = logw(2:end) - logw(1);
-        toEXP=min(toEXP,700);
-        toEXP=max(toEXP,-700);
+        toEXP=min(toEXP,709);
+        toEXP=max(toEXP,-709);
         toSum = exp(toEXP);
         normalizer = logw(1) + log1p(sum(toSum));
         logw = logw - normalizer;
         w = exp(logw);
-        %w = eye(L,1);   % Use to force weights to collapse
+        
         % End new code
         
         
-%         % LEGACY CODE - normalizing and reweighting
+        %%%LEGACY CODE - normalizing and reweighting
 %         toEXP =(-Tdiag/2); %%%% <<<< divided exponent by 2; this is part of the normal distribution
-% %         toEXP=max(toEXP,-700);%700
-% %         toEXP=min(toEXP,700);
+%         toEXP=max(toEXP,-709);%700
+%         toEXP=min(toEXP,709);
 %         LH=exp(toEXP);
 %         w=LH.*w;
-%         %Normalize weights
+%         %%Normalize weights
 %         w=w/(w'*Lones);
         %Resampling (with resamp.m that I provided or using the pseudo code in Peter Jan ,... paper)
         [w,x,NRS] = resamp(w,x,0.2);
@@ -164,9 +164,9 @@ for i=1:Numsteps
     t = t+h;
 end
 figure(4)
-plot(Time,RMSEsave);
+plot(Time,RMSEsave,'.r');
 hold on;
-plot(Time,RMSEsave_proj)
+plot(Time,RMSEsave_proj,'.r')
 legend('RMSE Original','RMSE Projected')
 RMSEave_orig = RMSEave_orig/Numsteps
 RMSEave_proj = RMSEave_proj/Numsteps
