@@ -12,32 +12,20 @@ clear all;clc;
 load('DMD')
 %
 %%
-
 % Projection toggle
 %Use of projection (iproj=0 => No Projection, iproj=1 => Projection)
 iproj=1;
-
 % Type of projection method
 % 0 = off, 1 = on
-
 %POD
 usePOD = 0;
-
 %DMD
 useDMD = 0;
-
 %AUS
 useAUS = 1;
-
-
 % Type of particle filter
 %Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
 iOPPF=1;
-
-
-
-
-
 %Number of particles
 L=50;
 %alpha value for projected resampling
@@ -48,7 +36,6 @@ Numsteps = 1000;
 ObsMult=10;
 %Rank of projection, number of Lyapunov exponents for AUS projection
 p=10;
-
 %%Dimension of model space
 %N=3;
 %%Problem
@@ -124,7 +111,6 @@ for i=1:Numsteps
     
     if mod(i,ObsMult)==0
         %At observation times, Update weights via likelihood
-        
         if (iOPPF==0)
             %Add noise only at observation times
             x = x + mvnrnd(Nzeros,Sig,L)';

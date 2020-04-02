@@ -1,21 +1,21 @@
 %% Initialization
 clear all;clc;
 rng(1331);
-Model_Dimension =40;
+Model_Dimension =500;
 Fmod = @FLor95;
 dt=1.E-2;
 Built_Model = buildModel(Model_Dimension,@FLor95,dt);
 %% Type of particle filter
 % Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
-iOPPF=1;
-proj_data =1;
+iOPPF=0;
+proj_data =0;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 PhysicalProjection =1;
-DataProjection = 2;
+DataProjection = 0;
 tolerance_physical = 0.0001; % POD_modes
 tolerance_data = 0.0001; % POD_modes
-numModes_physical = 30;% DMD_modes, for physical
+numModes_physical = 300;% DMD_modes, for physical
 numModes_data = 30; % DMD_modes, for data
 p_physical = 6;%Rank of projection for physical, in the case PhysicalProjection =0;DataProjection = 0;
 p_data = 6; % rank of projection for data
@@ -26,7 +26,7 @@ p_data = 6; % rank of projection for data
 %% Particle Filter Information
 L=2000;%Number of particles
 alpha=1;%alpha value for projected resampling
-Numsteps = 1000;%Number of time steps
+Numsteps = 2000;%Number of time steps
 ObsMult=5;%Multiple of the step size for observation time
 %ICs for particles
 IC = zeros(Model_Dimension,1);
@@ -83,18 +83,17 @@ estimate(:,1) = x*w;
 
 for i=1:Numsteps
     % Perform projection of the Data Model
-      est=estimate(:,i);
-    [q_data] = projectionToggle_data(DataProjection,Model_Dimension,Ur_data,p_data, LE, t, est, h); %chooses which q projection we want  
+    est=estimate(:,i);
+    [q_data] = projectionToggle_data(DataProjection,Model_Dimension,Ur_data,p_data, LE, t, est, h); %chooses which q projection we want
     if mod(i,ObsMult)==0
         %At observation times, Update weights via likelihood
-        if (iOPPF==0)%Standard Particle Filter(no projection)
+        if (iOPPF==0)%Standard Particle Filter(Physical projection)
             %Add noise only at observation times
             x = x + mvnrnd(Nzeros,Sig,L)';
             Innov = repmat(y(:,i),1,L) - H*x;
-        else % Ioppf ==1
+        else % IOPPF ==1, Optimal proposal PF
             Qpinv = inv(Sig) + H'*Rinvfixed*H;
             Qp = inv(Qpinv);
-            %Optimal proposal PF
             Innov = repmat(y(:,i),1,L) - H*x;
             x = x + Qp*H'*Rinv*Innov + mvnrnd(Nzeros,Qp,L)';
             Rinv = inv(R + H*Sig*H');
@@ -103,8 +102,8 @@ for i=1:Numsteps
         tempering = 2; % including new parameter here for visibility. Tempering usually a little larger than 1.
         Avg=(max(Tdiag)+min(Tdiag))/2;
         Tdiag = (Tdiag-Avg)/tempering;
-%         % NEW CODE: Re weight while avoiding taking large exponentials -
-%         % avoids NAN more often
+        %         % NEW CODE: Re weight while avoiding taking large exponentials -
+        %         % avoids NAN more often
         Tdiag = -Tdiag/2;
         logw = Tdiag + log(w);
         
@@ -126,15 +125,15 @@ for i=1:Numsteps
         
         
         %%%LEGACY CODE - normalizing and reweighting
-%         toEXP =(-Tdiag/2); %%%% <<<< divided exponent by 2; this is part of the normal distribution
-%         toEXP=max(toEXP,-709);%700
-%         toEXP=min(toEXP,709);
-%         LH=exp(toEXP);
-%         w=LH.*w;
-%         %%Normalize weights
-%         w=w/(w'*Lones);
+        %         toEXP =(-Tdiag/2); %%%% <<<< divided exponent by 2; this is part of the normal distribution
+        %         toEXP=max(toEXP,-709);%700
+        %         toEXP=min(toEXP,709);
+        %         LH=exp(toEXP);
+        %         w=LH.*w;
+        %         %%Normalize weights
+        %         w=w/(w'*Lones);
         %Resampling (with resamp.m that I provided or using the pseudo code in Peter Jan ,... paper)
-        [w,x,NRS] = resamp(w,x,0.2);
+        [w,x,NRS] = resamp(w,x,0.1);
         Resamps = Resamps + NRS;
         %Update Particles
         %Note: This can be modified to implement the projected resampling as part of implementation of PROJ-PF:
@@ -169,7 +168,7 @@ for i=1:Numsteps
     t = t+h;
 end
 figure(4)
-plot(Time,RMSEsave,'.r');
+plot(Time,RMSEsave,'.b');
 hold on;
 plot(Time,RMSEsave_proj,'.r')
 legend('RMSE Original','RMSE Projected')
