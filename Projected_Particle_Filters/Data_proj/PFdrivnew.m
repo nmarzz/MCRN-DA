@@ -103,9 +103,9 @@ for i=1:Numsteps
     %Form AUS projection and update LEs
     est=estimate(:,i);
     %% make this as an option as Data_Prpj
-    [q,LE] = getausproj(N,p,Fmod,t,est,h,q,LE);
+%     [q,LE] = getausproj(N,p,Fmod,t,est,h,q,LE);
     % [q]=getpod(Ur,p);
-    %q = getDMD(Phi,p);
+    q = getDMD(Phi,p);
     proj=q*q';
     %%
     

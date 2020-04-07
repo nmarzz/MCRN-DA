@@ -1,7 +1,7 @@
 %% Initialization
 clear all;clc;
 rng(1331);
-Model_Dimension =500;
+Model_Dimension =40;
 Fmod = @FLor95;
 dt=1.E-2;
 Built_Model = buildModel(Model_Dimension,@FLor95,dt);
@@ -11,7 +11,7 @@ iOPPF=0;
 proj_data =0;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =1;
+PhysicalProjection =0;
 DataProjection = 0;
 tolerance_physical = 0.0001; % POD_modes
 tolerance_data = 0.0001; % POD_modes
@@ -84,13 +84,14 @@ estimate(:,1) = x*w;
 for i=1:Numsteps
     % Perform projection of the Data Model
     est=estimate(:,i);
-    [q_data] = projectionToggle_data(DataProjection,Model_Dimension,Ur_data,p_data, LE, t, est, h); %chooses which q projection we want
+    [q_data] = projectionToggle_data(DataProjection,Model_Dimension,Ur_data,p_data); %chooses which q projection we want
     if mod(i,ObsMult)==0
         %At observation times, Update weights via likelihood
         if (iOPPF==0)%Standard Particle Filter(Physical projection)
             %Add noise only at observation times
             x = x + mvnrnd(Nzeros,Sig,L)';
-            Innov = repmat(y(:,i),1,L) - H*x;
+%             Innov = repmat(y(:,i),1,L) - H*x;
+            Innov=repmat(y(:,i),1,L)-q_data'*H*q_physical*x;%try to code what Erik wrote on slack
         else % IOPPF ==1, Optimal proposal PF
             Qpinv = inv(Sig) + H'*Rinvfixed*H;
             Qp = inv(Qpinv);
