@@ -8,11 +8,11 @@ Built_Model = buildModel(Model_Dimension,@FLor95,dt);
 %% Type of particle filter
 % Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
 iOPPF=0;
-proj_data =0;
+
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =0;
-DataProjection = 0;
+PhysicalProjection =1;
+DataProjection = 1;
 tolerance_physical = 0.0001; % POD_modes
 tolerance_data = 0.0001; % POD_modes
 numModes_physical = 300;% DMD_modes, for physical
@@ -44,11 +44,12 @@ epsOmega =0.0027;
 %Initial condition
 epsIC = 0.01;
 %Observe every inth variable.
-inth=1;
+inth=2;
 %Call Init
 [M,H,PinvH,IC,q,LE,w,R,Rinv,Sig,Omega,ICcov,Lones,Mzeros] = ...
     Init(Fmod,IC,h,Model_Dimension,inth,Numsteps,p_physical,L,epsR,epsSig,epsOmega,epsIC);
-Rinvfixed=Rinv;
+% Rinvfixed=Rinv;
+Rfixed=R;
 %Add noise N(0,ICcov) to ICs to form different particles
 x = zeros(Model_Dimension,L);
 Modelzeros = zeros(Model_Dimension,1);
@@ -76,7 +77,7 @@ RMSEave_proj=0;
 iRMSE=1;
 [q_physical] =projectionToggle_Physical(PhysicalProjection,Model_Dimension,Ur_physical,p_physical);
 %Loop over observation times
-[M,H,PinvH] = new_Init(Model_Dimension,inth,q_physical);
+[M,H,PinvH] = new_Init(Model_Dimension,inth);
 Sig=q_physical'*Sig*q_physical;
 x=q_physical'*x;
 estimate(:,1) = x*w;
@@ -85,17 +86,20 @@ for i=1:Numsteps
     % Perform projection of the Data Model
     est=estimate(:,i);
     [q_data] = projectionToggle_data(DataProjection,Model_Dimension,Ur_data,p_data); %chooses which q projection we want
+    R=q_data'*PinvH*Rfixed*PinvH'*q_data;%udataing R
     if mod(i,ObsMult)==0
         %At observation times, Update weights via likelihood
         if (iOPPF==0)%Standard Particle Filter(Physical projection)
             %Add noise only at observation times
             x = x + mvnrnd(Nzeros,Sig,L)';
-%             Innov = repmat(y(:,i),1,L) - H*x;
-            Innov=repmat(y(:,i),1,L)-q_data'*H*q_physical*x;%try to code what Erik wrote on slack
+            %             Innov = repmat(y(:,i),1,L) - H*x;
+            % Innov = q_data'*PinvH*(repmat(y(:,i),1,L) - H*x);%Proj_data_model
+            Innov = q_data'*PinvH*(repmat(y(:,i),1,L) - H*q_physical*x);%Proj_data_model and Physical
         else % IOPPF ==1, Optimal proposal PF
             Qpinv = inv(Sig) + H'*Rinvfixed*H;
             Qp = inv(Qpinv);
             Innov = repmat(y(:,i),1,L) - H*x;
+            %             Innov = q_data'*PinvH*(repmat(y(:,i),1,L) - H*q_physical*x);
             x = x + Qp*H'*Rinv*Innov + mvnrnd(Nzeros,Qp,L)';
             Rinv = inv(R + H*Sig*H');
         end
