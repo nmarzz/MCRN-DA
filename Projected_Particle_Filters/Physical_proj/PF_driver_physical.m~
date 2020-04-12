@@ -11,7 +11,7 @@ iOPPF=1;
 proj_data =0;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =2;
+PhysicalProjection =0;
 DataProjection = 1;
 tolerance_physical = 0.0001; % POD_modes
 tolerance_data = 0.0001; % POD_modes
@@ -104,12 +104,11 @@ for i=1:Numsteps
             Hnq = q_data'*Hcross*H; % H has already been multiplied by q_physical in new_init            
             Innov=repmat(q_data'*Hcross*y(:,i),1,L)-Hnq*x;%try to code what Erik wrote on slack
         else % IOPPF ==1, Optimal proposal PF
-            Hnq = q_data'*Hcross*H; % H has already been multiplied by q_physical in new_init  
-            Qpinv = inv(Sig) + Hnq'*Rinv*Hnq;
+            Qpinv = inv(Sig) + H'*Rinvfixed*H;
             Qp = inv(Qpinv);
-            Innov=repmat(q_data'*Hcross*y(:,i),1,L)-Hnq*x;
-            x = x + Qp*Hnq'*Rinv*Innov + mvnrnd(Nzeros,Qp,L)';
-            Rinv = inv(R + Hnq*Sig*Hnq');
+            Innov = repmat(y(:,i),1,L) - H*x;
+            x = x + Qp*H'*Rinv*Innov + mvnrnd(Nzeros,Qp,L)';
+            Rinv = inv(R + H*Sig*H');
         end
         Tdiag = diag(Innov'*Rinv*Innov);
         tempering = 2; % including new parameter here for visibility. Tempering usually a little larger than 1.
