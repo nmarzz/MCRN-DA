@@ -1,35 +1,34 @@
 %% Initialization
 clear all;clc;
 rng(1331);
-Model_Dimension =40;
-Fmod = @FLor95;
-dt=1.E-2;
-Built_Model = buildModel(Model_Dimension,@FLor95,dt);
+F = @FLor95; % physical model
+N =40; % N: physical model dimension
+dt=1.E-2; % Model output time step
+Built_Model = buildModel(N,F,dt);
 %% Type of particle filter
 % Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
 iOPPF=1;
-proj_data =0;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =0;
-DataProjection = 1;
+PhysicalProjection =1;
+DataProjection = 2;
 tolerance_physical = 0.0001; % POD_modes
 tolerance_data = 0.0001; % POD_modes
 numModes_physical = 300;% DMD_modes, for physical
 numModes_data = 30; % DMD_modes, for data
 p_physical = 6;%Rank of projection for physical, in the case PhysicalProjection =0;DataProjection = 0;
 p_data = 6; % rank of projection for data
-[Ur_physical,p_physical,Nzeros] = ...
-    Projection_physical_type(PhysicalProjection ,numModes_physical,tolerance_physical,Model_Dimension,Built_Model,dt,p_physical);
-[Ur_data,p_data,Nzeros_data] = Projection_data_type(DataProjection ,numModes_data,tolerance_data,Model_Dimension,Built_Model,dt,p_data);
+[Ur_physical,p_physical,pzeros_physical] = ...
+    Projection_physical_type(PhysicalProjection ,numModes_physical,tolerance_physical,N,Built_Model,dt,p_physical);
+[Ur_data,p_data,pzeros_data] = Projection_data_type(DataProjection ,numModes_data,tolerance_data,N,Built_Model,dt,p_data);
 
 %% Particle Filter Information
 L=200;%Number of particles
 alpha=1;%alpha value for projected resampling
-Numsteps = 2000;%Number of time steps
+Numsteps = 500;%Number of time steps
 ObsMult=5;%Multiple of the step size for observation time
 %ICs for particles
-IC = zeros(Model_Dimension,1);
+IC = zeros(N,1);
 IC(1)=1;
 
 h=1.E-3;%Computational time step
@@ -37,7 +36,7 @@ h=1.E-3;%Computational time step
 %Observation
 epsR = 0.01;
 %Model
-epsSig = 0.01;
+epsQ = 0.01;
 %Resampling
 % epsOmega = 2.E-3;
 epsOmega =0.0027;
@@ -46,30 +45,27 @@ epsIC = 0.01;
 %Observe every inth variable.
 inth=1;
 %Call Init
-[M,H,PinvH,IC,q,LE,w,R,Rinv,Sig,Omega,ICcov,Lones,Mzeros] = ...
-    Init(Fmod,IC,h,Model_Dimension,inth,Numsteps,p_physical,L,epsR,epsSig,epsOmega,epsIC);
-Rinvfixed=Rinv;
+[M,H,PinvH,IC,q,LE,w,R,Rinv,Q,Omega,ICcov,Lones,Mzeros] = ...
+    Init(F,IC,h,N,inth,Numsteps,p_physical,L,epsR,epsQ,epsOmega,epsIC);
+
 %Add noise N(0,ICcov) to ICs to form different particles
-x = zeros(Model_Dimension,L);
-Modelzeros = zeros(Model_Dimension,1);
-x = repmat(IC,1,L) + mvnrnd(Modelzeros,ICcov,L)'; %ICchol*randn(N,L);
+Nzeros = zeros(N,1); 
+u = repmat(IC,1,L) + mvnrnd(Nzeros,ICcov,L)'; %ICchol*randn(N,L);
+%% Generate observations from "Truth"
 y=zeros(M,Numsteps);
 t=0;
-
-%% Generate observations from "Truth"
 for i = 1:Numsteps
     truth(:,i) = IC;
     if mod(i,ObsMult)==0
         y(:,i)=H*IC;
     end
-    IC = dp4(Fmod,t,IC,h);
+    IC = dp4(F,t,IC,h);
     t = t+h;
 end
 y = y + mvnrnd(Mzeros,R,Numsteps)'; %Rchol*rand(M,1); % + Noise from N(0,R)
 %% Add projection to data using formulation by Erik- posted on slack April 8/20
-Hcross = H' / (H*H'); % H' * inv(H*H')
-[q_physical] =projectionToggle_Physical(PhysicalProjection,Model_Dimension,Ur_physical,p_physical);
-[q_data] =projectionToggle_data(DataProjection,Model_Dimension,Ur_data,p_data);
+[V] =projectionToggle_Physical(PhysicalProjection,N,Ur_physical,p_physical);
+[U] =projectionToggle_data(DataProjection,N,Ur_data,p_data);
 Rfixed = R;
 
 %%
@@ -81,34 +77,35 @@ RMSEave_orig=0;
 RMSEave_proj=0;
 iRMSE=1;
 %Loop over observation times
-[M,H,PinvH] = new_Init(Model_Dimension,inth,q_physical);
-Sig=q_physical'*Sig*q_physical;
-x=q_physical'*x;
+[M,H,PinvH] = new_Init(N,inth,V); %M:Observation dimension
+Q=V'*Q*V;
+x=V'*u;
 estimate(:,1) = x*w;
 
 
 for i=1:Numsteps
     est=estimate(:,i);
     % Get projection of the Data Model    
-    [q_data] = projectionToggle_data(DataProjection,Model_Dimension,Ur_data,p_data); %chooses which q projection we want
+    [U] = projectionToggle_data(DataProjection,N,Ur_data,p_data); %chooses which q projection we want
     % Update noise covariance
-    R = q_data' * Hcross * Rfixed * Hcross' * q_data;
+    R = U' * PinvH * Rfixed * PinvH' * U;
     Rinv = inv(R);
     
     if mod(i,ObsMult)==0
         %At observation times, Update weights via likelihood
         if (iOPPF==0)%Standard Particle Filter(Physical projection)
             %Add noise only at observation times
-            x = x + mvnrnd(Nzeros,Sig,L)';
+            x = x + mvnrnd(pzeros_physical,Q,L)';
 %             Innov = repmat(y(:,i),1,L) - H*x;
-            Hnq = q_data'*Hcross*H; % H has already been multiplied by q_physical in new_init            
-            Innov=repmat(q_data'*Hcross*y(:,i),1,L)-Hnq*x;%try to code what Erik wrote on slack
+            Hnq = U'*PinvH*H*V; % H has already been multiplied by V in new_init            
+            Innov=repmat(U'*PinvH*y(:,i),1,L)-Hnq*x;%try to code what Erik wrote on slack
         else % IOPPF ==1, Optimal proposal PF
-            Qpinv = inv(Sig) + H'*Rinvfixed*H;
+            Hnq = U'*PinvH*H*V; % H has already been multiplied by V in new_init  
+            Qpinv = inv(Q) + Hnq'*Rinv*Hnq;
             Qp = inv(Qpinv);
-            Innov = repmat(y(:,i),1,L) - H*x;
-            x = x + Qp*H'*Rinv*Innov + mvnrnd(Nzeros,Qp,L)';
-            Rinv = inv(R + H*Sig*H');
+            Innov=repmat(U'*PinvH*y(:,i),1,L)-Hnq*x;
+            x = x + Qp*Hnq'*Rinv*Innov + mvnrnd(pzeros_physical,Qp,L)';
+            Rinv = inv(R + Hnq*Q*Hnq');
         end
         Tdiag = diag(Innov'*Rinv*Innov);
         tempering = 2; % including new parameter here for visibility. Tempering usually a little larger than 1.
@@ -152,21 +149,21 @@ for i=1:Numsteps
         %Replace Sigchol*randn(N,L) with (alpha*Q_n*Q_n^T + (1-alpha)I)*Sigchol*randn(N,L)
         if (NRS==1)
             %Standard resampling
-            x = x + mvnrnd(Nzeros,Sig,L)'; %Sigchol*randn(N,L);
+            x = x + mvnrnd(pzeros_physical,Q,L)'; %Sigchol*randn(N,L);
         end
         %END: At Observation times
     end
     
     %Predict, add noise at observation times
-    %     x = proj*dp4(Fmod,t,proj*x,h);
-    x = q_physical'*dp4(Fmod,t,q_physical*x,h);
+    %     x = proj*dp4(F,t,proj*x,h);
+    x = V'*dp4(F,t,V*x,h);
     
     estimate(:,i+1) = x*w;
     
-    diff_orig= truth(:,i) - (q_physical*estimate(:,i));
-    diff_proj= (q_physical * q_physical'* truth(:,i)) - (q_physical*estimate(:,i));
-    RMSE_orig = sqrt(diff_orig'*diff_orig/Model_Dimension)
-    RMSE_proj = sqrt(diff_proj'*diff_proj/Model_Dimension)
+    diff_orig= truth(:,i) - (V*estimate(:,i));
+    diff_proj= (V * V'* truth(:,i)) - (V*estimate(:,i));
+    RMSE_orig = sqrt(diff_orig'*diff_orig/N)
+    RMSE_proj = sqrt(diff_proj'*diff_proj/N)
     RMSEave_orig = RMSEave_orig + RMSE_orig;
     RMSEave_proj = RMSEave_proj + RMSE_proj;
     
