@@ -10,22 +10,21 @@ Built_Model = buildModel(N,F,dt);
 iOPPF=1;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =1;
-DataProjection = 2;
-tolerance_physical = 0.0001; % POD_modes
+PhysicalProjection =0;
+DataProjection = 0;
+tolerance_physical = 2; % POD_modes
 tolerance_data = 0.0001; % POD_modes
-numModes_physical = 300;% DMD_modes, for physical
+numModes_physical = 30;% DMD_modes, for physical
 numModes_data = 30; % DMD_modes, for data
-p_physical = 6;%Rank of projection for physical, in the case PhysicalProjection =0;DataProjection = 0;
-p_data = 6; % rank of projection for data
+
 [Ur_physical,p_physical,pzeros_physical] = ...
-    Projection_physical_type(PhysicalProjection ,numModes_physical,tolerance_physical,N,Built_Model,dt,p_physical);
-[Ur_data,p_data,pzeros_data] = Projection_data_type(DataProjection ,numModes_data,tolerance_data,N,Built_Model,dt,p_data);
+    Projection_physical_type(PhysicalProjection ,numModes_physical,tolerance_physical,N,Built_Model,dt);
+[Ur_data,p_data,pzeros_data] = Projection_data_type(DataProjection ,numModes_data,tolerance_data,N,Built_Model,dt);
 
 %% Particle Filter Information
-L=200;%Number of particles
-alpha=1;%alpha value for projected resampling
-Numsteps = 500;%Number of time steps
+L=1000;%Number of particles
+alpha=0;%alpha value for projected resampling
+Numsteps = 2000;%Number of time steps
 ObsMult=5;%Multiple of the step size for observation time
 %ICs for particles
 IC = zeros(N,1);
@@ -46,7 +45,7 @@ epsIC = 0.01;
 inth=1;
 %Call Init
 [M,H,PinvH,IC,q,LE,w,R,Rinv,Q,Omega,ICcov,Lones,Mzeros] = ...
-    Init(F,IC,h,N,inth,Numsteps,p_physical,L,epsR,epsQ,epsOmega,epsIC);
+    Init(F,IC,h,N,inth,Numsteps,p_physical,L,epsR,epsQ,epsOmega,epsIC);%M = Dimension of observation space
 
 %Add noise N(0,ICcov) to ICs to form different particles
 Nzeros = zeros(N,1); 
@@ -149,7 +148,8 @@ for i=1:Numsteps
         %Replace Sigchol*randn(N,L) with (alpha*Q_n*Q_n^T + (1-alpha)I)*Sigchol*randn(N,L)
         if (NRS==1)
             %Standard resampling
-            x = x + mvnrnd(pzeros_physical,Q,L)'; %Sigchol*randn(N,L);
+%             x = x + mvnrnd(pzeros_physical,Q,L)'; %Sigchol*randn(N,L);mvnrnd*(alpha*Q_n*Q_n^T + (1-alpha)I)
+            x = x + ((alpha*U*U' + (1-alpha)*eye(p_physical,1))*(mvnrnd(pzeros_physical,Q,L)')); 
         end
         %END: At Observation times
     end
@@ -177,7 +177,7 @@ for i=1:Numsteps
     t = t+h;
 end
 figure(4)
-plot(Time,RMSEsave,'.b');
+plot(Time,RMSEsave,'*b');
 hold on;
 plot(Time,RMSEsave_proj,'.r')
 legend('RMSE Original','RMSE Projected')
