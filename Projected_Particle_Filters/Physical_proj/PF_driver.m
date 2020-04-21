@@ -2,18 +2,29 @@
 clear all;clc;
 rng(1331);
 F = @FLor95; % physical model
-N =40; % N: physical model dimension
-dt=1.E-2; % Model output time step
-Built_Model = buildModel(N,F,dt);
+N =90; % N: physical model dimension
+dt=1.E-1; % Model output time step
+Numsteps = 10000;%Number of time steps
+T=Numsteps*dt;
+Built_Model= buildModel(N,F,T,Numsteps);
+
+figure(1)
+contourf(Built_Model,'LineStyle','none')
+colormap(jet);
+colorbar;caxis([-5 5]);
+xlabel('J')
+ylabel('Time')
+title('Spatiotemporal plot of Lorenz96')
+
 %% Type of particle filter
 % Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
 iOPPF=1;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =0;
-DataProjection = 0;
+PhysicalProjection =1;
+DataProjection = 1;
 tolerance_physical = 2; % POD_modes
-tolerance_data = 0.0001; % POD_modes
+tolerance_data = 2; % POD_modes
 numModes_physical = 30;% DMD_modes, for physical
 numModes_data = 30; % DMD_modes, for data
 
@@ -21,15 +32,20 @@ numModes_data = 30; % DMD_modes, for data
     Projection_physical_type(PhysicalProjection ,numModes_physical,tolerance_physical,N,Built_Model,dt);
 [Ur_data,p_data,pzeros_data] = Projection_data_type(DataProjection ,numModes_data,tolerance_data,N,Built_Model,dt);
 
+figure(2)
+contourf(Ur_data','LineStyle','none')
+colormap(jet);
+colorbar;
+xlabel('J')
+ylabel('Time')
+title('Spatiotemporal plot of Lorenz96 with POD')
 %% Particle Filter Information
-L=1000;%Number of particles
+L=500;%Number of particles
 alpha=0;%alpha value for projected resampling
-Numsteps = 2000;%Number of time steps
 ObsMult=5;%Multiple of the step size for observation time
 %ICs for particles
 IC = zeros(N,1);
 IC(1)=1;
-
 h=1.E-3;%Computational time step
 %For diagonal (alpha*I) covariance matrices.
 %Observation
@@ -46,9 +62,8 @@ inth=1;
 %Call Init
 [M,H,PinvH,IC,q,LE,w,R,Rinv,Q,Omega,ICcov,Lones,Mzeros] = ...
     Init(F,IC,h,N,inth,Numsteps,p_physical,L,epsR,epsQ,epsOmega,epsIC);%M = Dimension of observation space
-
 %Add noise N(0,ICcov) to ICs to form different particles
-Nzeros = zeros(N,1); 
+Nzeros = zeros(N,1);
 u = repmat(IC,1,L) + mvnrnd(Nzeros,ICcov,L)'; %ICchol*randn(N,L);
 %% Generate observations from "Truth"
 y=zeros(M,Numsteps);
@@ -66,7 +81,6 @@ y = y + mvnrnd(Mzeros,R,Numsteps)'; %Rchol*rand(M,1); % + Noise from N(0,R)
 [V] =projectionToggle_Physical(PhysicalProjection,N,Ur_physical,p_physical);
 [U] =projectionToggle_data(DataProjection,N,Ur_data,p_data);
 Rfixed = R;
-
 %%
 %Initial time and time step
 t=0;
@@ -84,22 +98,21 @@ estimate(:,1) = x*w;
 
 for i=1:Numsteps
     est=estimate(:,i);
-    % Get projection of the Data Model    
+    % Get projection of the Data Model
     [U] = projectionToggle_data(DataProjection,N,Ur_data,p_data); %chooses which q projection we want
     % Update noise covariance
     R = U' * PinvH * Rfixed * PinvH' * U;
     Rinv = inv(R);
-    
     if mod(i,ObsMult)==0
         %At observation times, Update weights via likelihood
         if (iOPPF==0)%Standard Particle Filter(Physical projection)
             %Add noise only at observation times
             x = x + mvnrnd(pzeros_physical,Q,L)';
-%             Innov = repmat(y(:,i),1,L) - H*x;
-            Hnq = U'*PinvH*H*V; % H has already been multiplied by V in new_init            
+            %             Innov = repmat(y(:,i),1,L) - H*x;
+            Hnq = U'*PinvH*H*V; % H has already been multiplied by V in new_init
             Innov=repmat(U'*PinvH*y(:,i),1,L)-Hnq*x;%try to code what Erik wrote on slack
         else % IOPPF ==1, Optimal proposal PF
-            Hnq = U'*PinvH*H*V; % H has already been multiplied by V in new_init  
+            Hnq = U'*PinvH*H*V; % H has already been multiplied by V in new_init
             Qpinv = inv(Q) + Hnq'*Rinv*Hnq;
             Qp = inv(Qpinv);
             Innov=repmat(U'*PinvH*y(:,i),1,L)-Hnq*x;
@@ -141,15 +154,16 @@ for i=1:Numsteps
         %         %%Normalize weights
         %         w=w/(w'*Lones);
         %Resampling (with resamp.m that I provided or using the pseudo code in Peter Jan ,... paper)
-        [w,x,NRS] = resamp(w,x,0.1);
+        [w,x,NRS] = resamp(w,x,0.5);
         Resamps = Resamps + NRS;
         %Update Particles
         %Note: This can be modified to implement the projected resampling as part of implementation of PROJ-PF:
         %Replace Sigchol*randn(N,L) with (alpha*Q_n*Q_n^T + (1-alpha)I)*Sigchol*randn(N,L)
         if (NRS==1)
             %Standard resampling
-%             x = x + mvnrnd(pzeros_physical,Q,L)'; %Sigchol*randn(N,L);mvnrnd*(alpha*Q_n*Q_n^T + (1-alpha)I)
-            x = x + ((alpha*U*U' + (1-alpha)*eye(p_physical,1))*(mvnrnd(pzeros_physical,Q,L)')); 
+            %             x = x + mvnrnd(pzeros_physical,Q,L)'; %Sigchol*randn(N,L);mvnrnd*(alpha*Q_n*Q_n^T + (1-alpha)I)
+            %             x = x + ((alpha*U*U' + (1-alpha)*eye(p_physical,1))*(mvnrnd(pzeros_physical,Q,L)'));
+            x = x + V'*(alpha*(U*U') + (1-alpha)*eye(N,1))*(mvnrnd(zeros(N,1),Omega,L)');% reduced space
         end
         %END: At Observation times
     end
@@ -157,9 +171,8 @@ for i=1:Numsteps
     %Predict, add noise at observation times
     %     x = proj*dp4(F,t,proj*x,h);
     x = V'*dp4(F,t,V*x,h);
-    
+    %     contourf(x,'LineStyle','none')
     estimate(:,i+1) = x*w;
-    
     diff_orig= truth(:,i) - (V*estimate(:,i));
     diff_proj= (V * V'* truth(:,i)) - (V*estimate(:,i));
     RMSE_orig = sqrt(diff_orig'*diff_orig/N)
@@ -174,15 +187,21 @@ for i=1:Numsteps
         RMSEsave_proj(iRMSE)=RMSE_proj;
         iRMSE = iRMSE+1;
     end
+    
     t = t+h;
 end
-figure(4)
-plot(Time,RMSEsave,'*b');
+%
+figure
+plot(Time,RMSEsave, 'r-', 'LineWidth', 2)
+grid on
 hold on;
-plot(Time,RMSEsave_proj,'.r')
+plot(Time,RMSEsave_proj,'b-','LineWidth', 2)
+%title('The Root Mean-Squared Error')
+xlabel('Time')
+ylabel('RMSE')
+% ylim([0 0.15])
 legend('RMSE Original','RMSE Projected')
+
 RMSEave_orig = RMSEave_orig/Numsteps
 RMSEave_proj = RMSEave_proj/Numsteps
 ResampPercent = ObsMult*Resamps/Numsteps
-
-
