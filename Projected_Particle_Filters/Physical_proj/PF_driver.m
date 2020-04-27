@@ -2,19 +2,25 @@
 clear all;clc;
 rng(1331);
 F = @FLor95; % physical model
-N =90; % N: physical model dimension
-dt=1.E-1; % Model output time step
+N =66; % N: physical model dimension
+dt=1.E-2 % Model output time step
 Numsteps = 10000;%Number of time steps
 T=Numsteps*dt;
 Built_Model= buildModel(N,F,T,Numsteps);
-
+% [u,s,v]=svd(Built_Model);
+% ur=u(:,1:5);
+% vr=v(:,1:5);
+% sr=s(1:5,1:5);
+% Built_Model_r=ur*sr*vr';
+% 
 figure(1)
 contourf(Built_Model,'LineStyle','none')
 colormap(jet);
-colorbar;caxis([-5 5]);
+colorbar;
+caxis([-2 2]);
 xlabel('J')
 ylabel('Time')
-title('Spatiotemporal plot of Lorenz96')
+% title('Spatiotemporal plot of Lorenz96')
 
 %% Type of particle filter
 % Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
@@ -22,7 +28,7 @@ iOPPF=1;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 PhysicalProjection =1;
-DataProjection = 1;
+DataProjection = 0;
 tolerance_physical = 2; % POD_modes
 tolerance_data = 2; % POD_modes
 numModes_physical = 30;% DMD_modes, for physical
@@ -32,13 +38,6 @@ numModes_data = 30; % DMD_modes, for data
     Projection_physical_type(PhysicalProjection ,numModes_physical,tolerance_physical,N,Built_Model,dt);
 [Ur_data,p_data,pzeros_data] = Projection_data_type(DataProjection ,numModes_data,tolerance_data,N,Built_Model,dt);
 
-figure(2)
-contourf(Ur_data','LineStyle','none')
-colormap(jet);
-colorbar;
-xlabel('J')
-ylabel('Time')
-title('Spatiotemporal plot of Lorenz96 with POD')
 %% Particle Filter Information
 L=500;%Number of particles
 alpha=0;%alpha value for projected resampling
@@ -82,6 +81,8 @@ y = y + mvnrnd(Mzeros,R,Numsteps)'; %Rchol*rand(M,1); % + Noise from N(0,R)
 [U] =projectionToggle_data(DataProjection,N,Ur_data,p_data);
 Rfixed = R;
 %%
+
+
 %Initial time and time step
 t=0;
 t0=t;
@@ -177,6 +178,7 @@ for i=1:Numsteps
     diff_proj= (V * V'* truth(:,i)) - (V*estimate(:,i));
     RMSE_orig = sqrt(diff_orig'*diff_orig/N)
     RMSE_proj = sqrt(diff_proj'*diff_proj/N)
+    MAE_orig = (sum(abs(diff_orig)))/N
     RMSEave_orig = RMSEave_orig + RMSE_orig;
     RMSEave_proj = RMSEave_proj + RMSE_proj;
     

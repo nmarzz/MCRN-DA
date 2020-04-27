@@ -1,10 +1,11 @@
 % POD Order Reduction
 function [Ur] = orderReduction_POD(r, modeloutput)
-[U,S] = svd(modeloutput,'econ');
+[U,S,V] = svd(modeloutput,'econ');
 sig=diag(S);
 % cdS =cumsum(sig.^2)./sum(sig.^2);% cumulative 
 % r = find(cdS>tol, 1 ); 
 Ur = U(:,1:r);  
+ 
 % sig=diag(S);
 % figure(1)
 % plot(sig,'ko','Linewidth',(1.5)),grid on
