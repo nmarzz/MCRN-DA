@@ -77,6 +77,7 @@ y = y + mvnrnd(Mzeros,R,Numsteps)'; %Rchol*rand(M,1); % + Noise from N(0,R) to o
 Rfixed = R;
 %%
 
+
 %Initial time and time step
 t=0;
 t0=t;
@@ -89,6 +90,7 @@ iRMSE=1;
 Q=V'*Q*V;
 x=V'*u;
 estimate(:,1) = x*w;
+
 
 for i=1:Numsteps
     % Get projection of the Data Model
