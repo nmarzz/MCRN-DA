@@ -2,16 +2,17 @@
 clear all;clc;
 rng(1331);
 F = @FLor95; % physical model
-N =90; % N: physical model dimension
+N =55; % N: physical model dimension
 dt=1.E-1; % Model output time step
-Numsteps = 10000;%Number of time steps
+Numsteps = 5000;%Number of time steps
 T=Numsteps*dt;
-Built_Model= buildModel(N,F,T,Numsteps);
+Built_Model= buildModel(N,F,Numsteps,T);
 
 figure(1)
 contourf(Built_Model,'LineStyle','none')
 colormap(jet);
 colorbar;caxis([-5 5]);
+ylim([0,100])
 xlabel('J')
 ylabel('Time')
 title('Spatiotemporal plot of Lorenz96')
@@ -23,8 +24,8 @@ iOPPF=1;
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 PhysicalProjection =1;
 DataProjection = 1;
-tolerance_physical = 2; % POD_modes
-tolerance_data = 2; % POD_modes
+tolerance_physical = 30; % POD_modes
+tolerance_data = 30; % POD_modes
 numModes_physical = 30;% DMD_modes, for physical
 numModes_data = 30; % DMD_modes, for data
 
