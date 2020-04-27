@@ -3,10 +3,11 @@ clear all;clc;
 rng(1331);
 F = @FLor95; % physical model
 N =66; % N: physical model dimension
-dt=1.E-2 % Model output time step
-Numsteps = 10000;%Number of time steps
+dt=1.E-2; % Model output time step
+Numsteps = 1500;%Number of time steps
 T=Numsteps*dt;
-Built_Model= buildModel(N,F,T,Numsteps);
+Built_Model= buildModel(N,F,Numsteps,T);
+
 % [u,s,v]=svd(Built_Model);
 % ur=u(:,1:5);
 % vr=v(:,1:5);
@@ -14,13 +15,12 @@ Built_Model= buildModel(N,F,T,Numsteps);
 % Built_Model_r=ur*sr*vr';
 % 
 figure(1)
-contourf(Built_Model,'LineStyle','none')
+contourf(Built_Model','LineStyle','none')
 colormap(jet);
 colorbar;
-caxis([-2 2]);
-xlabel('J')
-ylabel('Time')
-% title('Spatiotemporal plot of Lorenz96')
+xticklabels(xticks*dt)
+
+% caxis([-2 2]);
 
 %% Type of particle filter
 % Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
@@ -28,12 +28,11 @@ iOPPF=1;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 PhysicalProjection =1;
-DataProjection = 0;
-tolerance_physical = 2; % POD_modes
-tolerance_data = 2; % POD_modes
+DataProjection = 1;
+tolerance_physical = 10; % POD_modes
+tolerance_data = 10; % POD_modes
 numModes_physical = 30;% DMD_modes, for physical
 numModes_data = 30; % DMD_modes, for data
-
 [Ur_physical,p_physical,pzeros_physical] = ...
     Projection_physical_type(PhysicalProjection ,numModes_physical,tolerance_physical,N,Built_Model,dt);
 [Ur_data,p_data,pzeros_data] = Projection_data_type(DataProjection ,numModes_data,tolerance_data,N,Built_Model,dt);
@@ -63,7 +62,7 @@ inth=1;
     Init(F,IC,h,N,inth,Numsteps,p_physical,L,epsR,epsQ,epsOmega,epsIC);%M = Dimension of observation space
 %Add noise N(0,ICcov) to ICs to form different particles
 Nzeros = zeros(N,1);
-u = repmat(IC,1,L) + mvnrnd(Nzeros,ICcov,L)'; %ICchol*randn(N,L);
+u = repmat(IC,1,L) + mvnrnd(Nzeros,ICcov,L)'; %ICchol*randn(N,L);Noise for IC
 %% Generate observations from "Truth"
 y=zeros(M,Numsteps);
 t=0;
@@ -75,7 +74,7 @@ for i = 1:Numsteps
     IC = dp4(F,t,IC,h);
     t = t+h;
 end
-y = y + mvnrnd(Mzeros,R,Numsteps)'; %Rchol*rand(M,1); % + Noise from N(0,R)
+y = y + mvnrnd(Mzeros,R,Numsteps)'; %Rchol*rand(M,1); % + Noise from N(0,R) to observation
 %% Add projection to data using formulation by Erik- posted on slack April 8/20
 [V] =projectionToggle_Physical(PhysicalProjection,N,Ur_physical,p_physical);
 [U] =projectionToggle_data(DataProjection,N,Ur_data,p_data);
@@ -96,9 +95,8 @@ Q=V'*Q*V;
 x=V'*u;
 estimate(:,1) = x*w;
 
-
-for i=1:Numsteps
-    est=estimate(:,i);
+Computational_Numsteps=T/h;
+for i=1:Computational_Numsteps
     % Get projection of the Data Model
     [U] = projectionToggle_data(DataProjection,N,Ur_data,p_data); %chooses which q projection we want
     % Update noise covariance
@@ -201,9 +199,10 @@ plot(Time,RMSEsave_proj,'b-','LineWidth', 2)
 %title('The Root Mean-Squared Error')
 xlabel('Time')
 ylabel('RMSE')
+% xticklabels(xticks/dt)
 % ylim([0 0.15])
 legend('RMSE Original','RMSE Projected')
 
-RMSEave_orig = RMSEave_orig/Numsteps
-RMSEave_proj = RMSEave_proj/Numsteps
-ResampPercent = ObsMult*Resamps/Numsteps
+RMSEave_orig = RMSEave_orig/Computational_Numsteps
+RMSEave_proj = RMSEave_proj/Computational_Numsteps
+ResampPercent = ObsMult*Resamps/Computational_Numsteps
