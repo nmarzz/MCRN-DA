@@ -3,11 +3,12 @@ clear all;clc;
 rng(1331);
 F = @FLor95; %Physical model
 N =66; % N:Original model dimension
+
+% Build Model (via ODE45)
 dt=1.E-2; % Model output time step
 ModelSteps = 1500; % Number of time steps in building model
 T=ModelSteps*dt;
 Built_Model= buildModel(N,F,ModelSteps,T);
-
 
 % figure(1)
 % contourf(Built_Model','LineStyle','none')
@@ -41,7 +42,7 @@ alpha=0;%alpha value for projected resampling
 h=1.E-2;
 Numsteps=T/h;
 
-ObsMult=5; % Observe every ObsMult steps
+ObsMult=5; % Observe and every ObsMult steps
 
 %Observation Variance
 epsR = 0.01;
@@ -91,8 +92,7 @@ iRMSE=1;
 Q=V'*Q*V;
 x=V'*u;
 
-for i=1:Numsteps
-    estimate(:,i) = x*w;
+for i=1:Numsteps    
     % Get projection of the Data Model
     [U] = projectionToggle_data(DataProjection,N,Ur_data,p_data); 
     % Update noise covariance
@@ -150,18 +150,16 @@ for i=1:Numsteps
     % predict particle position 
     x = V'*dp4(F,t,V*x,h);
 
-    
-    % Compare Estimate
-    diff_orig= truth(:,i) - (V*estimate(:,i));
-    diff_proj= (V * V'* truth(:,i)) - (V*estimate(:,i));
-    RMSE_orig = sqrt(diff_orig'*diff_orig/N)
-    RMSE_proj = sqrt(diff_proj'*diff_proj/N)
-    MAE_orig = (sum(abs(diff_orig)))/N
-    RMSEave_orig = RMSEave_orig + RMSE_orig;
-    RMSEave_proj = RMSEave_proj + RMSE_proj;
-    
-    
-    if mod(i,ObsMult)==0       
+               
+    % Estimate only when we observe
+    if mod(i,ObsMult)==0                
+        diff_orig= truth(:,i) - (V*estimate(:,i));
+        diff_proj= (V * V'* truth(:,i)) - (V*estimate(:,i));
+        RMSE_orig = sqrt(diff_orig'*diff_orig/N)
+        RMSE_proj = sqrt(diff_proj'*diff_proj/N)
+        MAE_orig = (sum(abs(diff_orig)))/N
+        RMSEave_orig = RMSEave_orig + RMSE_orig;
+        RMSEave_proj = RMSEave_proj + RMSE_proj;
         %Save RMSE values
         Time(iRMSE)=t;
         RMSEsave(iRMSE)=RMSE_orig;

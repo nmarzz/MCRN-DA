@@ -22,7 +22,7 @@ iOPPF=1;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 PhysicalProjection =0;
-DataProjection = 0;
+DataProjection = 1;
 tolerance_physical = 10; % POD_modes
 tolerance_data = 10; % POD_modes
 numModes_physical = 30;% DMD_modes, for physical
@@ -32,7 +32,7 @@ numModes_data = 30; % DMD_modes, for data
 [Ur_data,p_data,pzeros_data] = Projection_data_type(DataProjection ,numModes_data,tolerance_data,N,Built_Model,dt);
 
 %% Particle Filter Information
-L=500;%Number of particles
+L=1000;%Number of particles
 IC = zeros(N,1);
 IC(1)=1; % Particle ICs
 
@@ -42,7 +42,7 @@ alpha=0;%alpha value for projected resampling
 h=1.E-2;
 Numsteps=T/h;
 
-ObsMult=5; % Observe every ObsMult steps
+ObsMult=5; % Observe and every ObsMult steps
 
 %Observation Variance
 epsR = 0.01;
@@ -93,7 +93,9 @@ Q=V'*Q*V;
 x=V'*u;
 
 for i=1:Numsteps
+    % Estimate the truth    
     estimate(:,i) = x*w;
+    
     % Get projection of the Data Model
     [U] = projectionToggle_data(DataProjection,N,Ur_data,p_data); 
     % Update noise covariance
@@ -148,11 +150,10 @@ for i=1:Numsteps
         
     end
     
-    % predict particle position 
+    % propogate particles
     x = V'*dp4(F,t,V*x,h);
 
-    
-    % Compare Estimate
+    % Compare estimate and truth
     diff_orig= truth(:,i) - (V*estimate(:,i));
     diff_proj= (V * V'* truth(:,i)) - (V*estimate(:,i));
     RMSE_orig = sqrt(diff_orig'*diff_orig/N)
@@ -161,8 +162,8 @@ for i=1:Numsteps
     RMSEave_orig = RMSEave_orig + RMSE_orig;
     RMSEave_proj = RMSEave_proj + RMSE_proj;
     
-    
-    if mod(i,ObsMult)==0       
+    % Save to plot
+    if mod(i,ObsMult)==0                        
         %Save RMSE values
         Time(iRMSE)=t;
         RMSEsave(iRMSE)=RMSE_orig;
