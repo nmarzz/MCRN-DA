@@ -12,7 +12,7 @@
 
 dt_mins              = 1;   % Timestep (minutes)
 output_interval_mins = 60;  % Time between outputs (minutes)
-forecast_length_days = 1;   % Total simulation length (days)
+forecast_length_days = 4;   % Total simulation length (days)
 
 dt = dt_mins*60.0; % Timestep (s)
 output_interval = output_interval_mins*60.0; % Time between outputs (s)
@@ -65,10 +65,10 @@ for i = 1:nt
 % BEGIN: To animate
 [u,v,h] = swe_vectortodata(XNEW, nx, ny);
 
-x_save(:,i_save) = XNEW;
 u_save(:,:,i_save) = u;
 v_save(:,:,i_save) = v;
 h_save(:,:,i_save) = h;
+x_save = 
 t_save(i_save) = (i-1).*dt;
 i_save = i_save+1;
 % END: To animate
