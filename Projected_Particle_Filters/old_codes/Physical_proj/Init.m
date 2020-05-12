@@ -1,4 +1,4 @@
-function [M,H,PinvH,IC,q,LE,w,R,Rinv,Q,Omega,ICcov,Lones,Mzeros,Nzeros] = Init(F,IC,h,N,inth,Numsteps,p,L,epsR,epsQ,epsOmega,epsIC)
+function [M,H,PinvH,IC,q,LE,w,R,Rinv,Sig,Omega,ICcov,Lones,Mzeros,Nzeros] = Init(Fmod,IC,h,N,inth,Numsteps,p,L,epsR,epsSig,epsOmega,epsIC)
 
 %Linear Observation operator, every inth variable
 Heye=eye(N,N);
@@ -16,8 +16,8 @@ LE=zeros(p,1);
 t=0;
 for i = 1:Numsteps*2
 t = t+h;
-[q,LE] = getausproj(N,p,F,t,IC,h,q,LE);
-IC = dp4(F,t,IC,h);
+[q,LE] = getausproj(N,p,Fmod,t,IC,h,q,LE);
+IC = dp4(Fmod,t,IC,h);
 end
 
 LE=zeros(p,1);
@@ -32,7 +32,7 @@ R = epsR*eye(M);
 Rinv = inv(R);
 
 %Sig as model error covariance
-Q = epsQ*eye(N);
+Sig = epsSig*eye(N);
 
 %Omega covariance for Resampling
 Omega = epsOmega*eye(N);

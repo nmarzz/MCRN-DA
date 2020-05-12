@@ -1,9 +1,9 @@
-function [Ur_data,p,Nzeros] = Projection_data_type(DataProjection,numModes,tolerance,Model_Dimension,Built_Model,dt )
+function [Ur_data,p,Nzeros] = Projection_data_type(DataProjection,numModes,tolerance,Model_Dimension,Built_Model,dt,p )
 
 %Physical Projection
 if DataProjection == 0
     Ur_data=0;
-    p=Model_Dimension;
+    p=p;
     Nzeros=zeros(Model_Dimension,1);
 elseif DataProjection == 1
     %POD

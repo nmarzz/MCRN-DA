@@ -1,10 +1,12 @@
-function [q_physical] = projectionToggle_Physical(PhysicalModelProjection,Model_Dimension,Ur,p)
+function [V] = projectionToggle_Physical(PhysicalModelProjection,Model_Dimension,Ur,p)
 % Type of projection for the Physical Model
+% V: orthonormal columns, physical model 
+% p: rank of projection
 if PhysicalModelProjection == 0
-    q_physical = eye(Model_Dimension);   
+    V = eye(Model_Dimension);   
 elseif PhysicalModelProjection == 1
-    q_physical = getpod(Ur,p);
+    V = getpod(Ur,p);
 elseif PhysicalModelProjection == 2
-    q_physical = getDMD( Ur,p );
+    V = getDMD( Ur,p );
 end
 

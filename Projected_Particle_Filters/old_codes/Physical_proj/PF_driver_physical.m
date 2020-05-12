@@ -11,13 +11,8 @@ iOPPF=0;
 
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-<<<<<<< Updated upstream
-PhysicalProjection =1;
-DataProjection = 1;
-=======
 PhysicalProjection =2;
 DataProjection = 2;
->>>>>>> Stashed changes
 tolerance_physical = 0.0001; % POD_modes
 tolerance_data = 0.0001; % POD_modes
 numModes_physical = 30;% DMD_modes, for physical
@@ -97,7 +92,6 @@ for i=1:Numsteps
         if (iOPPF==0)%Standard Particle Filter(Physical projection)
             %Add noise only at observation times
             x = x + mvnrnd(Nzeros,Sig,L)';
-<<<<<<< Updated upstream
             %             Innov = repmat(y(:,i),1,L) - H*x;
             % Innov = q_data'*PinvH*(repmat(y(:,i),1,L) - H*x);%Proj_data_model
             Innov = q_data'*PinvH*(repmat(y(:,i),1,L) - H*q_physical*x);%Proj_data_model and Physical
@@ -108,7 +102,6 @@ for i=1:Numsteps
             %             Innov = q_data'*PinvH*(repmat(y(:,i),1,L) - H*q_physical*x);
             x = x + Qp*H'*Rinv*Innov + mvnrnd(Nzeros,Qp,L)';
             Rinv = inv(R + H*Sig*H');
-=======
 %             Innov = repmat(y(:,i),1,L) - H*x;
             Hnq = q_data'*Hcross*H*q_physical; % H has already been multiplied by q_physical in new_init            
             Innov=q_data'*Hcross*repmat(y(:,i),1,L)-Hnq*x;%try to code what Erik wrote on slack
@@ -119,7 +112,7 @@ for i=1:Numsteps
             Innov=q_data'*Hcross*repmat(y(:,i),1,L)-Hnq*x;
             x = x + Qp*Hnq'*Rinv*Innov + mvnrnd(Nzeros,Qp,L)';
             Rinv = inv(R + Hnq*Sig*Hnq');
->>>>>>> Stashed changes
+
         end
         Tdiag = diag(Innov'*Rinv*Innov);
         tempering = 2; % including new parameter here for visibility. Tempering usually a little larger than 1.
