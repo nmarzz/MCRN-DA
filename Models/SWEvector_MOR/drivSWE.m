@@ -74,29 +74,29 @@ t_save(i_save) = (i-1).*dt;
 i_save = i_save+1;
 % END: To animate
 
-%% OVER ALL THE LYAPUNOV EXPONENTS WE WANT, SOME p<=DIM
-   for j=1:p
-%EVALUATE F(X+eps^{1/2}*Qj)
-      NEWIC = XOLD+sqrteps*q(:,j);
-      QTAU = formod(TIME,NEWIC,dt,pars);
-      NEWDIFF(:,j) = (QTAU - XNEW)/sqrteps;
-   end
-
-%CALL mgs
-   [q,r] = mgs(NEWDIFF);
-
-%FORM LES
-   for j=1:p
-       LE(j) = LE(j) + log(r(j,j));
-   end 
-
-%UPDATE TIME 
-   TIME = TIME + dt
+% %% OVER ALL THE LYAPUNOV EXPONENTS WE WANT, SOME p<=DIM
+%    for j=1:p
+% %EVALUATE F(X+eps^{1/2}*Qj)
+%       NEWIC = XOLD+sqrteps*q(:,j);
+%       QTAU = formod(TIME,NEWIC,dt,pars);
+%       NEWDIFF(:,j) = (QTAU - XNEW)/sqrteps;
+%    end
+% 
+% %CALL mgs
+%    [q,r] = mgs(NEWDIFF);
+% 
+% %FORM LES
+%    for j=1:p
+%        LE(j) = LE(j) + log(r(j,j));
+%    end 
+% 
+% %UPDATE TIME 
+%    TIME = TIME + dt
 
 end
 
-LE = LE/(TIME-T0)
+% LE = LE/(TIME-T0)
 
-save('SWE.mat','x_save','x','y','H','dt','t_save','plot_height_range')
+% save('SWE.mat','x_save','x','y','H','dt','t_save','plot_height_range')
 
 % disp('Now run "animate" to animate the simulation');
