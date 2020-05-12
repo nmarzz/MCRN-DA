@@ -33,6 +33,8 @@ function [truth, ensemble] = initialize(xnew,pars, n, nsol)
 %    ensemble = repmat(forcing, n, nsol);
 %    truth = ensemble(:,1);
 %    ensemble(2,:) = ensemble(2,:) + pert * randn(1, nsol);
+
+%Shallow Water Eqnts.  SWE.  This doesn't currently work.
      truth=xnew;
      ensemble = repmat(truth,[1,nsol]);
      ensemble = ensemble + pert*randn(size(ensemble));
