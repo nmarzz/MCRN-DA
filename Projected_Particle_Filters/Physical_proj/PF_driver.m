@@ -21,15 +21,16 @@ Built_Model= buildModel(N,F,ModelSteps,T);
 iOPPF=0;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =1;
-DataProjection = 1;
+PhysicalProjection =0;
+DataProjection = 0;
 tolerance_physical = 10; % POD_modes
 tolerance_data = 10; % POD_modes
 numModes_physical = 30;% DMD_modes, for physical
 numModes_data = 30; % DMD_modes, for data
+model_output = Built_Model';
 [Ur_physical,p_physical,pzeros_physical] = ...
-    Projection_physical_type(PhysicalProjection ,numModes_physical,tolerance_physical,N,Built_Model,dt);
-[Ur_data,p_data,pzeros_data] = Projection_data_type(DataProjection ,numModes_data,tolerance_data,N,Built_Model,dt);
+    Projection_physical_type(PhysicalProjection ,numModes_physical,tolerance_physical,N,model_output,dt);
+[Ur_data,p_data,pzeros_data] = Projection_data_type(DataProjection ,numModes_data,tolerance_data,N,model_output,dt);
 
 %% Particle Filter Information
 L=1000;%Number of particles
