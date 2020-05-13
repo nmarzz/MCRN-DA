@@ -102,6 +102,8 @@ for i=1:Numsteps
             Hnq = U(1:inth:end,:)'*V(1:inth:end,:);  % with our assumptions left multipling 
             if Hnq == 1
                 Innov=repmat(UPinvH*y(:,i),1,L)-x(1:inth:end,:);
+            else
+                Innov=repmat(UPinvH*y(:,i),1,L)-Hnq*x;
             end
             
         else % IOPPF ==1, Optimal proposal PF
@@ -140,14 +142,15 @@ for i=1:Numsteps
                
         if (NRS==1)
             % Projected Resampling
-            x = x + V'*(alpha*(U*U') + (1-alpha)*eye(N,1))*(mvnrnd(zeros(N,1),Omega,L)');
+            x = x + V'*(alpha*(U*U') + (1-alpha)*eye(1,N))*(normrnd(0,Omega,N,L));
         end
         
     end
     
-    % propogate particles
-    x = V'*dp4(F,t,V*x,h);
-
+    for k = 1:size(x,2) % formod isn't vectorized
+        % propogate particles
+        x(:,k) = V'*formod(t,V*x(:,k),dt,pars);
+    end
     % Compare estimate and truth
     diff_orig= truth(:,i) - (V*estimate(:,i));
     diff_proj= (V * V'* truth(:,i)) - (V*estimate(:,i));
