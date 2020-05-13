@@ -1,10 +1,23 @@
 %% Initialization
 clear all;clc;
 rng(1331);
+
+% Lorenz preamble
+% F = @FLor95; %Physical model
+% N =66; % N:Original model dimension
+% 
+% % Build Model (via ODE45)
+% dt=1.E-2; % Model output time step
+% ModelSteps = 1500; % Number of time steps in building model
+% T=ModelSteps*dt;
+% Built_Model= buildModel(N,F,ModelSteps,T);
+
+% SWE preamble
 load('swerun.mat');
 F = @(t,x) formod(t,x,dt,pars);
 Built_Model= x_save;
 N =length(Built_Model);
+IC = x_ics;
 
 %% Type of particle filter
 % Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
@@ -24,8 +37,7 @@ numModes_data = 30; % DMD_modes, for data
 %% Particle Filter Information
 L=1000;%Number of particles
 
-IC = zeros(N,1);
-IC(1)=1; % Particle ICs
+
 
 alpha=0;%alpha value for projected resampling
 
@@ -79,15 +91,18 @@ for i=1:Numsteps
     [U] = projectionToggle_data(DataProjection,Ur_data,p_data); 
     % Update noise covariance
     UPinvH = U(:,1:inth:end)'; % Multiplying by PinvH is equivalent to removing every inth row when H = H(1:inth:end,:)
+    % UPinvH = U' * PinvH = U' * pinv(H);
     R = UPinvH * Rfixed * UPinvH';
     Rinv = 1/R;
     
     if mod(i,ObsMult)==0
         %At observation times, Update weights via likelihood, add noise
         if (iOPPF==0) % Standard Particle Filter             
-            x = x + mvnrnd(pzeros_physical,Q,L)';            
-            Hnq = U'*PinvH*H*V;
-            Innov=repmat(U'*PinvH*y(:,i),1,L)-Hnq*x;
+            x = x + normrnd(0,Q,N,L);            
+            Hnq = U(1:inth:end,:)'*V(1:inth:end,:);  % with our assumptions left multipling 
+            if Hnq == 1
+                Innov=repmat(UPinvH*y(:,i),1,L)-x(1:inth:end,:);
+            end
             
         else % IOPPF ==1, Optimal proposal PF
             Hnq = U'*PinvH*H*V; 

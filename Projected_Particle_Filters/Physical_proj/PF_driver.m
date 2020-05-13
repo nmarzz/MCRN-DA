@@ -18,10 +18,10 @@ Built_Model= buildModel(N,F,ModelSteps,T);
 
 %% Type of particle filter
 % Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
-iOPPF=1;
+iOPPF=0;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =0;
+PhysicalProjection =1;
 DataProjection = 1;
 tolerance_physical = 10; % POD_modes
 tolerance_data = 10; % POD_modes

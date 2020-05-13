@@ -24,8 +24,7 @@ numModes_data = 30; % DMD_modes, for data
 %% Particle Filter Information
 L=1000;%Number of particles
 
-IC = zeros(N,1);
-IC(1)=1; % Particle ICs
+IC = x_ics;
 
 alpha=0;%alpha value for projected resampling
 
@@ -79,15 +78,16 @@ for i=1:Numsteps
     [U] = projectionToggle_data(DataProjection,Ur_data,p_data); 
     % Update noise covariance
     UPinvH = U(:,1:inth:end)'; % Multiplying by PinvH is equivalent to removing every inth row when H = H(1:inth:end,:)
+    % UPinvH = U' * PinvH = U' * pinv(H);
     R = UPinvH * Rfixed * UPinvH';
     Rinv = 1/R;
     
     if mod(i,ObsMult)==0
         %At observation times, Update weights via likelihood, add noise
         if (iOPPF==0) % Standard Particle Filter             
-            x = x + mvnrnd(pzeros_physical,Q,L)';            
-            Hnq = U'*PinvH*H*V;
-            Innov=repmat(U'*PinvH*y(:,i),1,L)-Hnq*x;
+            x = x + normrnd(0,Q,N,L);            
+            Hnq = UPinvH*H*V(1:inth:end,:);  % with our assumptions left multipling 
+            Innov=repmat(UPinvH*y(:,i),1,L)-Hnq*x;
             
         else % IOPPF ==1, Optimal proposal PF
             Hnq = U'*PinvH*H*V; 
