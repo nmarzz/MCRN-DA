@@ -42,9 +42,10 @@ L=1000;%Number of particles
 alpha=0;%alpha value for projected resampling
 
 % Number of computational steps and step size
-h=1.E-2;
+
 
 ObsMult=5; % Observe and every ObsMult steps
+h = dt/ObsMult;
 Numsteps = size(Built_Model,2)*ObsMult;
 %Observation Variance
 epsR = 0.01;
@@ -64,8 +65,18 @@ inth=2;
 u = repmat(IC,1,L) + normrnd(0,ICcov,N,L); % Noise for IC
 
 %% Generate observations from "Truth"
-y = Built_Model(1:inth:end,:) + normrnd(0,R,M,size(Built_Model,2));
-truth = Built_Model;
+
+gen_ics = x_ics;
+t = 0;
+for i = 1:Numsteps
+    truth(:,i) = gen_ics;
+    gen_ics = formod(t,gen_ics,dt,pars);
+    if mod(i,ObsMult) == 0
+        y = truth(1:inth:end,i);
+    end
+    t = t + h;
+end
+y = y + normrnd(0,R,M,size(Built_Model,2));
 %% Get projection matrices
 [V] =projectionToggle_Physical(PhysicalProjection,Ur_physical,p_physical);
 [U] =projectionToggle_data(DataProjection,Ur_data,p_data);
