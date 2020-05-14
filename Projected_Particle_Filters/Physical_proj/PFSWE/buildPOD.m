@@ -1,5 +1,5 @@
 function [Ur] = buildPOD(tolerance, model_output)
-model_output = model_output';
+% model_output = model_output';
 % [Ur] = orderReduction_POD(tolerance, model_output); % Get POD
 [U,S,V] = svd(model_output,'econ');
 Ur = U(:,1:tolerance);

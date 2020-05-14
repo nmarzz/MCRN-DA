@@ -26,25 +26,21 @@ iOPPF=0;
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 PhysicalProjection =0;
 DataProjection = 0;
-tolerance_physical = 10; % POD_modes
+tolerance_physical = 9; % POD_modes
 tolerance_data = 10; % POD_modes
 numModes_physical = 30;% DMD_modes, for physical
 numModes_data = 30; % DMD_modes, for data
+
+model_output = Built_Model;
 [Ur_physical,p_physical,pzeros_physical] = ...
-    Projection_physical_type(PhysicalProjection ,numModes_physical,tolerance_physical,N,Built_Model,dt);
-[Ur_data,p_data,pzeros_data] = Projection_data_type(DataProjection ,numModes_data,tolerance_data,N,Built_Model,dt);
+    Projection_physical_type(PhysicalProjection ,numModes_physical,tolerance_physical,N,model_output,dt);
+[Ur_data,p_data,pzeros_data] = Projection_data_type(DataProjection ,numModes_data,tolerance_data,N,model_output,dt);
 
 %% Particle Filter Information
 L=1000;%Number of particles
-
-
-
 alpha=0;%alpha value for projected resampling
-
 % Number of computational steps and step size
-
-
-ObsMult=5; % Observe and every ObsMult steps
+ObsMult=1; % Observe and every ObsMult steps
 h = dt/ObsMult;
 Numsteps = size(Built_Model,2)*ObsMult;
 %Observation Variance
@@ -109,7 +105,8 @@ for i=1:Numsteps
     if mod(i,ObsMult)==0
         %At observation times, Update weights via likelihood, add noise
         if (iOPPF==0) % Standard Particle Filter             
-            x = x + normrnd(0,Q,N,L);            
+            x = x + normrnd(0,Q,N,L); 
+%             x = x + mvnrnd(pzeros_physical,Q,L)'; 
             Hnq = U(1:inth:end,:)'*V(1:inth:end,:);  % with our assumptions left multipling 
             if Hnq == 1
                 Innov=repmat(UPinvH*y(:,i),1,L)-x(1:inth:end,:);
@@ -154,6 +151,7 @@ for i=1:Numsteps
         if (NRS==1)
             % Projected Resampling
             x = x + V'*(alpha*(U*U') + (1-alpha)*eye(1,N))*(normrnd(0,Omega,N,L));
+%             x = x + V'*(alpha*(U*U') + (1-alpha)*eye(1,N))*(normrnd(zeros(1,N),Omega,L)');
         end
         
     end

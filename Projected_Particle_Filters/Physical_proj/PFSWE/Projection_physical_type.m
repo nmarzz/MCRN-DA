@@ -7,7 +7,8 @@ if PhysicalProjection == 0
     Nzeros=zeros(Model_Dimension,1);
 elseif PhysicalProjection == 1
     %POD
-    Ur_physical= buildPOD(tolerance,Built_Model);
+    [Ur_physical,filename] = simulationPOD(tolerance,Built_Model);
+    %     Ur_physical= buildPOD(tolerance,Built_Model);
     p = size(Ur_physical,2);
     Nzeros=zeros(p,1);
 elseif PhysicalProjection == 2
