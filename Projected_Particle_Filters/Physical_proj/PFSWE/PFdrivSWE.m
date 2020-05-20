@@ -5,7 +5,7 @@ rng(1331);
 % Lorenz preamble
 % F = @FLor95; %Physical model
 % N =66; % N:Original model dimension
-% 
+%
 % % Build Model (via ODE45)
 % dt=1.E-2; % Model output time step
 % ModelSteps = 1500; % Number of time steps in building model
@@ -24,7 +24,7 @@ IC = x_ics;
 iOPPF=0;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =1;
+PhysicalProjection =0;
 DataProjection = 0;
 tolerance_physical = 9; % POD_modes
 tolerance_data = 10; % POD_modes
@@ -37,7 +37,7 @@ model_output = Built_Model;
 [Ur_data,p_data,pzeros_data] = Projection_data_type(DataProjection ,numModes_data,tolerance_data,N,model_output,dt);
 
 %% Particle Filter Information
-L=1000;%Number of particles
+L=10;%Number of particles
 alpha=0;%alpha value for projected resampling
 % Number of computational steps and step size
 ObsMult=1; % Observe and every ObsMult steps
@@ -86,16 +86,20 @@ Resamps=0;
 RMSEave_orig=0;
 RMSEave_proj=0;
 iRMSE=1;
-
-Q=V'*Q*V;
+if PhysicalProjection>0
+    Q=V'*Q*V; %with projection
+    Q1=Q;
+else
+    Q1=Q*ones(1,N);%no Projection
+end
 x=V'*u;
 
 for i=1:Numsteps
-    % Estimate the truth    
+    % Estimate the truth
     estimate(:,i) = x*w;
     
     % Get projection of the Data Model
-    [U] = projectionToggle_data(DataProjection,Ur_data,p_data); 
+    [U] = projectionToggle_data(DataProjection,Ur_data,p_data);
     % Update noise covariance
     UPinvH = U(:,1:inth:end)'; % Multiplying by PinvH is equivalent to removing every inth row when H = H(1:inth:end,:)
     % UPinvH = U' * PinvH = U' * pinv(H);
@@ -104,25 +108,34 @@ for i=1:Numsteps
     
     if mod(i,ObsMult)==0
         %At observation times, Update weights via likelihood, add noise
-        if (iOPPF==0) % Standard Particle Filter      
-%             x = x + normrnd(0,Q,N,L); no proj
-            x = x + mvnrnd(pzeros_physical,Q,L)'; %with Proj
-            Hnq = U(1:inth:end,:)'*V(1:inth:end,:);  % with our assumptions left multipling 
+        if (iOPPF==0) % Standard Particle Filter
+            x = x + mvnrnd(pzeros_physical,Q1,L)';
+            Hnq = U(1:inth:end,:)'*V(1:inth:end,:);  % with our assumptions left multipling
             if Hnq == 1
                 Innov=repmat(UPinvH*y(:,i),1,L)-x(1:inth:end,:);
             else
                 Innov=repmat(UPinvH*y(:,i),1,L)-Hnq*x;
             end
-            
         else % IOPPF ==1, Optimal proposal PF
-            Hnq = U'*PinvH*H*V; 
-            Qpinv = inv(Q) + Hnq'*Rinv*Hnq;
-            Qp = inv(Qpinv);
-            Innov=repmat(U'*PinvH*y(:,i),1,L)-Hnq*x;
-            x = x + Qp*Hnq'*Rinv*Innov + mvnrnd(pzeros_physical,Qp,L)';
-            Rinv = inv(R + Hnq*Q*Hnq');
+            Hnq=U(1:inth:end,:)'*V(1:inth:end,:);
+            if Hnq == 1
+                Innov=repmat(UPinvH*y(:,i),1,L)-x(1:inth:end,:);
+            else
+                Innov=repmat(UPinvH*y(:,i),1,L)-Hnq*x;
+            end
+            Qpinv = pinv(Q1) + Hnq'*Rinv*Hnq;%
+            Qp = pinv(Qpinv);
+%             if PhysicalProjection>0
+%                 Qp = pinv(Qpinv);
+%                 Qp1=Qp;
+%             else
+%                 Qp = pinv(Qpinv);
+%                 Qp1=Qp'*ones(1,M);%no Projection
+%             end
+            x = x + Qp1*Hnq'*Rinv*Innov + mvnrnd(pzeros_physical,Qp,L)'; 
+            Rinv = inv(R + Hnq*Q1*Hnq');
         end
-                
+        
         % Reweight
         Tdiag = diag(Innov'*Rinv*Innov);
         tempering = 2; % Tempering usually a little larger than 1.
@@ -131,10 +144,10 @@ for i=1:Numsteps
         
         Tdiag = -Tdiag/2;
         logw = Tdiag + log(w);
-               
+        
         [~,idx] = min(abs(logw-((max(logw) - min(logw))/2))); % find index of weight closest to middle value
         logw([1 idx]) = logw([idx 1]);
-        x(:,[1 idx]) = x(:,[idx 1]);        
+        x(:,[1 idx]) = x(:,[idx 1]);
         toEXP = logw(2:end) - logw(1);
         toEXP=min(toEXP,709);
         toEXP=max(toEXP,-709);
@@ -147,13 +160,11 @@ for i=1:Numsteps
         %Resampling (with resamp.m that I provided or using the pseudo code in Peter Jan ,... paper)
         [w,x,NRS] = resamp(w,x,0.5);
         Resamps = Resamps + NRS;
-               
+        
         if (NRS==1)
             % Projected Resampling
-%           x = x + V'*(alpha*(U*U')
-%           +(1-alpha)*eye(N,1))*(normrnd(0,Omega,N,L));% no proj
-            x = x + V'*(alpha*(U*U') + (1-alpha)*eye(N,1))*(normrnd(0,Omega,1,L));% with proj
-       
+            x = x + V'*(alpha*(U*U') + (1-alpha)*eye(N,1))*(mvnrnd(0,Omega,L)');% with proj
+            
         end
         
     end
@@ -164,19 +175,19 @@ for i=1:Numsteps
     end
     % Compare estimate and truth
     diff_orig= truth(:,i) - (V*estimate(:,i));
-%     diff_proj= (V * V'* truth(:,i)) - (V*estimate(:,i));
+    %     diff_proj= (V * V'* truth(:,i)) - (V*estimate(:,i));
     RMSE_orig = sqrt(diff_orig'*diff_orig/N)
-%     RMSE_proj = sqrt(diff_proj'*diff_proj/N)
+    %     RMSE_proj = sqrt(diff_proj'*diff_proj/N)
     MAE_orig = (sum(abs(diff_orig)))/N
     RMSEave_orig = RMSEave_orig + RMSE_orig;
-%     RMSEave_proj = RMSEave_proj + RMSE_proj;
+    %     RMSEave_proj = RMSEave_proj + RMSE_proj;
     
     % Save to plot
-    if mod(i,ObsMult)==0                        
+    if mod(i,ObsMult)==0
         %Save RMSE values
         Time(iRMSE)=t;
         RMSEsave(iRMSE)=RMSE_orig;
-%         RMSEsave_proj(iRMSE)=RMSE_proj;
+        %         RMSEsave_proj(iRMSE)=RMSE_proj;
         iRMSE = iRMSE+1;
     end
     
@@ -186,7 +197,7 @@ end
 figure
 plot(Time,RMSEsave, 'r-', 'LineWidth', 2)
 grid on
-% hold on;
+hold on;
 % plot(Time,RMSEsave_proj,'b-','LineWidth', 2)
 %title('The Root Mean-Squared Error')
 xlabel('Time')
