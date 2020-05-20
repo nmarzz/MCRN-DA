@@ -14,7 +14,7 @@ elseif PhysicalProjection == 1
 elseif PhysicalProjection == 2
     %DMD
     %numModes=300;  % number of DMD_modes you want to use
-    Ur_physical=buildDMD(numModes,Built_Model,dt);
+    Ur_physical=simulationDMD(numModes,Built_Model,dt);
     p = size(Ur_physical,2);
     Nzeros=zeros(p,1);
 end

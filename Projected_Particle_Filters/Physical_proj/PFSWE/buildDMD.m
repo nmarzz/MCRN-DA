@@ -37,7 +37,7 @@ V_r = V(:, 1:Rlarge);
 
 Atilde = U_r' * X2 * V_r / S_r; % low -rank dynamics
 [W_r , D] = eig(Atilde);
-Phi = X2 * V_r / S_r * W_r; % DMD modes
+Phi = X2 * V_r*pinv(S_r) * W_r; % DMD modes
 lambda = diag(D); % discrete -time eigenvalues
 
 omega = log(lambda)/dt; % continuous -time eigenvalues
