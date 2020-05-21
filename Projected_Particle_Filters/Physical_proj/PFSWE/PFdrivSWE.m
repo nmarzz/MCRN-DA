@@ -111,28 +111,23 @@ for i=1:Numsteps
         if (iOPPF==0) % Standard Particle Filter
             x = x + mvnrnd(pzeros_physical,Q1,L)';
             Hnq = U(1:inth:end,:)'*V(1:inth:end,:);  % with our assumptions left multipling
-            if Hnq == 1
-                Innov=repmat(UPinvH*y(:,i),1,L)-x(1:inth:end,:);
+            if PhysicalProjection>0
+                Innov=repmat(UPinvH*y(:,i),1,L)-Hnq*x;    
             else
-                Innov=repmat(UPinvH*y(:,i),1,L)-Hnq*x;
+                Innov=repmat(UPinvH*y(:,i),1,L)-x(1:inth:end,:);
             end
         else % IOPPF ==1, Optimal proposal PF
-            Hnq=U(1:inth:end,:)'*V(1:inth:end,:);
-            if Hnq == 1
-                Innov=repmat(UPinvH*y(:,i),1,L)-x(1:inth:end,:);
+            
+            %             Hnq=U(1:inth:end,:)'*V(1:inth:end,:);% for data proj
+            Hnq=Hx(V,inth);
+            if PhysicalProjection>0
+                Innov=repmat(UPinvH*y(:,i),1,L)-Hnq*x;%proj
             else
-                Innov=repmat(UPinvH*y(:,i),1,L)-Hnq*x;
+                Innov=repmat(UPinvH*y(:,i),1,L)-x(1:inth:end,:);%no proj
             end
             Qpinv = pinv(Q1) + Hnq'*Rinv*Hnq;%
             Qp = pinv(Qpinv);
-%             if PhysicalProjection>0
-%                 Qp = pinv(Qpinv);
-%                 Qp1=Qp;
-%             else
-%                 Qp = pinv(Qpinv);
-%                 Qp1=Qp'*ones(1,M);%no Projection
-%             end
-            x = x + Qp1*Hnq'*Rinv*Innov + mvnrnd(pzeros_physical,Qp,L)'; 
+            x = x + Qp*Hnq'*Rinv*Innov + mvnrnd(pzeros_physical,Qp,L)';
             Rinv = inv(R + Hnq*Q1*Hnq');
         end
         
