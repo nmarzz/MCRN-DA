@@ -2,7 +2,7 @@
 clear all;clc;
 rng(1331);
 F = @FLor95; %Physical model
-N =66; % N:Original model dimension
+N =100; % N:Original model dimension
 
 % Build Model (via ODE45)
 dt=1.E-2; % Model output time step
@@ -18,15 +18,15 @@ Built_Model= buildModel(N,F,ModelSteps,T);
 
 %% Type of particle filter
 % Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
-iOPPF=0;
+iOPPF=1;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =0;
-DataProjection = 0;
-tolerance_physical = 10; % POD_modes
-tolerance_data = 10; % POD_modes
-numModes_physical = 30;% DMD_modes, for physical
-numModes_data = 30; % DMD_modes, for data
+PhysicalProjection =2;
+DataProjection = 2;
+tolerance_physical = 20; % POD_modes
+tolerance_data = 20; % POD_modes
+numModes_physical = 20;% DMD_modes, for physical
+numModes_data = 20; % DMD_modes, for data
 model_output = Built_Model';
 [Ur_physical,p_physical,pzeros_physical] = ...
     Projection_physical_type(PhysicalProjection ,numModes_physical,tolerance_physical,N,model_output,dt);
@@ -181,12 +181,12 @@ grid on
 hold on;
 plot(Time,RMSEsave_proj,'b-','LineWidth', 2)
 %title('The Root Mean-Squared Error')
-xlabel('Time')
-ylabel('RMSE')
+xlabel('Time', 'Interpreter','Latex','Fontsize',40)
+ylabel('RMSE', 'Interpreter','Latex','Fontsize',40)
 % xticklabels(xticks/dt)
 % ylim([0 0.15])
-legend('RMSE Original','RMSE Projected')
-
+mm = legend('RMSE Projected','RMSE Original')
+set(mm, 'Interpreter','Latex','Fontsize',40)
 RMSEave_orig = RMSEave_orig/Numsteps
 RMSEave_proj = RMSEave_proj/Numsteps
 ResampPercent = ObsMult*Resamps/Numsteps

@@ -4,9 +4,9 @@ rng(1331);
 
 % Lorenz preamble
 % F = @FLor95; %Physical model
-% N =66; % N:Original model dimension
+% N =66; % N:Original model dimension                                     
 %
-% % Build Model (via ODE45)
+% % Build Model (via ODE45)                      
 % dt=1.E-2; % Model output time step
 % ModelSteps = 1500; % Number of time steps in building model
 % T=ModelSteps*dt;
@@ -21,10 +21,10 @@ IC = x_ics;
 
 %% Type of particle filter
 % Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
-iOPPF=0;
+iOPPF=1;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =0;
+PhysicalProjection = 0;
 DataProjection = 0;
 tolerance_physical = 9; % POD_modes
 tolerance_data = 10; % POD_modes
@@ -38,7 +38,9 @@ model_output = Built_Model;
 
 %% Particle Filter Information
 L=10;%Number of particles
-alpha=0;%alpha value for projected resampling
+alph = 0.01;
+bet = 0.01;
+alpha = 0;%alpha value for projected resampling
 % Number of computational steps and step size
 ObsMult=1; % Observe and every ObsMult steps
 h = dt/ObsMult;
@@ -54,7 +56,8 @@ epsIC = 0.01;
 %Observe every inth variable.
 inth=2;
 %Call Init
-[M,IC,w,R,Rinv,Q,Omega,ICcov,Lones,Mzeros] = Init(IC,N,inth,L,epsR,epsQ,epsOmega,epsIC);
+[M,IC,wt,R,Rinv,Q,Omega,ICcov,Lones,Mzeros] = Init_simp(IC,N,inth,L,epsR,epsQ,epsOmega,epsIC,alph, bet);
+%Init(IC,N,inth,L,epsR,epsQ,epsOmega,epsIC);
 
 %Add noise N(0,ICcov) to ICs to form different particles
 
@@ -90,13 +93,15 @@ if PhysicalProjection>0
     Q=V'*Q*V; %with projection
     Q1=Q;
 else
-    Q1=Q*ones(1,N);%no Projection
+    Q1=Q*ones(1,N); %no Projection
+    % Q = Q* eye(N,N);
+    % R = R* eye(N,N);
 end
 x=V'*u;
-
+%p_physical = 10;
 for i=1:Numsteps
     % Estimate the truth
-    estimate(:,i) = x*w;
+    estimate(:,i) = x*wt;
     
     % Get projection of the Data Model
     [U] = projectionToggle_data(DataProjection,Ur_data,p_data);
@@ -122,13 +127,26 @@ for i=1:Numsteps
             Hnq=Hx(V,inth);
             if PhysicalProjection>0
                 Innov=repmat(UPinvH*y(:,i),1,L)-Hnq*x;%proj
+                
             else
-                Innov=repmat(UPinvH*y(:,i),1,L)-x(1:inth:end,:);%no proj
+                %Innov=repmat(UPinvH*y(:,i),1,L)-x(1:inth:end,:);%no proj
+                Innov=repmat(y(:,i),1,L)-Hnq*x(1:inth:end,:);
             end
-            Qpinv = pinv(Q1) + Hnq'*Rinv*Hnq;%
+            Qpinv = (1/alph)+(1/bet)*(Hnq*V)'*(Hnq*V);
+            % pinv(Q1) + Hnq'*Rinv*Hnq;%
             Qp = pinv(Qpinv);
-            x = x + Qp*Hnq'*Rinv*Innov + mvnrnd(pzeros_physical,Qp,L)';
-            Rinv = inv(R + Hnq*Q1*Hnq');
+            % need to solve y = (1/bet)*b for b
+            % calculate Y = (1/bet)*H*V
+            % solve ((1/alph)*eye+(1/bet)*(H*V)^T*H*V)*w =
+            % (1/bet)*(H*V)^T*b for w
+%             b = y*bet;
+%             Y = (1/bet)*(Hnq*V);
+%             w = ((1/alph)+(1/bet)*(Hnq*V)'*(Hnq*V))...
+%                 /((1/bet)*(Hnq*V)'*b);
+%             x = (1/bet)*(b-(Hnq*V)*w)
+   %         x = x + Qp*Hnq'*Rinv*Innov + mvnrnd(pzeros_physical,Qp,L)';
+            x = x + (alph*bet)/(alph+bet)* Rinv* Hty(Innov,inth,N,L)+ mvnrnd(pzeros_physical,Q1,L)';
+            Rinv = inv(R + Hnq*Q*Hnq');
         end
         
         % Reweight
@@ -138,7 +156,7 @@ for i=1:Numsteps
         Tdiag = (Tdiag-Avg)/tempering;
         
         Tdiag = -Tdiag/2;
-        logw = Tdiag + log(w);
+        logw = Tdiag + log(wt);
         
         [~,idx] = min(abs(logw-((max(logw) - min(logw))/2))); % find index of weight closest to middle value
         logw([1 idx]) = logw([idx 1]);
@@ -149,7 +167,8 @@ for i=1:Numsteps
         toSum = exp(toEXP);
         normalizer = logw(1) + log1p(sum(toSum));
         logw = logw - normalizer;
-        w = exp(logw);
+        % logw = -(1/2)*1\(alph+bet)+logw
+        wt = exp(logw);
         
         
         %Resampling (with resamp.m that I provided or using the pseudo code in Peter Jan ,... paper)

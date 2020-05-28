@@ -14,7 +14,7 @@ load('DMD')
 %%
 % Projection toggle
 %Use of projection (iproj=0 => No Projection, iproj=1 => Projection)
-iproj=1;
+iproj=0;
 % Type of projection method
 % 0 = off, 1 = on
 %POD
@@ -22,7 +22,7 @@ usePOD = 0;
 %DMD
 useDMD = 0;
 %AUS
-useAUS = 1;
+useAUS = 0;
 % Type of particle filter
 %Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
 iOPPF=1;
@@ -35,7 +35,7 @@ Numsteps = 1000;
 %Multiple of the step size for observation time
 ObsMult=10;
 %Rank of projection, number of Lyapunov exponents for AUS projection
-p=10;
+p=20;
 %%Dimension of model space
 %N=3;
 %%Problem
