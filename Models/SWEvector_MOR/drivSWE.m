@@ -99,4 +99,4 @@ end
 
 % save('SWE.mat','x_save','x','y','H','dt','t_save','plot_height_range')
 
-% disp('Now run "animate" to animate the simulation');
+% disp('Now run "new_animate" to animate the simulation');
