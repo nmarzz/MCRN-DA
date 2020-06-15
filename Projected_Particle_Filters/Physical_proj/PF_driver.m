@@ -14,6 +14,9 @@ Built_Model= buildModel(N,F,ModelSteps,T);
 % contourf(Built_Model','LineStyle','none')
 % colormap(jet);
 % colorbar;
+% caxis([-3 6])
+% xlabel('Time')
+% ylabel('N ')
 % xticklabels(xticks*dt)
 
 %% Type of particle filter
@@ -29,7 +32,7 @@ numModes_physical = 20;% DMD_modes, for physical
 numModes_data = 20; % DMD_modes, for data
 model_output = Built_Model';
 [Ur_physical,p_physical,pzeros_physical] = ...
-    Projection_physical_type(PhysicalProjection ,numModes_physical,tolerance_physical,N,model_output,dt);
+    Projection_physical_type(PhysicalProjection, numModes_physical,tolerance_physical,N,model_output,dt);
 [Ur_data,p_data,pzeros_data] = Projection_data_type(DataProjection ,numModes_data,tolerance_data,N,model_output,dt);
 
 %% Particle Filter Information

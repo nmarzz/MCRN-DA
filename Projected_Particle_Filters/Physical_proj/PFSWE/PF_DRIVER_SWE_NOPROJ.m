@@ -1,17 +1,6 @@
 %% Initialization
 clear all;clc;
 rng(1331);
-
-% Lorenz preamble
-% F = @FLor95; %Physical model
-% N =66; % N:Original model dimension
-%
-% % Build Model (via ODE45)
-% dt=1.E-2; % Model output time step
-% ModelSteps = 1500; % Number of time steps in building model
-% T=ModelSteps*dt;
-% Built_Model= buildModel(N,F,ModelSteps,T);
-
 % SWE preamble
 load('swerun.mat');
 F = @(t,x) formod(t,x,dt,pars);
@@ -21,7 +10,7 @@ IC = x_ics;
 
 %% Type of particle filter
 % Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
-iOPPF=1;
+iOPPF=0;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 PhysicalProjection = 0;
@@ -37,7 +26,7 @@ model_output = Built_Model;
 [Ur_data,p_data,pzeros_data] = Projection_data_type(DataProjection ,numModes_data,tolerance_data,N,model_output,dt);
 
 %% Particle Filter Information
-L=10;%Number of particles
+L=200;%Number of particles
 alph = 0.01;
 bet = 0.01;
 alpha = 0;%alpha value for projected resampling
@@ -111,21 +100,11 @@ for i=1:Numsteps
             Hnq=Hx(V,inth); % with our assumptions left multipling
             Innov=repmat(UPinvH*y(:,i),1,L)-x(1:inth:end,:);
         else % IOPPF ==1, Optimal proposal PF
-            Hnq=Hx(V,inth);         
+            Hnq=Hx(V,inth);
             Innov=repmat(y(:,i),1,L)-Hnq*x(1:inth:end,:);
             Qpinv = (1/alph)+(1/bet)*(Hnq*V)'*(Hnq*V);
             Qp = pinv(Qpinv);
             Qp1=Qp*eye(1,N);
-                        % need to solve y = (1/bet)*b for b
-            % calculate Y = (1/bet)*H*V
-            % solve ((1/alph)*eye+(1/bet)*(H*V)^T*H*V)*w =
-            % (1/bet)*(H*V)^T*b for w
-            %             b = y*bet;
-            %             Y = (1/bet)*(Hnq*V);
-            %             w = ((1/alph)+(1/bet)*(Hnq*V)'*(Hnq*V))...
-            %                 /((1/bet)*(Hnq*V)'*b);
-            %             x = (1/bet)*(b-(Hnq*V)*w)
-            %         x = x + Qp*Hnq'*Rinv*Innov + mvnrnd(pzeros_physical,Qp,L)';
             x = x + (alph*bet)/(alph+bet)* Rinv* Hty(Innov,inth,N,L)+ mvnrnd(pzeros_physical,Qp1,L)';
             Rinv = inv(R + Hnq*Q*Hnq');
         end
@@ -148,7 +127,6 @@ for i=1:Numsteps
         toSum = exp(toEXP);
         normalizer = logw(1) + log1p(sum(toSum));
         logw = logw - normalizer;
-        logw = -(1/2)*1\(alph+bet)+logw;
         wt = exp(logw);
         
         
@@ -170,8 +148,8 @@ for i=1:Numsteps
     end
     % Compare estimate and truth
     diff_orig= truth(:,i) - (V*estimate(:,i));
-    RMSE_orig = sqrt(diff_orig'*diff_orig/N)
-    MAE_orig = (sum(abs(diff_orig)))/N
+    RMSE_orig = sqrt(diff_orig'*diff_orig/N);
+    %     MAE_orig = (sum(abs(diff_orig)))/N
     RMSEave_orig = RMSEave_orig + RMSE_orig;
     
     % Save to plot
@@ -179,7 +157,6 @@ for i=1:Numsteps
         %Save RMSE values
         Time(iRMSE)=t;
         RMSEsave(iRMSE)=RMSE_orig;
-        %         RMSEsave_proj(iRMSE)=RMSE_proj;
         iRMSE = iRMSE+1;
     end
     
@@ -192,9 +169,8 @@ grid on
 xlabel('Time')
 ylabel('RMSE')
 % xticklabels(xticks/dt)
-% ylim([0 0.15])
+ ylim([0 20])
 % legend('RMSE Original','RMSE Projected')
 
 RMSEave_orig = RMSEave_orig/Numsteps
-% RMSEave_proj = RMSEave_proj/Numsteps
 ResampPercent = ObsMult*Resamps/Numsteps

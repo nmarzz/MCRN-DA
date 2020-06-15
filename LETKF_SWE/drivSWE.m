@@ -70,31 +70,31 @@ u=reshape(u1,nx,ny);
 v=reshape(v1,nx,ny);
 h=reshape(h1,nx,ny);
 
-% u_save(:,:,i_save) = u;
-% v_save(:,:,i_save) = v;
-% h_save(:,:,i_save) = h;
+u_save(:,:,i_save) = u;
+v_save(:,:,i_save) = v;
+h_save(:,:,i_save) = h;
 t_save(i_save) = (i-1).*dt;
 i_save = i_save+1;
 % % END: To animate
 % 
 % %% OVER ALL THE LYAPUNOV EXPONENTS WE WANT, SOME p<=DIM
-%    for j=1:p
-% %EVALUATE F(X+eps^{1/2}*Qj)
-%       NEWIC = XOLD+sqrteps*q(:,j);
-%       QTAU = formod(TIME,NEWIC,dt,pars);
-%       NEWDIFF(:,j) = (QTAU - XNEW)/sqrteps;
-%    end
-% 
-% %CALL mgs
-%    [q,r] = mgs(NEWDIFF);
-% 
-% %FORM LES
-%    for j=1:p
-%        LE(j) = LE(j) + log(r(j,j));
-%    end 
-% 
-% %UPDATE TIME 
-%    TIME = TIME + dt
+   for j=1:p
+%EVALUATE F(X+eps^{1/2}*Qj)
+      NEWIC = XOLD+sqrteps*q(:,j);
+      QTAU = formod(TIME,NEWIC,dt,pars);
+      NEWDIFF(:,j) = (QTAU - XNEW)/sqrteps;
+   end
+
+%CALL mgs
+   [q,r] = mgs(NEWDIFF);
+
+%FORM LES
+   for j=1:p
+       LE(j) = LE(j) + log(r(j,j));
+   end 
+
+%UPDATE TIME 
+   TIME = TIME + dt
 
 end
 
