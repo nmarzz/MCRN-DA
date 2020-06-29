@@ -56,7 +56,8 @@ epsIC = 0.01;
 inth=1;
 %Call Init
 [M,H,PinvH,IC,q,LE,w,R,Rinv,Q,Omega,ICcov,Lones,Mzeros] = ...
-    Init(F,IC,h,N,inth,ModelSteps,p_physical,L,epsR,epsQ,epsOmega,epsIC)
+    Init(F,IC,h,N,inth,ModelSteps,p_physical,L,epsR,epsQ,epsOmega,epsIC);
+[M,IC,w,R,Rinv,Q,Omega,ICcov,Lones,Mzeros,Nzeros] = Init(IC,N,inth,L,epsR,epsQ,epsOmega,epsIC)
 
 %Add noise N(0,ICcov) to ICs to form different particles
 Nzeros = zeros(N,1);

@@ -24,23 +24,23 @@ Built_Model= buildModel(N,F,ModelSteps,T);
 iOPPF=1;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =2;
-DataProjection = 2;
+PhysicalProjection =1;
+DataProjection = 0;
 tolerance_physical = 20; % POD_modes
-tolerance_data = 20; % POD_modes
-numModes_physical = 20;% DMD_modes, for physical
-numModes_data = 20; % DMD_modes, for data
+tolerance_data = 30; % POD_modes
+numModes_physical = 30;% DMD_modes, for physical
+numModes_data = 30; % DMD_modes, for data
 model_output = Built_Model';
 [Ur_physical,p_physical,pzeros_physical] = ...
     Projection_physical_type(PhysicalProjection, numModes_physical,tolerance_physical,N,model_output,dt);
 [Ur_data,p_data,pzeros_data] = Projection_data_type(DataProjection ,numModes_data,tolerance_data,N,model_output,dt);
 
 %% Particle Filter Information
-L=1000;%Number of particles
+L=50;%Number of particles
 IC = zeros(N,1);
 IC(1)=1; % Particle ICs
 
-alpha=0;%alpha value for projected resampling
+alpha=0.5;%alpha value for projected resampling
 
 % Number of computational steps and step size
 h=1.E-2;
@@ -95,7 +95,8 @@ iRMSE=1;
 [M,H,PinvH] = new_Init(N,inth,V);
 Q=V'*Q*V;
 x=V'*u;
-
+diff_plot=[];
+diff_proj_plot=[];
 for i=1:Numsteps
     % Estimate the truth    
     estimate(:,i) = x*w;
@@ -124,7 +125,7 @@ for i=1:Numsteps
                 
         % Reweight
         Tdiag = diag(Innov'*Rinv*Innov);
-        tempering = 2; % Tempering usually a little larger than 1.
+        tempering = 1.2; % Tempering usually a little larger than 1.
         Avg=(max(Tdiag)+min(Tdiag))/2;
         Tdiag = (Tdiag-Avg)/tempering;
         
@@ -144,7 +145,7 @@ for i=1:Numsteps
         
         
         %Resampling (with resamp.m that I provided or using the pseudo code in Peter Jan ,... paper)
-        [w,x,NRS] = resamp(w,x,0.5);
+        [w,x,NRS] = resamp(w,x,0.3);
         Resamps = Resamps + NRS;
                
         if (NRS==1)
@@ -158,7 +159,9 @@ for i=1:Numsteps
     x = V'*dp4(F,t,V*x,h);
 
     % Compare estimate and truth
+    diff_plot(:,i)= truth(:,i) - (V*estimate(:,i));
     diff_orig= truth(:,i) - (V*estimate(:,i));
+    diff_proj_plot(:,i)= (V * V'* truth(:,i)) - (V*estimate(:,i));
     diff_proj= (V * V'* truth(:,i)) - (V*estimate(:,i));
     RMSE_orig = sqrt(diff_orig'*diff_orig/N)
     RMSE_proj = sqrt(diff_proj'*diff_proj/N)
@@ -178,18 +181,34 @@ for i=1:Numsteps
     t = t+h;
 end
 %
-figure
-plot(Time,RMSEsave, 'r-', 'LineWidth', 2)
-grid on
-hold on;
-plot(Time,RMSEsave_proj,'b-','LineWidth', 2)
+% figure
+% plot(Time,RMSEsave, 'r-', 'LineWidth', 2)
+% grid on
+% hold on;
+% plot(Time,RMSEsave_proj,'b-','LineWidth', 2)
 %title('The Root Mean-Squared Error')
-xlabel('Time', 'Interpreter','Latex','Fontsize',40)
-ylabel('RMSE', 'Interpreter','Latex','Fontsize',40)
+% xlabel('Time', 'Interpreter','Latex','Fontsize',40)
+% ylabel('RMSE', 'Interpreter','Latex','Fontsize',40)
 % xticklabels(xticks/dt)
 % ylim([0 0.15])
-mm = legend('RMSE Projected','RMSE Original')
-set(mm, 'Interpreter','Latex','Fontsize',40)
+% mm = legend('RMSE Projected','RMSE Original')
+% set(mm, 'Interpreter','Latex','Fontsize',40)
+% figure(2)
+% contourf(diff_plot,'LineStyle','none')
+% colormap(jet);
+% colorbar;
+% caxis([-3 6])
+% xlabel('Time')
+% ylabel('N ')
+% xticklabels(xticks*dt)
+% figure(3)
+% contourf(diff_proj_plot,'LineStyle','none')
+% colormap(jet);
+% colorbar;
+% caxis([-3 6])
+% xlabel('Time')
+% ylabel('N ')
+% xticklabels(xticks*dt)
 RMSEave_orig = RMSEave_orig/Numsteps
 RMSEave_proj = RMSEave_proj/Numsteps
 ResampPercent = ObsMult*Resamps/Numsteps
