@@ -2,12 +2,17 @@
 % a shallow water model. It should be called only after shallow_water_model
 % has been run.
 clc;clear all;close all;
-% % load('SWE.mat')
+
+% load('SWE.mat')
 % modeloutput=x_save(:,1440:end);%snapshot matrix
 % t_save=t_save(:,1440:end);
-%%
-load('SWE_truncated.mat')
-modeloutput=modeloutput_truncated;
+
+% % %% POD
+% % load('SWE_truncated.mat')
+% % modeloutput=modeloutput_truncated;
+%% DMD
+load('SWE_DMD.mat')
+modeloutput=X_dmd;
 L=length(t_save);%number of snapshots
 m=length(y);%y-dimension
 n=length(x);%x-dimension
@@ -107,9 +112,9 @@ for it = 1:25:L
 %   caxis([-3 3].*1e-4);
 
   % Axis labels and title
-  xlabel('X distance (1000s of km)');
-  ylabel('Y distance (1000s of km)');
-  title('\bfRelative vorticity (s^{-1})');
+%   xlabel('X distance (1000s of km)');
+%   ylabel('Y distance (1000s of km)');
+%   title('\bfRelative vorticity (s^{-1})');
 
   % Other axes properties and plot a colorbar
   daspect([1 1 1]);

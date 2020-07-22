@@ -2,12 +2,19 @@
 clear all;clc;
 rng(1331);
 % SWE preamble
-load('swerun.mat');
+% load('swerun.mat');
+% F = @(t,x) formod(t,x,dt,pars);
+% Built_Model= x_save;
+% N =length(Built_Model);
+% IC = x_ics;
+load('SWE_RUN_2days.mat');
 F = @(t,x) formod(t,x,dt,pars);
 Built_Model= x_save;
 N =length(Built_Model);
-IC = x_ics;
-
+IC =Built_Model(:,1);
+% model=Built_Model(1:2000,1:2000);
+% figure(9)
+% contourf(model,'LineStyle','none')
 %% Type of particle filter
 % Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
 iOPPF=0;
@@ -55,7 +62,7 @@ u = repmat(IC,1,L) + normrnd(0,ICcov,N,L); % Noise for IC
 
 %% Generate observations from "Truth"
 
-gen_ics = x_ics;
+gen_ics = IC;
 t = 0;
 for i = 1:Numsteps
     truth(:,i) = gen_ics;
@@ -131,7 +138,7 @@ for i=1:Numsteps
         
         
         %Resampling (with resamp.m that I provided or using the pseudo code in Peter Jan ,... paper)
-        [wt,x,NRS] = resamp(wt,x,0.5);
+        [wt,x,NRS] = resamp(wt,x,0.3);
         Resamps = Resamps + NRS;
         
         if (NRS==1)
@@ -163,14 +170,24 @@ for i=1:Numsteps
     t = t+h;
 end
 %
-figure
-plot(Time,RMSEsave, 'r-', 'LineWidth', 2)
-grid on
-xlabel('Time')
-ylabel('RMSE')
-% xticklabels(xticks/dt)
- ylim([0 20])
-% legend('RMSE Original','RMSE Projected')
-
+% epsRR=epsR*ones(1,length(RMSEsave));
+% % loyolagreen = 1/255*[0,104,87];
+% figure
+% plot(Time,RMSEsave, 'b--', 'LineWidth', 1.5)
+% grid on
+% hold on;
+% % plot(Time,RMSEsave_proj,'r--','LineWidth', 1.5)
+% % plot(Time,epsRR,':','Color', loyolagreen,'LineWidth', 1.5)
+% plot(Time,epsRR,'g-.','LineWidth', 1.5)
+% xlabel('Time')
+% ylabel('RMSE')
+% ylim([0 25])
+% title('Identity Projection')
+% % title('DMD Projection')
+% % title('POD and DMD Projection')
+% % legend('RMSE','Observation error','Location', 'Best')
+% legend('RMSE','Observation error','Location', 'Best')
+% 
+% 
 RMSEave_orig = RMSEave_orig/Numsteps
 ResampPercent = ObsMult*Resamps/Numsteps

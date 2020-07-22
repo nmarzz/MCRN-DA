@@ -12,7 +12,7 @@
 
 dt_mins              = 1;   % Timestep (minutes)
 output_interval_mins = 60;  % Time between outputs (minutes)
-forecast_length_days = 4;   % Total simulation length (days)
+forecast_length_days = 2;   % Total simulation length (days)
 
 dt = dt_mins*60.0; % Timestep (s)
 output_interval = output_interval_mins*60.0; % Time between outputs (s)
@@ -97,6 +97,6 @@ end
 
 % LE = LE/(TIME-T0)
 
-% save('SWE.mat','x_save','x','y','H','dt','t_save','plot_height_range')
+save('SWE_RUN_2days.mat','x_save','x','y','H','dt','t_save','pars')
 
 % disp('Now run "animate_new" to animate the simulation');

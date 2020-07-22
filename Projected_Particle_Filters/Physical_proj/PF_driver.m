@@ -6,7 +6,7 @@ N =100; % N:Original model dimension
 
 % Build Model (via ODE45)
 dt=1.E-2; % Model output time step
-ModelSteps = 1500; % Number of time steps in building model
+ModelSteps = 50000; % Number of time steps in building model
 T=ModelSteps*dt;
 Built_Model= buildModel(N,F,ModelSteps,T);
 
@@ -25,11 +25,11 @@ iOPPF=1;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 PhysicalProjection =1;
-DataProjection = 0;
+DataProjection = 1;
 tolerance_physical = 20; % POD_modes
-tolerance_data = 30; % POD_modes
-numModes_physical = 30;% DMD_modes, for physical
-numModes_data = 30; % DMD_modes, for data
+tolerance_data = 20; % POD_modes
+numModes_physical = 20;% DMD_modes, for physical
+numModes_data = 20; % DMD_modes, for data
 model_output = Built_Model';
 [Ur_physical,p_physical,pzeros_physical] = ...
     Projection_physical_type(PhysicalProjection, numModes_physical,tolerance_physical,N,model_output,dt);
@@ -40,7 +40,7 @@ L=50;%Number of particles
 IC = zeros(N,1);
 IC(1)=1; % Particle ICs
 
-alpha=0.5;%alpha value for projected resampling
+alpha=0.35;%alpha value for projected resampling
 
 % Number of computational steps and step size
 h=1.E-2;
@@ -95,34 +95,34 @@ iRMSE=1;
 [M,H,PinvH] = new_Init(N,inth,V);
 Q=V'*Q*V;
 x=V'*u;
-diff_plot=[];
-diff_proj_plot=[];
+% diff_plot=[];
+% diff_proj_plot=[];
 for i=1:Numsteps
-    % Estimate the truth    
+    % Estimate the truth
     estimate(:,i) = x*w;
     
     % Get projection of the Data Model
-    [U] = projectionToggle_data(DataProjection,N,Ur_data,p_data); 
+    [U] = projectionToggle_data(DataProjection,N,Ur_data,p_data);
     % Update noise covariance
     R = U' * PinvH * Rfixed * PinvH' * U;
     Rinv = inv(R);
     
     if mod(i,ObsMult)==0
         %At observation times, Update weights via likelihood, add noise
-        if (iOPPF==0) % Standard Particle Filter             
-            x = x + mvnrnd(pzeros_physical,Q,L)';            
+        if (iOPPF==0) % Standard Particle Filter
+            x = x + mvnrnd(pzeros_physical,Q,L)';
             Hnq = U'*PinvH*H*V;
             Innov=repmat(U'*PinvH*y(:,i),1,L)-Hnq*x;
             
         else % IOPPF ==1, Optimal proposal PF
-            Hnq = U'*PinvH*H*V; 
+            Hnq = U'*PinvH*H*V;
             Qpinv = inv(Q) + Hnq'*Rinv*Hnq;
             Qp = inv(Qpinv);
             Innov=repmat(U'*PinvH*y(:,i),1,L)-Hnq*x;
             x = x + Qp*Hnq'*Rinv*Innov + mvnrnd(pzeros_physical,Qp,L)';
             Rinv = inv(R + Hnq*Q*Hnq');
         end
-                
+        
         % Reweight
         Tdiag = diag(Innov'*Rinv*Innov);
         tempering = 1.2; % Tempering usually a little larger than 1.
@@ -131,10 +131,10 @@ for i=1:Numsteps
         
         Tdiag = -Tdiag/2;
         logw = Tdiag + log(w);
-               
+        
         [~,idx] = min(abs(logw-((max(logw) - min(logw))/2))); % find index of weight closest to middle value
         logw([1 idx]) = logw([idx 1]);
-        x(:,[1 idx]) = x(:,[idx 1]);        
+        x(:,[1 idx]) = x(:,[idx 1]);
         toEXP = logw(2:end) - logw(1);
         toEXP=min(toEXP,709);
         toEXP=max(toEXP,-709);
@@ -145,9 +145,9 @@ for i=1:Numsteps
         
         
         %Resampling (with resamp.m that I provided or using the pseudo code in Peter Jan ,... paper)
-        [w,x,NRS] = resamp(w,x,0.3);
+        [w,x,NRS] = resamp(w,x,0.5);
         Resamps = Resamps + NRS;
-               
+        
         if (NRS==1)
             % Projected Resampling
             x = x + V'*(alpha*(U*U') + (1-alpha)*eye(N,1))*(mvnrnd(zeros(N,1),Omega,L)');
@@ -157,11 +157,11 @@ for i=1:Numsteps
     
     % propogate particles
     x = V'*dp4(F,t,V*x,h);
-
+    
     % Compare estimate and truth
-    diff_plot(:,i)= truth(:,i) - (V*estimate(:,i));
+    %     diff_plot(:,i)= truth(:,i) - (V*estimate(:,i));
     diff_orig= truth(:,i) - (V*estimate(:,i));
-    diff_proj_plot(:,i)= (V * V'* truth(:,i)) - (V*estimate(:,i));
+    %     diff_proj_plot(:,i)= (V * V'* truth(:,i)) - (V*estimate(:,i));
     diff_proj= (V * V'* truth(:,i)) - (V*estimate(:,i));
     RMSE_orig = sqrt(diff_orig'*diff_orig/N)
     RMSE_proj = sqrt(diff_proj'*diff_proj/N)
@@ -170,7 +170,7 @@ for i=1:Numsteps
     RMSEave_proj = RMSEave_proj + RMSE_proj;
     
     % Save to plot
-    if mod(i,ObsMult)==0                        
+    if mod(i,ObsMult)==0
         %Save RMSE values
         Time(iRMSE)=t;
         RMSEsave(iRMSE)=RMSE_orig;

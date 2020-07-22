@@ -18,7 +18,7 @@ sig=diag(S);
 
 % figure(2)
 % semilogy(diag(S),'bo','LineWidth',1.5), grid on
-% xlabel('k')
+% xlabel('k') 
 % ylabel('Semilogy of diag(S)')
 % hold off
 % title('log plot of singular values')
