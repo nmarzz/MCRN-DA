@@ -12,7 +12,7 @@
 
 dt_mins              = 1;   % Timestep (minutes)
 output_interval_mins = 60;  % Time between outputs (minutes)
-forecast_length_days = 1;   % Total simulation length (days)
+forecast_length_days = 4;   % Total simulation length (days)
 
 dt = dt_mins*60.0; % Timestep (s)
 output_interval = output_interval_mins*60.0; % Time between outputs (s)
@@ -47,7 +47,7 @@ q=orth(rand(DIM,p));
 FEVAL = zeros(DIM,p);
 NEWDIFF = zeros(DIM,p);
 TIME = 0;
- 
+
 
 sqrteps = sqrt(eps(1));
 %INTEGRATE SWE
@@ -57,45 +57,45 @@ T0=0;
 i_save=1;
 
 for i = 1:nt
-
-   XOLD = XNEW;
-%UPDATE TRAJECTORY
-   XNEW = formod(TIME,XOLD,dt,pars);
-
-% BEGIN: To animate
-u1=XNEW(1:nx*ny);
-v1=XNEW(nx*ny+1:2*nx*ny);
-h1=XNEW(2*nx*ny+1:3*nx*ny);
-u=reshape(u1,nx,ny);
-v=reshape(v1,nx,ny);
-h=reshape(h1,nx,ny);
-
-% u_save(:,:,i_save) = u;
-% v_save(:,:,i_save) = v;
-% h_save(:,:,i_save) = h;
-t_save(i_save) = (i-1).*dt;
-i_save = i_save+1;
-% % END: To animate
-% 
-% %% OVER ALL THE LYAPUNOV EXPONENTS WE WANT, SOME p<=DIM
-%    for j=1:p
-% %EVALUATE F(X+eps^{1/2}*Qj)
-%       NEWIC = XOLD+sqrteps*q(:,j);
-%       QTAU = formod(TIME,NEWIC,dt,pars);
-%       NEWDIFF(:,j) = (QTAU - XNEW)/sqrteps;
-%    end
-% 
-% %CALL mgs
-%    [q,r] = mgs(NEWDIFF);
-% 
-% %FORM LES
-%    for j=1:p
-%        LE(j) = LE(j) + log(r(j,j));
-%    end 
-% 
-% %UPDATE TIME 
-%    TIME = TIME + dt
-
+    
+    XOLD = XNEW;
+    %UPDATE TRAJECTORY
+    XNEW = formod(TIME,XOLD,dt,pars);
+    
+    % BEGIN: To animate
+    u1=XNEW(1:nx*ny);
+    v1=XNEW(nx*ny+1:2*nx*ny);
+    h1=XNEW(2*nx*ny+1:3*nx*ny);
+    u=reshape(u1,nx,ny);
+    v=reshape(v1,nx,ny);
+    h=reshape(h1,nx,ny);
+    
+    u_save(:,:,i_save) = u;
+    v_save(:,:,i_save) = v;
+    h_save(:,:,i_save) = h;
+    t_save(i_save) = (i-1).*dt;
+    i_save = i_save+1;
+    % % END: To animate
+    %
+    % %% OVER ALL THE LYAPUNOV EXPONENTS WE WANT, SOME p<=DIM
+%     for j=1:p
+%         %EVALUATE F(X+eps^{1/2}*Qj)
+%         NEWIC = XOLD+sqrteps*q(:,j);
+%         QTAU = formod(TIME,NEWIC,dt,pars);
+%         NEWDIFF(:,j) = (QTAU - XNEW)/sqrteps;
+%     end
+%     
+%     %CALL mgs
+%     [q,r] = mgs(NEWDIFF);
+%     
+%     %FORM LES
+%     for j=1:p
+%         LE(j) = LE(j) + log(r(j,j));
+%     end
+    
+    %UPDATE TIME
+    TIME = TIME + dt;
+    
 end
 
 % LE = LE/(TIME-T0)

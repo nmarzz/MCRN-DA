@@ -39,7 +39,7 @@ end
 disp(['Maximum orography height = ' num2str(max(H(:))) ' m']);
 
 % Loop through the frames of the animation
-for it = 1:noutput
+for it = 1:25:nt
   clf
 
   % Extract the height and velocity components for this frame
