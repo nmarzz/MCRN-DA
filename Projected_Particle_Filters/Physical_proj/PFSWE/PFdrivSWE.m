@@ -13,7 +13,11 @@ IC = x_ics;
 iOPPF=0;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
+<<<<<<< Updated upstream
 PhysicalProjection = 1;
+=======
+PhysicalProjection =1;
+>>>>>>> Stashed changes
 DataProjection = 0;
 tolerance_physical = 20; % POD_modes
 tolerance_data = 10; % POD_modes
