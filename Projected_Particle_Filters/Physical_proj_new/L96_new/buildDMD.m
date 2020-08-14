@@ -72,5 +72,16 @@ Rsmall=min(Rsmall,size(index_sort));
 Phi = Phi(:, 1:Rsmall);
 size(Phi)
 rank(Phi)
-
+% x1=X1(:,1);%the sloution at  t=0
+% b=Phi\x1;%how much time to project
+% %Time dynamic
+% ModelSteps= 1500; % Number of time steps in building model
+% % time_dynamics=zeros(numModes,length(T));
+% % T = 1500; % Number of time steps in building model
+% T=ModelSteps*dt;
+% time_dynamics=[];
+% for iter = 1:length( model_output)
+% time_dynamics(:,iter) =(b'.*exp(omega*T(iter)));%make full matrix space and time fot updating t
+% end
+% X_dmd = Phi*time_dynamics;
 end

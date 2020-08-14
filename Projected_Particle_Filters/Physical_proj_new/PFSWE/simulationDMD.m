@@ -10,7 +10,12 @@ if exist(filename,'file') % if file exists, load out1
     load(filename)
     disp("Loaded from "+filename);
 else
-    [out1] =buildDMD(numModes,Built_Model,dt);% Get DMD
+%     [out1] =buildDMD(numModes,Built_Model,dt);% Get DMD
+    DataMatrix=Built_Model;%snapshot matrix
+    r=numModes;
+    VALUE=true;
+    out1 = dmd( DataMatrix, dt, r,'sortbyb', VALUE);
+%     out1 = dmd( DataMatrix, dt, r, 'removemean', VALUE);
     disp('Yep, simulating-DMD hard!');
     save(filename,'out1') % store into filename our output variables
     disp("Saved to "+filename);

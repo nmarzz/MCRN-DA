@@ -1,9 +1,8 @@
-function [Phi]=buildDMD(numModes,model_output,dt)
-% DMD
-% model_output = model_output';
-% [Phi] = orderReduction_DMD(numModes, model_output,dt);% Get DMD
-X1 = model_output(:,1:end-1);%The data matrix
-X2 = model_output(:,2:end); %shifted data matrix
+function [Phi] = orderReduction_DMD(r, modeloutput,dt) % Mar 4, 2020 comments by Marko
+
+X1 = modeloutput(:,1:end-1);%The data matrix
+X2 = modeloutput(:,2:end); %shifted data matrix
+
 [U, S, V] = svd(X1,'econ');
 %%
 %sig=diag(S);
@@ -12,21 +11,21 @@ X2 = model_output(:,2:end); %shifted data matrix
 % xlabel('k')
 % ylabel('Singular value, \sigma_k')
 % title('Standard plot of singular values')
-
+ 
 % figure(2)
 % semilogy(diag(S),'bo','LineWidth',1.5), grid on
 % xlabel('k')
 % ylabel('Semilogy of diag(S)')
 % hold off
 % title('log plot of singular values')
-% cdS =cumsum(sig.^2)./sum(sig.^2);% cumulative
+% cdS =cumsum(sig.^2)./sum(sig.^2);% cumulative 
 % figure(3)
 % plot(cdS,'ko','LineWidth',1.2),grid on
 % xlabel('k')
 % ylabel('Cumulative')
 %%
 % Marko: choice of the following parameters is really not set in stone, compare
-Rsmall = min(numModes, size(U,2)); % order-reduction parameter (modeling choice)
+Rsmall = min(r, size(U,2)); % order-reduction parameter (modeling choice)
 Rlarge = size(U, 2) - 10; % numerical stabilization (numerical choice)
 % Rlarge = rank(modeloutput) - 10;
 
