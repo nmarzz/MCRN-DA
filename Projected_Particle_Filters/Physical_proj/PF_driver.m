@@ -2,7 +2,7 @@
 clear all;clc;
 rng(1331);
 F = @FLor95; %Physical model
-N =66; % N:Original model dimension
+N =100; % N:Original model dimension
 
 % Build Model (via ODE45)
 dt=1.E-2; % Model output time step
@@ -21,10 +21,10 @@ Built_Model= buildModel(N,F,ModelSteps,T);
 iOPPF=1;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =0;
-DataProjection = 1;
-tolerance_physical = 10; % POD_modes
-tolerance_data = 10; % POD_modes
+PhysicalProjection =1;
+DataProjection = 0;
+tolerance_physical = 5; % POD_modes
+tolerance_data = 5; % POD_modes
 numModes_physical = 30;% DMD_modes, for physical
 numModes_data = 30; % DMD_modes, for data
 [Ur_physical,p_physical,pzeros_physical] = ...
