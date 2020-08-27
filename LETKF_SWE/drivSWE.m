@@ -74,7 +74,9 @@ u_save(:,:,i_save) = u;
 v_save(:,:,i_save) = v;
 h_save(:,:,i_save) = h;
 t_save(i_save) = (i-1).*dt;
+x_save(:,i_save) = uvhtox(u,v,h,nx,ny);
 i_save = i_save+1;
+
 % % END: To animate
 % 
 % %% OVER ALL THE LYAPUNOV EXPONENTS WE WANT, SOME p<=DIM

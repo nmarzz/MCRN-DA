@@ -42,15 +42,15 @@ dt_mins              = 1;   % Timestep (minutes)
 output_interval_mins = 60;  % Time between outputs (minutes)
 forecast_length_days = 4;   % Total simulation length (days)
 
-orography = FLAT;
-initial_conditions = GAUSSIAN_BLOB;
-initially_geostrophic = false;   % Can be "true" or "false"
-add_random_height_noise = false; % Can be "true" or "false"
+% orography = FLAT;
+% initial_conditions = GAUSSIAN_BLOB;
+% initially_geostrophic = false;   % Can be "true" or "false"
+% add_random_height_noise = false; % Can be "true" or "false"
 
-%orography = FLAT;
-%initial_conditions = ZONAL_JET;
-%initially_geostrophic = true;   % Can be "true" or "false"
-%add_random_height_noise = true; % Can be "true" or "false"
+orography = FLAT;
+initial_conditions = ZONAL_JET;
+initially_geostrophic = true;   % Can be "true" or "false"
+add_random_height_noise = true; % Can be "true" or "false"
 
 % If you change the number of gridpoints then orography=EARTH_OROGRAPHY
 % or initial_conditions=REANALYSIS won't work
