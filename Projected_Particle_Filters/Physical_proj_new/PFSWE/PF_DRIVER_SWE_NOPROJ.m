@@ -2,19 +2,12 @@
 clear all;clc;
 rng(1331);
 % SWE preamble
-% load('swerun.mat');
-% F = @(t,x) formod(t,x,dt,pars);
-% Built_Model= x_save;
-% N =length(Built_Model);
-% IC = x_ics;
-load('SWE_RUN_2days.mat');
+load('SWE_run_1day.mat');
 F = @(t,x) formod(t,x,dt,pars);
 Built_Model= x_save;
 N =length(Built_Model);
-IC =Built_Model(:,1);
-% model=Built_Model(1:2000,1:2000);
-% figure(9)
-% contourf(model,'LineStyle','none')
+IC = Built_Model(:,1);
+
 %% Type of particle filter
 % Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
 iOPPF=0;
@@ -22,7 +15,7 @@ iOPPF=0;
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 PhysicalProjection = 0;
 DataProjection = 0;
-tolerance_physical = 9; % POD_modes
+tolerance_physical = 10; % POD_modes
 tolerance_data = 10; % POD_modes
 numModes_physical = 30;% DMD_modes, for physical
 numModes_data = 30; % DMD_modes, for data
@@ -62,7 +55,7 @@ u = repmat(IC,1,L) + normrnd(0,ICcov,N,L); % Noise for IC
 
 %% Generate observations from "Truth"
 
-gen_ics = IC;
+gen_ics =IC;
 t = 0;
 for i = 1:Numsteps
     truth(:,i) = gen_ics;
@@ -87,11 +80,9 @@ RMSEave_proj=0;
 iRMSE=1;
 Q1=Q*ones(1,N); %no Projection
 x=V'*u;
-%p_physical = 10;
 for i=1:Numsteps
     % Estimate the truth
-    estimate(:,i) = x*wt;
-    
+    estimate(:,i) = x*wt;    
     % Get projection of the Data Model
     [U] = projectionToggle_data(DataProjection,Ur_data,p_data);
     % Update noise covariance
@@ -138,7 +129,7 @@ for i=1:Numsteps
         
         
         %Resampling (with resamp.m that I provided or using the pseudo code in Peter Jan ,... paper)
-        [wt,x,NRS] = resamp(wt,x,0.3);
+        [wt,x,NRS] = resamp(wt,x,0.5);
         Resamps = Resamps + NRS;
         
         if (NRS==1)
@@ -169,25 +160,13 @@ for i=1:Numsteps
     
     t = t+h;
 end
-%
-% epsRR=epsR*ones(1,length(RMSEsave));
-% % loyolagreen = 1/255*[0,104,87];
-% figure
-% plot(Time,RMSEsave, 'b--', 'LineWidth', 1.5)
-% grid on
-% hold on;
-% % plot(Time,RMSEsave_proj,'r--','LineWidth', 1.5)
-% % plot(Time,epsRR,':','Color', loyolagreen,'LineWidth', 1.5)
-% plot(Time,epsRR,'g-.','LineWidth', 1.5)
-% xlabel('Time')
-% ylabel('RMSE')
-% ylim([0 25])
-% title('Identity Projection')
-% % title('DMD Projection')
-% % title('POD and DMD Projection')
-% % legend('RMSE','Observation error','Location', 'Best')
-% legend('RMSE','Observation error','Location', 'Best')
-% 
-% 
+
+figure(1)
+plot(Time,RMSEsave, 'r-', 'LineWidth', 2)
+grid on
+xlabel('Time')
+ylabel('RMSE')
+
+
 RMSEave_orig = RMSEave_orig/Numsteps
 ResampPercent = ObsMult*Resamps/Numsteps

@@ -78,62 +78,62 @@ y=(0:ny-1).*dy; % Meridional distance coordinate (m)
 
 % Create the orography field "H"
 switch orography
-  case FLAT
-    H = zeros(nx, ny);
-  case SLOPE
-    H = 9000.*2.*abs((mean(x)-X)./max(x));
-  case GAUSSIAN_MOUNTAIN
-    std_mountain_x = 5.*dx; % Std. dev. of mountain in x direction (m)
-    std_mountain_y = 5.*dy; % Std. dev. of mountain in y direction (m)
-    H = 4000.*exp(-0.5.*((X-mean(x))./std_mountain_x).^2 ...
-                  -0.5.*((Y-mean(y))./std_mountain_y).^2);
-  case SEA_MOUNT
-    std_mountain = 40.0.*dy; % Standard deviation of mountain (m)
-    H = 9250.*exp(-((X-mean(x)).^2+(Y-0.5.*mean(y)).^2)./(2*std_mountain^2));
-  case EARTH_OROGRAPHY
-    load digital_elevation_map.mat
-    H = elevation;
-    % Enforce periodic boundary conditions in x
-    H([1 end],:)=H([end-1 2],:);
- otherwise
-   error(['Don''t know what to do with orography=' num2str(orography)]); 
+    case FLAT
+        H = zeros(nx, ny);
+    case SLOPE
+        H = 9000.*2.*abs((mean(x)-X)./max(x));
+    case GAUSSIAN_MOUNTAIN
+        std_mountain_x = 5.*dx; % Std. dev. of mountain in x direction (m)
+        std_mountain_y = 5.*dy; % Std. dev. of mountain in y direction (m)
+        H = 4000.*exp(-0.5.*((X-mean(x))./std_mountain_x).^2 ...
+            -0.5.*((Y-mean(y))./std_mountain_y).^2);
+    case SEA_MOUNT
+        std_mountain = 40.0.*dy; % Standard deviation of mountain (m)
+        H = 9250.*exp(-((X-mean(x)).^2+(Y-0.5.*mean(y)).^2)./(2*std_mountain^2));
+    case EARTH_OROGRAPHY
+        load digital_elevation_map.mat
+        H = elevation;
+        % Enforce periodic boundary conditions in x
+        H([1 end],:)=H([end-1 2],:);
+    otherwise
+        error(['Don''t know what to do with orography=' num2str(orography)]);
 end
 
-% Create the initial height field 
+% Create the initial height field
 switch initial_conditions
-  case UNIFORM_WESTERLY
-    mean_wind_speed = 20; % m/s
-    height = 10000-(mean_wind_speed*f/g).*(Y-mean(y)); 
-  case SINUSOIDAL
-    height = 10000-350.*cos(Y./max(y).*4.*pi);
-  case EQUATORIAL_EASTERLY
-    height = 10000 - 50.*cos((Y-mean(y)).*4.*pi./max(y));
-  case ZONAL_JET
-    height = 10000 - tanh(20.0.*((Y-mean(y))./max(y))).*400;
-  case REANALYSIS
-    load reanalysis.mat
-    height = 0.99.*pressure./g;
- case GAUSSIAN_BLOB
-   std_blob = 8.0.*dy; % Standard deviation of blob (m)
-   height = 9750 + 1000.*exp(-((X-0.25.*mean(x)).^2+(Y-mean(y)).^2)./(2* ...
-                                                     std_blob^2));
- case STEP
-  height = 9750.*ones(nx, ny);
-  height(find(X<max(x)./5 & Y>max(y)/10 & Y<max(y).*0.9)) = 10500;
- case CYCLONE_IN_WESTERLY
-   mean_wind_speed = 20; % m/s
-   std_blob = 7.0.*dy; % Standard deviation of blob (m)
-    height = 10000-(mean_wind_speed*f/g).*(Y-mean(y)) ...
-       - 500.*exp(-((X-0.5.*mean(x)).^2+(Y-mean(y)).^2)./(2*std_blob^2));
-    max_wind_speed = 20; % m/s
-    height = 10250-(max_wind_speed*f/g).*(Y-mean(y)).^2./max(y) ...
-       - 1000.*exp(-(0.25.*(X-1.5.*mean(x)).^2+(Y-0.5.*mean(y)).^2)./(2*std_blob^2));
-  case SHARP_SHEAR
-    mean_wind_speed = 50; % m/s
-    height = (mean_wind_speed*f/g).*abs(Y-mean(y));
-    height = 10000+height-mean(height(:));
-otherwise
-   error(['Don''t know what to do with initial_conditions=' num2str(initial_conditions)]); 
+    case UNIFORM_WESTERLY
+        mean_wind_speed = 20; % m/s
+        height = 10000-(mean_wind_speed*f/g).*(Y-mean(y));
+    case SINUSOIDAL
+        height = 10000-350.*cos(Y./max(y).*4.*pi);
+    case EQUATORIAL_EASTERLY
+        height = 10000 - 50.*cos((Y-mean(y)).*4.*pi./max(y));
+    case ZONAL_JET
+        height = 10000 - tanh(20.0.*((Y-mean(y))./max(y))).*400;
+    case REANALYSIS
+        load reanalysis.mat
+        height = 0.99.*pressure./g;
+    case GAUSSIAN_BLOB
+        std_blob = 8.0.*dy; % Standard deviation of blob (m)
+        height = 9750 + 1000.*exp(-((X-0.25.*mean(x)).^2+(Y-mean(y)).^2)./(2* ...
+            std_blob^2));
+    case STEP
+        height = 9750.*ones(nx, ny);
+        height(find(X<max(x)./5 & Y>max(y)/10 & Y<max(y).*0.9)) = 10500;
+    case CYCLONE_IN_WESTERLY
+        mean_wind_speed = 20; % m/s
+        std_blob = 7.0.*dy; % Standard deviation of blob (m)
+        height = 10000-(mean_wind_speed*f/g).*(Y-mean(y)) ...
+            - 500.*exp(-((X-0.5.*mean(x)).^2+(Y-mean(y)).^2)./(2*std_blob^2));
+        max_wind_speed = 20; % m/s
+        height = 10250-(max_wind_speed*f/g).*(Y-mean(y)).^2./max(y) ...
+            - 1000.*exp(-(0.25.*(X-1.5.*mean(x)).^2+(Y-0.5.*mean(y)).^2)./(2*std_blob^2));
+    case SHARP_SHEAR
+        mean_wind_speed = 50; % m/s
+        height = (mean_wind_speed*f/g).*abs(Y-mean(y));
+        height = 10000+height-mean(height(:));
+    otherwise
+        error(['Don''t know what to do with initial_conditions=' num2str(initial_conditions)]);
 end
 
 
@@ -144,32 +144,32 @@ F = f+beta.*(Y-mean(y));
 u=zeros(nx, ny);
 v=zeros(nx, ny);
 
-% We may need to add small-amplitude random noise in order to initialize 
+% We may need to add small-amplitude random noise in order to initialize
 % instability
 if add_random_height_noise
-  height = height + 1.0.*randn(size(height)).*(dx./1.0e5).*(abs(F)./1e-4);
+    height = height + 1.0.*randn(size(height)).*(dx./1.0e5).*(abs(F)./1e-4);
 end
 
 
 if initially_geostrophic
-   % Centred spatial differences to compute geostrophic wind
-   u(:,2:end-1) = -(0.5.*g./(F(:,2:end-1).*dx)) ...
-       .* (height(:,3:end)-height(:,1:end-2));
-   v(2:end-1,:) = (0.5.*g./(F(2:end-1,:).*dx)) ...
-       .* (height(3:end,:)-height(1:end-2,:));
-   % Zonal wind is periodic so set u(1) and u(end) as dummy points that
-   % replicate u(end-1) and u(2), respectively
-   u([1 end],:) = u([2 end-1],:);
-   % Meridional wind must be zero at the north and south edges of the
-   % channel 
-   v(:,[1 end]) = 0;
-
-   % Don't allow the initial wind speed to exceed 200 m/s anywhere
-   max_wind = 200;
-   u(find(u>max_wind)) = max_wind;
-   u(find(u<-max_wind)) = -max_wind;
-   v(find(v>max_wind)) = max_wind;
-   v(find(v<-max_wind)) = -max_wind;
+    % Centred spatial differences to compute geostrophic wind
+    u(:,2:end-1) = -(0.5.*g./(F(:,2:end-1).*dx)) ...
+        .* (height(:,3:end)-height(:,1:end-2));
+    v(2:end-1,:) = (0.5.*g./(F(2:end-1,:).*dx)) ...
+        .* (height(3:end,:)-height(1:end-2,:));
+    % Zonal wind is periodic so set u(1) and u(end) as dummy points that
+    % replicate u(end-1) and u(2), respectively
+    u([1 end],:) = u([2 end-1],:);
+    % Meridional wind must be zero at the north and south edges of the
+    % channel
+    v(:,[1 end]) = 0;
+    
+    % Don't allow the initial wind speed to exceed 200 m/s anywhere
+    max_wind = 200;
+    u(find(u>max_wind)) = max_wind;
+    u(find(u<-max_wind)) = -max_wind;
+    v(find(v>max_wind)) = max_wind;
+    v(find(v<-max_wind)) = -max_wind;
 end
 
 % Define h as the depth of the fluid (whereas "height" is the height of

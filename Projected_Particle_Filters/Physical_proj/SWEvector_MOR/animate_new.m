@@ -1,13 +1,33 @@
 % This script animates the height field and the vorticity produced by
 % a shallow water model. It should be called only after shallow_water_model
 % has been run.
+clc;clear all;close all;
 
+% load('SWE.mat')
+% modeloutput=x_save(:,1440:end);%snapshot matrix
+% t_save=t_save(:,1440:end);
+
+% % %% POD
+% % load('SWE_truncated.mat')
+% % modeloutput=modeloutput_truncated;
+%% DMD
+load('SWE_DMD.mat')
+modeloutput=X_dmd;
+L=length(t_save);%number of snapshots
+m=length(y);%y-dimension
+n=length(x);%x-dimension
+N_gridpoints=m*n;%each snapshot has x*y-dimensions
+u=modeloutput(1:N_gridpoints,:);v=modeloutput(N_gridpoints+1:N_gridpoints*2,:);h=modeloutput((N_gridpoints*2)+1:end,:);
+u_save=reshape(u,n,m,L);v_save=reshape(v,n,m,L);h_save=reshape(h,n,m,L);
+
+%%
+% Axis units are thousands of kilometers (x and y are in metres)
 % Set the size of the figure
 set(gcf,'units','inches');
 pos=get(gcf,'position');
 pos([3 4]) = [10.5 5];
 set(gcf,'position',pos)
-
+plot_height_range = [9500 10500];
 % Set other figure properties and draw now
 set(gcf,'defaultaxesfontsize',12,...
     'paperpositionmode','auto','color','w');
@@ -39,7 +59,7 @@ end
 disp(['Maximum orography height = ' num2str(max(H(:))) ' m']);
 
 % Loop through the frames of the animation
-for it = 1:25:nt
+for it = 1:25:L
   clf
 
   % Extract the height and velocity components for this frame
@@ -48,7 +68,7 @@ for it = 1:25:nt
   v = squeeze(v_save(:,:,it));
 
   % First plot the height field
-  subplot(2,1,1);
+%   subplot(2,1,1);
 
   % Plot the height field
   handle = image(x_1000km, y_1000km, (h'+H').*height_scale);
@@ -79,22 +99,22 @@ for it = 1:25:nt
   axis([0 max(x_1000km) 0 max(y_1000km)]);
   colorbar
   
-  % Compute the vorticity
-  vorticity = zeros(size(u));
-  vorticity(2:end-1,2:end-1) = (1/dy).*(u(2:end-1,1:end-2)-u(2:end-1,3:end)) ...
-     + (1/dx).*(v(3:end,2:end-1)-v(1:end-2,2:end-1));
+%   % Compute the vorticity
+%   vorticity = zeros(size(u));
+%   vorticity(2:end-1,2:end-1) = (1/dy).*(u(2:end-1,1:end-2)-u(2:end-1,3:end)) ...
+%      + (1/dx).*(v(3:end,2:end-1)-v(1:end-2,2:end-1));
 
   % Now plot the vorticity
-  subplot(2,1,2);
-  handle = image(x_1000km, y_1000km, vorticity');
-  set(handle,'CDataMapping','scaled');
-  set(gca,'ydir','normal');
-  caxis([-3 3].*1e-4);
+%   subplot(2,1,2);
+%   handle = image(x_1000km, y_1000km, vorticity');
+%   set(handle,'CDataMapping','scaled');
+%   set(gca,'ydir','normal');
+%   caxis([-3 3].*1e-4);
 
   % Axis labels and title
-  xlabel('X distance (1000s of km)');
-  ylabel('Y distance (1000s of km)');
-  title('\bfRelative vorticity (s^{-1})');
+%   xlabel('X distance (1000s of km)');
+%   ylabel('Y distance (1000s of km)');
+%   title('\bfRelative vorticity (s^{-1})');
 
   % Other axes properties and plot a colorbar
   daspect([1 1 1]);
@@ -113,3 +133,4 @@ for it = 1:25:nt
 	    ['frame' num2str(it,'%03d') '.png']);
   end
 end
+

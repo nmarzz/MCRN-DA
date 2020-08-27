@@ -2,21 +2,29 @@
 clear all;clc;
 rng(1331);
 % SWE preamble
-load('swerun.mat');
+% % load('swerun.mat');
+% F = @(t,x) formod(t,x,dt,pars);
+% Built_Model= x_save;
+% N =length(Built_Model);
+% IC = x_ics;
+load('SWE_RUN_2days.mat');
 F = @(t,x) formod(t,x,dt,pars);
 Built_Model= x_save;
 N =length(Built_Model);
-IC = x_ics;
-
+IC =Built_Model(:,1);
 %% Type of particle filter
 % Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
 iOPPF=0;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
+<<<<<<< Updated upstream
 PhysicalProjection = 1;
+=======
+PhysicalProjection =1;
+>>>>>>> Stashed changes
 DataProjection = 0;
-tolerance_physical = 9; % POD_modes
-tolerance_data = 10; % POD_modes
+tolerance_physical = 50; % POD_modes
+tolerance_data = 20; % POD_modes
 numModes_physical = 30;% DMD_modes, for physical
 numModes_data = 30; % DMD_modes, for data
 
@@ -56,7 +64,9 @@ u = repmat(IC,1,L) + normrnd(0,ICcov,N,L); % Noise for IC
 
 %% Generate observations from "Truth"
 
-gen_ics = x_ics;
+% gen_ics = x_ics;
+
+gen_ics = IC;
 t = 0;
 for i = 1:Numsteps
     truth(:,i) = gen_ics;
@@ -160,8 +170,8 @@ for i=1:Numsteps
     % Compare estimate and truth
     diff_orig= truth(:,i) - (V*estimate(:,i));
     diff_proj= V*(V'* truth(:,i) - estimate(:,i));
-    RMSE_orig = sqrt(diff_orig'*diff_orig/N)
-    RMSE_proj = sqrt(diff_proj'*diff_proj/N)
+    RMSE_orig = sqrt(diff_orig'*diff_orig/N);
+    RMSE_proj = sqrt(diff_proj'*diff_proj/N);
     MAE_orig = (sum(abs(diff_orig)))/N;
     RMSEave_orig = RMSEave_orig + RMSE_orig;
     RMSEave_proj = RMSEave_proj + RMSE_proj;
@@ -177,18 +187,18 @@ for i=1:Numsteps
     
     t = t+h;
 end
-%
-figure
-plot(Time,RMSEsave, 'r-', 'LineWidth', 1.5)
-grid on
-hold on;
-plot(Time,RMSEsave_proj,'b-','LineWidth', 1.5)
-%title('The Root Mean-Squared Error')
-xlabel('Time')
-ylabel('RMSE')
-% xticklabels(xticks/dt)
-ylim([0 20])
-legend('RMSE Original','RMSE Projected')
+% %
+% figure
+% plot(Time,RMSEsave, 'r-', 'LineWidth', 1.5)
+% grid on
+% hold on;
+% plot(Time,RMSEsave_proj,'b-','LineWidth', 1.5)
+% %title('The Root Mean-Squared Error')
+% xlabel('Time')
+% ylabel('RMSE')
+% % xticklabels(xticks/dt)
+% ylim([0 20])
+% legend('RMSE Original','RMSE Projected')
 
 RMSEave_orig = RMSEave_orig/Numsteps
 RMSEave_proj = RMSEave_proj/Numsteps
