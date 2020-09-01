@@ -3,7 +3,7 @@ close all; clear all;clc;
 %rng(1331);
 rng(1330);
 F = @FLor95; %Physical model
-N =300; % N:Original model dimension
+%N =100; % N:Original model dimension
 %N =40; % N:Original model dimension
 % Build Model (via ODE45)
 dt=1.E-2; % Model output time step
