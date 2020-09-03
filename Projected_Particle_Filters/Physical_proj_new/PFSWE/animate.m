@@ -100,7 +100,7 @@ disp(['Maximum orography height = ' num2str(max(H(:))) ' m']);
   ylabel('Y distance (1000s of km)');
   title(['\bf' height_title]);
   text(0, max(y_1000km), ['Time = ' num2str(time./3600) ' hours'],...
-       'verticalalignment','bottom','fontsize',12);
+       'verticalalignment','bottom','fontsize',8);
 
   % Set other axes properties and plot a colorbar
   daspect([1 1 1]);

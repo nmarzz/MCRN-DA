@@ -15,7 +15,7 @@ else
     r=numModes;
     VALUE=true;
     out1 = dmd( DataMatrix, dt, r,'sortbyb', VALUE);
-%     out1 = dmd( DataMatrix, dt, r, 'removemean', VALUE);
+%   out1 = dmd( DataMatrix, dt, r, 'removemean', VALUE,'sortbyb', VALUE);
     disp('Yep, simulating-DMD hard!');
     save(filename,'out1') % store into filename our output variables
     disp("Saved to "+filename);

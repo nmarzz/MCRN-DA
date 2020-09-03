@@ -2,10 +2,10 @@
 clear all;clc;
 rng(1331);
 % SWE preamble
-load('SWE_run_1day.mat');
+% load('SWE_run_1day.mat');
 % load('SWE_run_2days.mat');
 % load('SWE_run_3days.mat');
-% load('SWE_run_4days.mat');
+load('SWE_run_4days.mat');
 F = @(t,x) formod(t,x,dt,pars);
 Built_Model= x_save;
 N =length(Built_Model);

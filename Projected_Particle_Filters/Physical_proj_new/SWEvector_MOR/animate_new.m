@@ -3,9 +3,9 @@
 % has been run.
 clear all; close all; clc;
 % load('SWE.mat')
-% clear all; close all; clc;
-load('SWE_run_new.mat')
-modeloutput= x_save;
+% % clear all; close all; clc;
+% load('SWE_run_4days.mat');
+% modeloutput= x_save;
 %% POD
 % load('SWE_POD_r2.mat')
 % load('SWE_POD_r10.mat')
@@ -14,8 +14,8 @@ modeloutput= x_save;
 %% POD
 % load('SWE_POD_r2.mat')
 % load('SWE_POD_r10.mat')
-% load('SWE_POD_r20.mat')
-% modeloutput=modeloutput_truncated;
+load('SWE_POD_r50_new.mat')
+modeloutput=modeloutput_truncated;
 %% DMD
 % load('SWE_DMD_r2.mat')
 % load('SWE_DMD_r10.mat')

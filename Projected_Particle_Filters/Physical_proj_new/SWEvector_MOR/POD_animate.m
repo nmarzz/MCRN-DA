@@ -2,11 +2,11 @@
 % a shallow water model. It should be called only after shallow_water_model
 % has been run.
 clear all; close all; clc;
-% load('SWE_run_1day.mat')
-% modeloutput= x_save;
+load('SWE_run_4days.mat');
+modeloutput= x_save;
 %% POD
 % load('SWE_POD_r2.mat')
-% load('SWE_POD_r10.mat')
+% load('SWE_POD_r50_new.mat')
 load('SWE_POD_r20_new.mat')
 modeloutput_POD=modeloutput_truncated;
 %% DMD
@@ -42,7 +42,9 @@ v_POD= squeeze(v_save_POD(:,:,L));
 interval=6;
 x_1000km = x.*1e-6;
 y_1000km = y.*1e-6;
-slice=L;
+
+colormap(cmocean('curl'));
+slice=4000;
 figure(9)
 t = tiledlayout(2,1,'TileSpacing','Compact');
 nexttile
@@ -50,7 +52,7 @@ nexttile
 h1=quiver(x_1000km(3:interval:end), y_1000km(3:interval:end), ...
     u(3:interval:end, 3:interval:end)',...
     v(3:interval:end, 3:interval:end)');
-% h1=quiver( x, y, u(:,:,slice),v(:,:,slice)); 
+% h1=quiver( x, y, u(:,:,slice),v(:,:,slice));
 set(h1,'AutoScale','on', 'AutoScaleFactor', 2,'color',[0 0 1])
 set(gca,'xlim',[0 25],'Ylim',[0 5])
 title('Truth')
@@ -61,7 +63,7 @@ h2=quiver(x_1000km(3:interval:end), y_1000km(3:interval:end), ...
     v_POD(3:interval:end, 3:interval:end)');
 set(h2,'AutoScale','on', 'AutoScaleFactor', 2,'color',[1 0 1])
 set(gca,'xlim',[0 25],'Ylim',[0 5])
-title('POD(r=20)')
+title('POD(r=50)')
 %%
 Error=modeloutput-modeloutput_POD;%difference matrix between X and X_r
 u_E_reshaped=Error(1:N_gridpoints,:);
@@ -70,10 +72,10 @@ h_E_reshaped=Error((N_gridpoints*2)+1:end,:);
 
 Ux_E=reshape(u_E_reshaped,n,m,L);%Horizontal velocity of the difference matrix
 Uy_E=reshape(v_E_reshaped,n,m,L);%Vertical velocity of the difference matrix
-
+Uh_E=reshape(h_E_reshaped,n,m,L);%Vertical velocity of the difference matrix
 u_EE = squeeze(Ux_E(:,:,L));
 v_EE= squeeze(Uy_E(:,:,L));
-
+h_EE= squeeze(Uy_E(:,:,L));
 %%
 figure(10)
 f=tiledlayout(2,1,'TileSpacing','Compact');
@@ -100,3 +102,79 @@ hh=quiver(x_1000km(3:interval:end), y_1000km(3:interval:end), ...
 set(hh,'AutoScale','on', 'AutoScaleFactor', 2,'color',[0 0 1])
 set(gca,'xlim',[0 25],'Ylim',[0 5])
 title('Difference')
+%%
+plot_height_range = [9500 10500];
+if mean(plot_height_range) > 1000
+    height_scale = 0.001;
+    height_title = 'Height (km)';
+else
+    height_scale = 1;
+    height_title = 'Height (m)';
+end
+
+for it = slice
+    figure(11)
+    t1 = tiledlayout(2,1,'TileSpacing','Compact');
+    nexttile
+    %plot original velocity
+    handle = image(x_1000km, y_1000km, (h'+H').*height_scale);
+    set(handle,'CDataMapping','scaled');
+    hold on
+    warning off
+    contour(x_1000km, y_1000km, H',[1:1000:8001],'k');
+    warning on
+    
+    quiver(x_1000km(3:interval:end), y_1000km(3:interval:end), ...
+        u(3:interval:end, 3:interval:end)',...
+        v(3:interval:end, 3:interval:end)','k');
+    set(gca,'xlim',[0 25],'Ylim',[0 5])
+    title('Truth')
+    nexttile
+    %plot truncated velocity
+    handle = image(x_1000km, y_1000km, (h_POD'+H').*height_scale);
+    set(handle,'CDataMapping','scaled');
+    hold on
+    warning off
+    contour(x_1000km, y_1000km, H',[1:1000:8001],'k');
+    warning on
+    
+    quiver(x_1000km(3:interval:end), y_1000km(3:interval:end), ...
+        u_POD(3:interval:end, 3:interval:end)',...
+        v_POD(3:interval:end, 3:interval:end)','k');
+    set(gca,'xlim',[0 25],'Ylim',[0 5])
+    title('POD(r=50)')
+    colormap(cmocean('curl'));
+end
+for it = slice
+    figure(12)
+    t1 = tiledlayout(2,1,'TileSpacing','Compact');
+    nexttile
+    %plot original velocity
+    handle = image(x_1000km, y_1000km, (h'+H').*height_scale);
+    set(handle,'CDataMapping','scaled');
+    hold on
+    warning off
+    contour(x_1000km, y_1000km, H',[1:1000:8001],'k');
+    warning on
+    
+    quiver(x_1000km(3:interval:end), y_1000km(3:interval:end), ...
+        u(3:interval:end, 3:interval:end)',...
+        v(3:interval:end, 3:interval:end)','k');
+    set(gca,'xlim',[0 25],'Ylim',[0 5])
+    title('Truth')
+    nexttile
+    %plot truncated velocity
+    handle = image(x_1000km, y_1000km, (h_EE'+H').*height_scale);
+    set(handle,'CDataMapping','scaled');
+    hold on
+    warning off
+    contour(x_1000km, y_1000km, H',[1:1000:8001],'k');
+    warning on
+    
+    quiver(x_1000km(3:interval:end), y_1000km(3:interval:end), ...
+        u_EE(3:interval:end, 3:interval:end)',...
+        v_EE(3:interval:end, 3:interval:end)','k');
+    set(gca,'xlim',[0 25],'Ylim',[0 5])
+    title('POD(r=50)')
+    colormap(cmocean('curl'));
+end

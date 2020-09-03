@@ -1,11 +1,7 @@
 %% Initialization
-clear all;clc;close all;
-%rng(1331);
+clear all;clc;
 rng(1330);
 % SWE preamble
-%load('SWE_run_1day.mat');
-% load('SWE_run_2days.mat');
-% load('SWE_run_3days.mat');
 load('SWE_run_4days.mat');
 parsanim.H = zeros(pars.nx, pars.ny);
 parsanim.x=(0:pars.nx-1).*pars.dx; % Zonal distance coordinate (m)
@@ -24,15 +20,15 @@ IC = Built_Model(:,(end-1)/2);
 % ylabel('N ')
 %% Type of particle filter
 % Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
-iOPPF=1;
+iOPPF=0;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 PhysicalProjection = 2;
-DataProjection = 2;
-tolerance_physical =20; % POD_modes
+DataProjection = 1;
+tolerance_physical =30; % POD_modes
 tolerance_data = 10; % POD_modes
 numModes_physical = 30;% DMD_modes, for physical
-numModes_data = 20; % DMD_modes, for data
+numModes_data = 10; % DMD_modes, for data
 
 %model_output = Built_Model;
 model_output = Built_Model(:,(end-1)/4:(end-1)*3/4);
@@ -42,49 +38,43 @@ model_output = Built_Model(:,(end-1)/4:(end-1)*3/4);
 
 %% Particle Filter Information
 L=20;%Number of particles
-% L=20;%Number of particles
-%alpha =0;%alpha value for projected resampling
-alpha =.99;%alpha value for projected resampling
 ResampCutoff = 0.3;
 % Number of computational steps and step size
 ObsMult=1; % Observe and every ObsMult steps
 h = dt/ObsMult;
-%Numsteps = size(Built_Model,2)*ObsMult;
-%Numsteps =Numsteps/2;
-Numsteps=1000;
+Numsteps=500;
 NumstepsBig=size(Built_Model,2);
-
+%% FOR PF
 %Observation Variance
-%alph = 0.01;
-alph = 1;
-bet = 0.01;
-%bet = .1;
-%epsR = 0.01;
+alpha =0.1;%alpha value for projected resampling
+alph = 0.001;%PF
+bet =1;
 epsR = bet;
 %Model Variance
-%epsQ = 0.1;
 epsQ = alph;
+%Initial condition
+epsIC =0.01 ;
+% %% For PF-OP
+% alpha =.99;%alpha value for projected resampling
+% alph = 1;
+% bet = 0.01;
+% epsR = bet;
+% %Model Variance
+% epsQ = alph;
+% %Initial condition
+% epsIC = 0.01;
+%%
 % IC Variance
-%epsOmega =0.0027;
 epsOmega =0.0000001; %For inth = 1
 % epsOmega =0.001; %For inth = 1000
-%Initial condition
-%epsIC = 0.01;
-epsIC = 1;
 %Observe every inth variable.
-inth=1;
 % inth=1000;
+inth=1;
 %Call Init
 [M,IC,wt,R,Rinv,Q,Omega,ICcov,Lones,Mzeros] = Init_simp(IC,N,inth,L,epsR,epsQ,epsOmega,epsIC,alph, bet);
-%Init(IC,N,inth,L,epsR,epsQ,epsOmega,epsIC);
-
 %Add noise N(0,ICcov) to ICs to form different particles
-
-%u = repmat(IC,1,L) + normrnd(0,ICcov,N,L); % Noise for IC
 u = repmat(IC,1,L) + mvnrnd(zeros(1,N),ICcov*ones(1,N),L)'; % Noise for IC
-
 %% Generate observations from "Truth"
-
 y=zeros(size(IC(1:inth:end),1),NumstepsBig);
 gen_ics = IC;
 t = 0;
@@ -96,8 +86,6 @@ for i = 1:NumstepsBig
     end
     t = t + h;
 end
-%y = y + normrnd(0,R,M,size(Built_Model,2));
-%y = y + mvnrnd(Mzeros',R*ones(1,M),Numsteps)'; % Add noise to observations
 y = y + mvnrnd(Mzeros',R*ones(1,M),NumstepsBig)'; % Add noise to observations
 %% Get projection matrices
 [V] =projectionToggle_Physical(PhysicalProjection,Ur_physical,p_physical);
@@ -125,8 +113,6 @@ UPinvH=Hx(U,inth)';
 
 Qpfixed = inv(inv(Qnew)+HV'*inv(Rfixed)*HV);
 QpHRinv = Qpfixed*HV'*inv(Rfixed);
-
-%p_physical = 10;
 % diff_plot=[];
 % diff_proj_plot=[];
 for i=1:Numsteps
@@ -173,33 +159,24 @@ for i=1:Numsteps
         tempering = 1.2; % Tempering usually a little larger than 1.
         Avg=(max(Tdiag)+min(Tdiag))/2;
         Tdiag = (Tdiag-Avg)/tempering;
-        
         Tdiag = -Tdiag/2;
+        % % %         %NEW: start
+        %         LH = exp(-Tdiag/2); %%%% <<<< divided exponent by 2; this is part of the normal distribution
+        %         wt=LH.*wt;
+        %         %Normalize weights
+        %         [dim,~] = size(wt);
+        %         Lones = ones(dim,1);
+        %         wt=wt/(wt'*Lones);
+        % % %         %NEW: end
         
-        %NEW: start
-        LH = exp(-Tdiag/2); %%%% <<<< divided exponent by 2; this is part of the normal distribution
-        wt=LH.*wt;
-        
-        %Normalize weights
-        [dim,~] = size(wt);
-        Lones = ones(dim,1);
-        wt=wt/(wt'*Lones);
-        %NEW: end
-        
-        
-        %        logw = Tdiag + log(wt);
-        %
-        %        [~,idx] = min(abs(logw-((max(logw) - min(logw))/2))); % find index of weight closest to middle value
-        %        logw([1 idx]) = logw([idx 1]);
-        %        x(:,[1 idx]) = x(:,[idx 1]);
-        %        toEXP = logw(2:end) - logw(1);
-        %        toEXP=min(toEXP,709);
-        %        toEXP=max(toEXP,-709);
-        %        toSum = exp(toEXP);
-        %        normalizer = logw(1) + log1p(sum(toSum));
-        %        logw = logw - normalizer;
-        %        wt = exp(logw);
-        
+        %Take log of the updated weights
+        logw = Tdiag + log(wt);
+        %To avoid underflow and overflow
+        logw=min(logw,709);
+        logw=max(logw,-709);
+        %Exponentiate and normalize
+        wt = exp(logw);
+        wt = wt/sum(wt);
         %Resampling (with resamp.m that I provided or using the pseudo code in Peter Jan ,... paper)
         [wt,x,NRS] = resamp(wt,x,ResampCutoff);
         Resamps = Resamps + NRS;
@@ -232,17 +209,17 @@ for i=1:Numsteps
     RMSEave_proj = RMSEave_proj + RMSE_proj;
     %RMSEave_relRMSE =RMSEave_relRMSE+ relRMSE_orig;
     
-%     figure(1)
-%     animate_NEW2(t,V*estimate(:,i),pars,parsanim,'Mean')
-%     
-%     figure(2)
-%     animate_NEW2(t,truth(:,i),pars,parsanim,'Truth')
-%     
-%     figure(3)
-%     animate_NEW2(t,diff_orig,pars,parsanim,'Difference (original)')
-%     
-%     figure(4)
-%     animate_NEW2(t,diff_proj,pars,parsanim,'Difference (projected)')
+    %     figure(1)
+    %     animate(t,V*estimate(:,i),pars,parsanim,'Mean')
+    %
+    %     figure(2)
+    %     animate(t,truth(:,i),pars,parsanim,'Truth')
+    %
+    %     figure(3)
+    %     animate(t,diff_orig,pars,parsanim,'Difference (original)')
+    %
+    %     figure(4)
+    %     animate(t,diff_proj,pars,parsanim,'Difference (projected)')
     
     % Save to plot
     if mod(i,ObsMult)==0
@@ -257,18 +234,21 @@ for i=1:Numsteps
     
     t = t+h;
 end
-%
-% % epsRR=epsR*ones(1,length(RMSEsave));
-% % % loyolagreen = 1/255*[0,104,87];
+% No_proj=load('No_proj_RMSE.mat');%PF-OP
+No_proj=load('No_proj_PF.mat');%PF
+RMSE_no_proj=No_proj.RMSEsave;
+TOLC=ptc12(9,'check');
 figure
-plot(Time,RMSEsave, 'r-.', Time,RMSEsave_proj, 'g-.',Time,sqrt(bet)*ones(size(Time,2),1), 'k-.','LineWidth', 2)
+semilogy(Time,RMSEsave,'Color', TOLC(1,:),'LineStyle','-','LineWidth', 2)
+hold on
+semilogy(Time,RMSEsave_proj,'Color', TOLC(2,:),'LineStyle','--','Marker','+','LineWidth', 2)
+semilogy(Time,RMSE_no_proj,'Color', TOLC(7,:),'LineStyle',':','Marker','.','LineWidth',2)
+semilogy(Time,sqrt(bet)*ones(size(Time,2),1),'k-.','LineWidth', 2)
 grid on
-% hold on;
-% plot(Time,RMSEsave_proj,'b-.','LineWidth', 1.5)
-% plot(Time,epsRR,'g-.','LineWidth', 1.5)
-xlabel('Time')
-ylabel('RMSE')
-legend('Original','Projected','Obs Error')
+xlabel('Time','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+ylabel('RMSE','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+legend('Model Space','Projected Space','No Reduction','Observation Error','Location', 'Best','fontsize',13,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
 % ylim([0 60])
 % title('POD Projection(r=15)')
 % title('Stable RMSE')
