@@ -3,7 +3,7 @@ close all; clear all;clc;
 %rng(1331);
 rng(1330);
 F = @FLor95; %Physical model
-N =300; % N:Original model dimension
+N = 100; % N:Original model dimension
 %N =40; % N:Original model dimension
 % Build Model (via ODE45)
 dt=1.E-2; % Model output time step
@@ -29,8 +29,8 @@ iOPPF=1;
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 PhysicalProjection =1;
 DataProjection = 1;
-tolerance_physical = 10; % POD_modes
-tolerance_data = 10; % POD_modes
+tolerance_physical = 30; % POD_modes
+tolerance_data = 30; % POD_modes
 %numModes_physical = 20;% DMD_modes/AUS_modes, for physical
 %numModes_data = 20; % DMD_modes/AUS_modes, for data
 numModes_physical = 8;% DMD_modes/AUS_modes, for physical
@@ -247,19 +247,30 @@ end
 [~,Steps] = size(Time)
 ObsErr = linspace(sqrt(epsR),sqrt(epsR),Steps);
 ModErr = linspace(sqrt(epsQ),sqrt(epsQ),Steps);
-figure(2)
-plot(Time,RMSEsave)
+% figure(2)
+% plot(Time,RMSEsave)
+% hold on
+% plot(Time,RMSEsave_proj)
+% plot(Time, ObsErr,'k--')
+% plot(Time,ModErr,'r--')
+% %axis([t0 tf 0 2])
+% legend('RMSE','RMSE projected','Observation Error','Model Error','Location','NorthWest')
+% xlabel('Time')
+% ylabel('RMSE')
+% title('RMSE')
+
+TOLC=ptc12(9,'check');
+figure
+semilogy(Time,RMSEsave,'Color', TOLC(1,:),'LineStyle','-','LineWidth', 2)
 hold on
-plot(Time,RMSEsave_proj)
-plot(Time, ObsErr,'k--')
-plot(Time,ModErr,'r--')
-%axis([t0 tf 0 2])
-legend('RMSE','RMSE projected','Observation Error','Model Error','Location','NorthWest')
-xlabel('Time')
-ylabel('RMSE')
-title('RMSE')
-
-
+semilogy(Time,RMSEsave_proj,'Color', TOLC(2,:),'LineStyle','--','Marker','+','LineWidth', 2)
+semilogy(Time,RMSEave_orig,'Color', TOLC(7,:),'LineStyle',':','Marker','.','LineWidth',2)
+semilogy(Time,sqrt(bet)*ones(size(Time,2),1),'k-.','LineWidth', 2)
+grid on
+xlabel('Time','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+ylabel('RMSE','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+legend('Model Space','Projected Space','No Reduction','Observation Error','Location', 'Best','fontsize',13,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
 % figure(2)
 % contourf(diff_plot,'LineStyle','none')
 % colormap(redblue)
