@@ -10,25 +10,16 @@ F = @(t,x) formod(t,x,dt,pars);
 Built_Model= x_save;
 N =length(Built_Model);
 IC = Built_Model(:,(end-1)/2);
-% figure(5)
-% contourf(Built_Model(15000:15500,1000:1500),'LineStyle','none');
-% colormap(redblue)
-% % cmocean('balance')
-% caxis([-6, 6])
-% title('Truth')
-% xlabel('Time')
-% ylabel('N ')
 %% Type of particle filter
 % Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
 iOPPF=0;
-
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 PhysicalProjection = 2;
-DataProjection = 1;
-tolerance_physical =30; % POD_modes
+DataProjection =1;
+tolerance_physical =130; % POD_modes
 tolerance_data = 10; % POD_modes
-numModes_physical = 30;% DMD_modes, for physical
-numModes_data = 10; % DMD_modes, for data
+numModes_physical =130;% DMD_modes, for physical
+numModes_data =10; % DMD_modes, for data
 
 %model_output = Built_Model;
 model_output = Built_Model(:,(end-1)/4:(end-1)*3/4);
@@ -44,9 +35,9 @@ ObsMult=1; % Observe and every ObsMult steps
 h = dt/ObsMult;
 Numsteps=500;
 NumstepsBig=size(Built_Model,2);
-%% FOR PF
+% %% FOR PF
 %Observation Variance
-alpha =0.1;%alpha value for projected resampling
+alpha =0.99;%alpha value for projected resampling
 alph = 0.001;%PF
 bet =1;
 epsR = bet;
@@ -54,6 +45,8 @@ epsR = bet;
 epsQ = alph;
 %Initial condition
 epsIC =0.01 ;
+
+
 % %% For PF-OP
 % alpha =.99;%alpha value for projected resampling
 % alph = 1;
@@ -99,9 +92,9 @@ t0=t;
 Resamps=0;
 RMSEave_orig=0;
 RMSEave_proj=0;
-RMSEave_relRMSE=0;
+% RMSEave_relRMSE=0;
 iRMSE=1;
-
+XC_save_ave=0;
 Q=V'*Q*V; %with projection
 Qnew=Q;
 
@@ -115,6 +108,7 @@ Qpfixed = inv(inv(Qnew)+HV'*inv(Rfixed)*HV);
 QpHRinv = Qpfixed*HV'*inv(Rfixed);
 % diff_plot=[];
 % diff_proj_plot=[];
+% XC_save=[];
 for i=1:Numsteps
     t
     %[U] = projectionToggle_data(DataProjection,Ur_data,p_data);
@@ -160,14 +154,7 @@ for i=1:Numsteps
         Avg=(max(Tdiag)+min(Tdiag))/2;
         Tdiag = (Tdiag-Avg)/tempering;
         Tdiag = -Tdiag/2;
-        % % %         %NEW: start
-        %         LH = exp(-Tdiag/2); %%%% <<<< divided exponent by 2; this is part of the normal distribution
-        %         wt=LH.*wt;
-        %         %Normalize weights
-        %         [dim,~] = size(wt);
-        %         Lones = ones(dim,1);
-        %         wt=wt/(wt'*Lones);
-        % % %         %NEW: end
+
         
         %Take log of the updated weights
         logw = Tdiag + log(wt);
@@ -199,14 +186,20 @@ for i=1:Numsteps
     % Compare estimate and truth
     diff_orig= truth(:,i) - (V*estimate(:,i));
     diff_proj= V*(V'* truth(:,i) - estimate(:,i));
-    %     diff_plot(:,i)= truth(:,i) - (V*estimate(:,i));
-    %diff_proj_plot(:,i)= V*(V'* truth(:,i) - estimate(:,i));
     RMSE_orig = sqrt(diff_orig'*diff_orig/N)
     RMSE_proj = sqrt(diff_proj'*diff_proj/N)
+    Ensbar = mean(V*estimate(:,i));
+    Trubar = mean( truth(:,i));
+    XC_save= (V*estimate(:,i)-Ensbar)'*(truth(:,i)-Trubar)/(norm(V*estimate(:,i)-Ensbar,2)*norm( truth(:,i)-Trubar,2));
+    %     diff_plot(:,i)= truth(:,i) - (V*estimate(:,i));
+    %diff_proj_plot(:,i)= V*(V'* truth(:,i) - estimate(:,i));
+    
     %relRMSE_orig=sqrt(diff_orig'*diff_orig/N)/(sqrt(((truth(:,i))'*truth(:,i))/N));
     %MAE_orig = (sum(abs(diff_orig)))/N;
+    
     RMSEave_orig = RMSEave_orig + RMSE_orig;
     RMSEave_proj = RMSEave_proj + RMSE_proj;
+%     XC_save_2= XC_save_2+ XC_save;
     %RMSEave_relRMSE =RMSEave_relRMSE+ relRMSE_orig;
     
     %     figure(1)
@@ -227,18 +220,17 @@ for i=1:Numsteps
         Time(iRMSE)=t;
         RMSEsave(iRMSE)=RMSE_orig;
         RMSEsave_proj(iRMSE)=RMSE_proj;
-        %RMSEsave_relRMSE(iRMSE) = relRMSE_orig;
-        
+        XC_save_ave(iRMSE)=XC_save;
         iRMSE = iRMSE+1;
     end
     
     t = t+h;
 end
-% No_proj=load('No_proj_RMSE.mat');%PF-OP
+% % No_proj=load('No_proj_RMSE.mat');%PF-OP
 No_proj=load('No_proj_PF.mat');%PF
 RMSE_no_proj=No_proj.RMSEsave;
-TOLC=ptc12(9,'check');
-figure
+TOLC=ptc12(9);
+figure(1)
 semilogy(Time,RMSEsave,'Color', TOLC(1,:),'LineStyle','-','LineWidth', 2)
 hold on
 semilogy(Time,RMSEsave_proj,'Color', TOLC(2,:),'LineStyle','--','Marker','+','LineWidth', 2)
@@ -249,29 +241,15 @@ xlabel('Time','fontsize',14,'interpreter','latex','FontName', 'Times New Roman',
 ylabel('RMSE','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
 legend('Model Space','Projected Space','No Reduction','Observation Error','Location', 'Best','fontsize',13,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
 set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
-% ylim([0 60])
-% title('POD Projection(r=15)')
-% title('Stable RMSE')
-% legend('RMSE Original','RMSE Projected','Location', 'Best')
-% % % %%
+ hold off
 % figure(2)
-% contourf(diff_plot(15000:15500,1000:1500),'LineStyle','none')
-% colormap(redblue)
-% % % colorbar
-% caxis([-6, 6])
-% title('The difference in the Original Space')
-% xlabel('Time')
-% ylabel('N ')
-% %
-% % figure(3)
-% % contourf(diff_proj_plot(15000:15500,1000:1500),'LineStyle','none')
-% % colormap(redblue)
-% % colorbar;
-% % caxis([-6, 6])
-% % title('The difference in the Projected Space')
-% % xlabel('Time')
-% % % ylabel('N ')
-%
+% plot(Time,real(XC_save_ave),'Color', TOLC(1,:),'LineStyle','-','LineWidth', 2)
+% grid on
+% xlabel('Time','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+% ylabel('Pattern Correlations ','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+% % yticks ([0.9 0.99 0.9999 1])
+% set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
+
 RMSEave_orig = RMSEave_orig/Numsteps
 RMSEave_proj = RMSEave_proj/Numsteps
 % RMSEave_relRMSE=RMSEave_relRMSE/Numsteps;

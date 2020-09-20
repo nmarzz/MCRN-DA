@@ -7,7 +7,7 @@ modeloutput= x_save;
 %% POD
 % load('SWE_POD_r2.mat')
 % load('SWE_POD_r50_new.mat')
-load('SWE_POD_r20_new.mat')
+load('SWE_POD_r30_new.mat')
 modeloutput_POD=modeloutput_truncated;
 %% DMD
 % % load('SWE_DMD_r2.mat')
@@ -78,6 +78,7 @@ v_EE= squeeze(Uy_E(:,:,L));
 h_EE= squeeze(Uy_E(:,:,L));
 %%
 figure(10)
+TOLC=ptc12(9);
 f=tiledlayout(2,1,'TileSpacing','Compact');
 nexttile
 %plot original velocity
@@ -85,13 +86,14 @@ h1=quiver(x_1000km(3:interval:end), y_1000km(3:interval:end), ...
     u(3:interval:end, 3:interval:end)',...
     v(3:interval:end, 3:interval:end)');
 
-set(h1,'AutoScale','on', 'AutoScaleFactor', 2.5,'color',[0 0 1])
+set(h1,'AutoScale','on', 'AutoScaleFactor', 2,'Color', TOLC(1,:))
+set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
 hold on
 %plot truncated velocity
 h2=quiver(x_1000km(3:interval:end), y_1000km(3:interval:end), ...
     u_POD(3:interval:end, 3:interval:end)',...
     v_POD(3:interval:end, 3:interval:end)');
-set(h2,'AutoScale','on', 'AutoScaleFactor', 2,'color',[1 0 1])
+set(h2,'AutoScale','on', 'AutoScaleFactor', 2,'Color', TOLC(7,:))
 set(gca,'xlim',[0 25],'Ylim',[0 5])
 title('Comparison')
 nexttile
@@ -99,9 +101,10 @@ nexttile
 hh=quiver(x_1000km(3:interval:end), y_1000km(3:interval:end), ...
     u_EE(3:interval:end, 3:interval:end)',...
     v_EE(3:interval:end, 3:interval:end)');
-set(hh,'AutoScale','on', 'AutoScaleFactor', 2,'color',[0 0 1])
+set(hh,'AutoScale','on', 'AutoScaleFactor', 2,'Color', TOLC(1,:))
 set(gca,'xlim',[0 25],'Ylim',[0 5])
 title('Difference')
+set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
 %%
 plot_height_range = [9500 10500];
 if mean(plot_height_range) > 1000
@@ -128,7 +131,8 @@ for it = slice
         u(3:interval:end, 3:interval:end)',...
         v(3:interval:end, 3:interval:end)','k');
     set(gca,'xlim',[0 25],'Ylim',[0 5])
-    title('Truth')
+    title('Model')
+    set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
     nexttile
     %plot truncated velocity
     handle = image(x_1000km, y_1000km, (h_POD'+H').*height_scale);
@@ -142,13 +146,14 @@ for it = slice
         u_POD(3:interval:end, 3:interval:end)',...
         v_POD(3:interval:end, 3:interval:end)','k');
     set(gca,'xlim',[0 25],'Ylim',[0 5])
-    title('POD(r=50)')
+    title('POD(r=30)')
     colormap(cmocean('curl'));
+    set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
 end
 for it = slice
     figure(12)
-    t1 = tiledlayout(2,1,'TileSpacing','Compact');
-    nexttile
+    tiledlayout(2,1,'TileSpacing','Compact');
+    nexttile;
     %plot original velocity
     handle = image(x_1000km, y_1000km, (h'+H').*height_scale);
     set(handle,'CDataMapping','scaled');
@@ -161,8 +166,10 @@ for it = slice
         u(3:interval:end, 3:interval:end)',...
         v(3:interval:end, 3:interval:end)','k');
     set(gca,'xlim',[0 25],'Ylim',[0 5])
-    title('Truth')
-    nexttile
+    title('Model')
+     set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
+     caxis([-1 1])
+    nexttile;
     %plot truncated velocity
     handle = image(x_1000km, y_1000km, (h_EE'+H').*height_scale);
     set(handle,'CDataMapping','scaled');
@@ -175,6 +182,12 @@ for it = slice
         u_EE(3:interval:end, 3:interval:end)',...
         v_EE(3:interval:end, 3:interval:end)','k');
     set(gca,'xlim',[0 25],'Ylim',[0 5])
-    title('POD(r=50)')
-    colormap(cmocean('curl'));
+    title('POD(r=30)')
+    colormap('redblue')
+    set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
+    hold off
+    colorbar('southoutside')
+
+
+
 end

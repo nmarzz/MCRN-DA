@@ -10,15 +10,28 @@ if exist(filename,'file') % if file exists, load out1
     load(filename)
     disp("Loaded from "+filename);
 else
-%     [out1] =buildDMD(numModes,Built_Model,dt);% Get DMD
     DataMatrix=Built_Model;%snapshot matrix
     r=numModes;
     VALUE=true;
-    out1 = dmd( DataMatrix, dt, r,'sortbyb', VALUE);
-%   out1 = dmd( DataMatrix, dt, r, 'removemean', VALUE,'sortbyb', VALUE);
+    M = mean(DataMatrix, 2); % 2 = mean across columns
+    stepVALUE=[1 10 30 60];
+%     out1 = dmd( DataMatrix, dt, r, 'removemean', VALUE, 'sortbyb', VALUE);
+    out1 = dmd( DataMatrix, dt, r, 'removemean', VALUE,'step',stepVALUE,'sortbyb', VALUE);
+    bM = norm(M);
+    Mnormalized = M/bM;
+    % manually adding the mean value of data back among the modes
+    out1.Phi = [Mnormalized(:), out1.Phi];
+    out1.b = [bM; out1.b];
+    %out1.b = [bb, out1.b];
+    %mego= out1.omega+0;
+    out1.omega = [0; out1.omega];
+    out1.lambda = [1; out1.lambda];
+    %   
+    % out = dmd( DataMatrix, dt, r, 'step', VALUE)
     disp('Yep, simulating-DMD hard!');
     save(filename,'out1') % store into filename our output variables
     disp("Saved to "+filename);
 end
 
 end
+% close all; scatter(real(out1.lambda), imag(out1.lambda),1+50*abs(out1.b(:,2))/max(abs(out1.b(:,2))),'filled')
