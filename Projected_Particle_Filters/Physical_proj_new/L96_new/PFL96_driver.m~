@@ -13,7 +13,8 @@ ModelSteps = 5000; % Number of time steps in building model
 %ModelSteps = 500; % Number of time steps in building model
 T=ModelSteps*dt;
 Built_Model= buildModel(N,F,ModelSteps,T);
-model_output = Built_Model';
+model_output = Built_Model'; 
+% + mvnrnd(zeros(N,1),3*eye(N),ModelSteps)';
 %%
 % figure(1)
 % % contourf(model_output,'LineStyle','none');
@@ -35,7 +36,7 @@ tolerance_physical = 30; % POD_modes
 tolerance_data = 30; % POD_modes
 %numModes_physical = 20;% DMD_modes/AUS_modes, for physical
 %numModes_data = 20; % DMD_modes/AUS_modes, for data
-numModes_physical = 1;% DMD_modes/AUS_modes, for physical
+numModes_physical = 14;% DMD_modes/AUS_modes, for physical
 numModes_data = 2; % DMD_modes/AUS_modes, for data
 
 [Ur_physical,p_physical,pzeros_physical] = ...
@@ -183,7 +184,7 @@ for i=1:Numsteps
         %NEW: end
         
         %Resampling (with resamp.m that I provided or using the pseudo code in Peter Jan ,... paper)
-        [w,x,NRS] = resamp(w,x,ResampCutoff);
+        [w,x,NRS,ess(i)] = resamp(w,x,ResampCutoff);
         Resamps = Resamps + NRS;
                
         if (NRS==1)
@@ -197,6 +198,8 @@ for i=1:Numsteps
 
     % Estimate the truth    
     estimate(:,i) = x*w;
+    
+    % 
     
     if DataProjection ==3 || PhysicalProjection ==3
        if PhysicalProjection == 3 
@@ -313,7 +316,7 @@ ModErr = linspace(sqrt(epsQ),sqrt(epsQ),Steps);
 figure
 plot(Time,RMSEsave, 'r-.', 'LineWidth', 2)
 hold on
-yline(epsR)
+yline(sqrt(epsR))
 grid on
 % hold on;
 % plot(Time,RMSEsave_proj,'b-.','LineWidth', 1.5)
@@ -351,6 +354,7 @@ ResampPercent = ObsMult*Resamps/Numsteps*100
 % results.Resamps = Resamps;
 % results.RMSEsave = RMSEsave;
 % results.RMSEsave_proj = RMSEsave_proj;
+% results.ess = ess;
 
 % save(filename,params,results);
 

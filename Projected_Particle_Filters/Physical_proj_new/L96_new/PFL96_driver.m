@@ -184,7 +184,7 @@ for i=1:Numsteps
         %NEW: end
         
         %Resampling (with resamp.m that I provided or using the pseudo code in Peter Jan ,... paper)
-        [w,x,NRS] = resamp(w,x,ResampCutoff);
+        [w,x,NRS,ess(i)] = resamp(w,x,ResampCutoff);
         Resamps = Resamps + NRS;
                
         if (NRS==1)
@@ -198,6 +198,12 @@ for i=1:Numsteps
 
     % Estimate the truth    
     estimate(:,i) = x*w;
+    
+    % Calculate Pattern Correlation Coefficient
+    estMean = mean(estimate(:,i));    
+    projTruth = Ur_physical'*truth(:,i);
+    truMean = mean(projTruth);
+    XC(i) = (estimate(:,i)-estMean)'*(projTruth-truMean)/(norm(estimate(:,i)-estMean,2)*norm(projTruth-truMean,2));
     
     if DataProjection ==3 || PhysicalProjection ==3
        if PhysicalProjection == 3 
@@ -314,7 +320,7 @@ ModErr = linspace(sqrt(epsQ),sqrt(epsQ),Steps);
 figure
 plot(Time,RMSEsave, 'r-.', 'LineWidth', 2)
 hold on
-yline(epsR)
+yline(sqrt(epsR))
 grid on
 % hold on;
 % plot(Time,RMSEsave_proj,'b-.','LineWidth', 1.5)
@@ -352,6 +358,8 @@ ResampPercent = ObsMult*Resamps/Numsteps*100
 % results.Resamps = Resamps;
 % results.RMSEsave = RMSEsave;
 % results.RMSEsave_proj = RMSEsave_proj;
+% results.ess = ess;
+% results.XC = XC;
 
 % save(filename,params,results);
 
