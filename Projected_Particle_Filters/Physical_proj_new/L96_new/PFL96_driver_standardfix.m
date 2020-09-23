@@ -1,15 +1,13 @@
 %% Initialization
 close all; clear all;clc;
-
+%rng(1331);
 rng(1330);
-
 F = @FLor95; %Physical model
-N = 40; % N:Original model dimension
-
+N = 100; % N:Original model dimension
+%N =40; % N:Original model dimension
 % Build Model (via ODE45)
-dt=1.E-2; % Model output time step
-ModelSteps = 5000; % Number of time steps in building model
-
+dt=1.E-3; % Model output time step
+ModelSteps = 50000; % Number of time steps in building model
 %ModelSteps = 500; % Number of time steps in building model
 T=ModelSteps*dt;
 Built_Model= buildModel(N,F,ModelSteps,T);
@@ -26,16 +24,16 @@ model_output = Built_Model';
 % % xticklabels(xticks*dt)
 %% Type of particle filter
 % Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
-iOPPF=1;
+iOPPF=0;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =2;
-DataProjection = 2;
+PhysicalProjection =1;
+DataProjection = 1;
 tolerance_physical = 30; % POD_modes
 tolerance_data = 30; % POD_modes
 %numModes_physical = 20;% DMD_modes/AUS_modes, for physical
 %numModes_data = 20; % DMD_modes/AUS_modes, for data
-numModes_physical = 1;% DMD_modes/AUS_modes, for physical
+numModes_physical = 8;% DMD_modes/AUS_modes, for physical
 numModes_data = 2; % DMD_modes/AUS_modes, for data
 
 [Ur_physical,p_physical,pzeros_physical] = ...
@@ -52,21 +50,20 @@ alpha=0.99;%alpha value for projected resampling
 ResampCutoff=0.3;
 
 % Number of computational steps and step size
-h=5.E-2;
+h=1.E-2;
 Numsteps=T/h;
 
-ObsMult=1; % Observe and every ObsMult steps
+ObsMult=50; % Observe and every ObsMult steps
 
 %Observation Variance
 epsR = 0.01;
 %Model Variance
 %epsQ = 0.01;
-epsQ = 0.1;
+epsQ = 1;
 % IC Variance
-
-epsOmega =0.0001;
 %epsOmega =0.0027;
-
+epsOmega =0.0001;
+%epsOmega =0.01;
 %Initial condition
 epsIC = 0.01;
 %Observe every inth variable.
@@ -171,17 +168,25 @@ for i=1:Numsteps
         tempering = 1.2; % Tempering usually a little larger than 1.
         Avg=(max(Tdiag)+min(Tdiag))/2;
         Tdiag = (Tdiag-Avg)/tempering;
-
-        %NEW: start
-        LH = exp(-Tdiag/2); %%%% <<<< divided exponent by 2; this is part of the normal distribution
-        w=LH.*w;
-
-        %Normalize weights
-        [dim,~] = size(w);
-        Lones = ones(dim,1);
-        w=w/(w'*Lones);
-        %NEW: end
+        Tdiag = -Tdiag/2;
+        % % %         %NEW: start
+        %         LH = exp(-Tdiag/2); %%%% <<<< divided exponent by 2; this is part of the normal distribution
+        %         wt=LH.*wt;
+        %         %Normalize weights
+        %         [dim,~] = size(wt);
+        %         Lones = ones(dim,1);
+        %         wt=wt/(wt'*Lones);
+        % % %         %NEW: end
         
+        %Take log of the updated weights
+        logw = Tdiag + log(w);
+        %To avoid underflow and overflow
+        logw=min(logw,709);
+        logw=max(logw,-709);
+        %Exponentiate and normalize
+        w = exp(logw);
+        w = w/min(sum(w),realmax);
+        w = w/sum(w);
         %Resampling (with resamp.m that I provided or using the pseudo code in Peter Jan ,... paper)
         [w,x,NRS] = resamp(w,x,ResampCutoff);
         Resamps = Resamps + NRS;
@@ -262,18 +267,18 @@ ModErr = linspace(sqrt(epsQ),sqrt(epsQ),Steps);
 % ylabel('RMSE')
 % title('RMSE')
 
-% TOLC=ptc12(9,'check');
-% figure
-% semilogy(Time,RMSEsave,'Color', TOLC(1,:),'LineStyle','-','LineWidth', 2)
-% hold on
-% semilogy(Time,RMSEsave_proj,'Color', TOLC(2,:),'LineStyle','--','Marker','+','LineWidth', 2)
-% semilogy(Time,RMSEave_orig,'Color', TOLC(7,:),'LineStyle',':','Marker','.','LineWidth',2)
-% %semilogy(Time,sqrt(bet)*ones(size(Time,2),1),'k-.','LineWidth', 2)
-% grid on
-% xlabel('Time','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
-% ylabel('RMSE','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
-% legend('Model Space','Projected Space','No Reduction','Observation Error','Location', 'Best','fontsize',13,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
-% set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
+TOLC=ptc12(9,'check');
+figure
+semilogy(Time,RMSEsave,'Color', TOLC(1,:),'LineStyle','-','LineWidth', 2)
+hold on
+semilogy(Time,RMSEsave_proj,'Color', TOLC(2,:),'LineStyle','--','Marker','+','LineWidth', 2)
+semilogy(Time,RMSEave_orig,'Color', TOLC(7,:),'LineStyle',':','Marker','.','LineWidth',2)
+semilogy(Time,sqrt(bet)*ones(size(Time,2),1),'k-.','LineWidth', 2)
+grid on
+xlabel('Time','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+ylabel('RMSE','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+legend('Model Space','Projected Space','No Reduction','Observation Error','Location', 'Best','fontsize',13,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
 % figure(2)
 % contourf(diff_plot,'LineStyle','none')
 % colormap(redblue)
@@ -310,47 +315,8 @@ ModErr = linspace(sqrt(epsQ),sqrt(epsQ),Steps);
 % % legend('RMSE','Observation error','Location', 'Best')
 % legend('RMSE Original','RMSE Projected','Observation error','Location', 'Best')
 
-figure
-plot(Time,RMSEsave, 'r-.', 'LineWidth', 2)
-hold on
-yline(epsR)
-grid on
-% hold on;
-% plot(Time,RMSEsave_proj,'b-.','LineWidth', 1.5)
-% plot(Time,epsRR,'g-.','LineWidth', 1.5)
-xlabel('Time')
-ylabel('RMSE')
+
 %%
 RMSEave_orig = RMSEave_orig/Numsteps
 RMSEave_proj = RMSEave_proj/Numsteps
 ResampPercent = ObsMult*Resamps/Numsteps*100
-
-%% Save to mat file
-% filename = sprintf('lorenz96_p%dd%d.mat',PhysicalProjection,DataProjection)
-% params.alpha = alpha;
-% params.PhysicalProjection = PhysicalProjection;
-% params.DataProjection = DataProjection;
-% params.epsQ = epsQ;
-% params.epsR=epsR;
-% params.epsIC = epsIC;
-% params.epsOmega = epsOmega;
-% params.L = L;
-% params.N = N;
-% params.iOPPF = iOPPF;
-% params.dt = dt;
-% params.h = h;
-% params.p_data = size(Ur_data,2);
-% params.p_physical = size(Ur_physical,2);
-% params.ResampCutoff = ResampCutoff;
-% params.T = T;
-% 
-% results.estimate = estimate;
-% results.RMSEave_orig = RMSEave_orig;
-% results.RMSEave_proj = RMSEave_proj;
-% results.ResampPercent = ResampPercent;
-% results.Resamps = Resamps;
-% results.RMSEsave = RMSEsave;
-% results.RMSEsave_proj = RMSEsave_proj;
-
-% save(filename,params,results);
-

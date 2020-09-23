@@ -1,17 +1,20 @@
 %% Initialization
 close all; clear all;clc;
-%rng(1331);
+
 rng(1330);
+
 F = @FLor95; %Physical model
-N = 100; % N:Original model dimension
-%N =40; % N:Original model dimension
+N = 40; % N:Original model dimension
+
 % Build Model (via ODE45)
 dt=1.E-2; % Model output time step
-ModelSteps = 50000; % Number of time steps in building model
+ModelSteps = 5000; % Number of time steps in building model
+
 %ModelSteps = 500; % Number of time steps in building model
 T=ModelSteps*dt;
 Built_Model= buildModel(N,F,ModelSteps,T);
-model_output = Built_Model';
+model_output = Built_Model'; 
+% + mvnrnd(zeros(N,1),3*eye(N),ModelSteps)';
 %%
 % figure(1)
 % % contourf(model_output,'LineStyle','none');
@@ -27,13 +30,13 @@ model_output = Built_Model';
 iOPPF=1;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =1;
-DataProjection = 1;
+PhysicalProjection =2;
+DataProjection = 2;
 tolerance_physical = 30; % POD_modes
 tolerance_data = 30; % POD_modes
 %numModes_physical = 20;% DMD_modes/AUS_modes, for physical
 %numModes_data = 20; % DMD_modes/AUS_modes, for data
-numModes_physical = 8;% DMD_modes/AUS_modes, for physical
+numModes_physical = 14;% DMD_modes/AUS_modes, for physical
 numModes_data = 2; % DMD_modes/AUS_modes, for data
 
 [Ur_physical,p_physical,pzeros_physical] = ...
@@ -50,20 +53,21 @@ alpha=0.99;%alpha value for projected resampling
 ResampCutoff=0.3;
 
 % Number of computational steps and step size
-h=1.E-2;
+h=5.E-2;
 Numsteps=T/h;
 
-ObsMult=5; % Observe and every ObsMult steps
+ObsMult=1; % Observe and every ObsMult steps
 
 %Observation Variance
 epsR = 0.01;
 %Model Variance
 %epsQ = 0.01;
-epsQ = 1;
+epsQ = 0.1;
 % IC Variance
-%epsOmega =0.0027;
+
 epsOmega =0.0001;
-%epsOmega =0.01;
+%epsOmega =0.0027;
+
 %Initial condition
 epsIC = 0.01;
 %Observe every inth variable.
@@ -259,18 +263,18 @@ ModErr = linspace(sqrt(epsQ),sqrt(epsQ),Steps);
 % ylabel('RMSE')
 % title('RMSE')
 
-TOLC=ptc12(9,'check');
-figure
-semilogy(Time,RMSEsave,'Color', TOLC(1,:),'LineStyle','-','LineWidth', 2)
-hold on
-semilogy(Time,RMSEsave_proj,'Color', TOLC(2,:),'LineStyle','--','Marker','+','LineWidth', 2)
-semilogy(Time,RMSEave_orig,'Color', TOLC(7,:),'LineStyle',':','Marker','.','LineWidth',2)
-semilogy(Time,sqrt(bet)*ones(size(Time,2),1),'k-.','LineWidth', 2)
-grid on
-xlabel('Time','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
-ylabel('RMSE','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
-legend('Model Space','Projected Space','No Reduction','Observation Error','Location', 'Best','fontsize',13,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
-set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
+% TOLC=ptc12(9,'check');
+% figure
+% semilogy(Time,RMSEsave,'Color', TOLC(1,:),'LineStyle','-','LineWidth', 2)
+% hold on
+% semilogy(Time,RMSEsave_proj,'Color', TOLC(2,:),'LineStyle','--','Marker','+','LineWidth', 2)
+% semilogy(Time,RMSEave_orig,'Color', TOLC(7,:),'LineStyle',':','Marker','.','LineWidth',2)
+% %semilogy(Time,sqrt(bet)*ones(size(Time,2),1),'k-.','LineWidth', 2)
+% grid on
+% xlabel('Time','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+% ylabel('RMSE','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+% legend('Model Space','Projected Space','No Reduction','Observation Error','Location', 'Best','fontsize',13,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+% set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
 % figure(2)
 % contourf(diff_plot,'LineStyle','none')
 % colormap(redblue)
@@ -307,8 +311,47 @@ set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
 % % legend('RMSE','Observation error','Location', 'Best')
 % legend('RMSE Original','RMSE Projected','Observation error','Location', 'Best')
 
-
+figure
+plot(Time,RMSEsave, 'r-.', 'LineWidth', 2)
+hold on
+yline(epsR)
+grid on
+% hold on;
+% plot(Time,RMSEsave_proj,'b-.','LineWidth', 1.5)
+% plot(Time,epsRR,'g-.','LineWidth', 1.5)
+xlabel('Time')
+ylabel('RMSE')
 %%
 RMSEave_orig = RMSEave_orig/Numsteps
 RMSEave_proj = RMSEave_proj/Numsteps
 ResampPercent = ObsMult*Resamps/Numsteps*100
+
+%% Save to mat file
+% filename = sprintf('lorenz96_p%dd%d.mat',PhysicalProjection,DataProjection)
+% params.alpha = alpha;
+% params.PhysicalProjection = PhysicalProjection;
+% params.DataProjection = DataProjection;
+% params.epsQ = epsQ;
+% params.epsR=epsR;
+% params.epsIC = epsIC;
+% params.epsOmega = epsOmega;
+% params.L = L;
+% params.N = N;
+% params.iOPPF = iOPPF;
+% params.dt = dt;
+% params.h = h;
+% params.p_data = size(Ur_data,2);
+% params.p_physical = size(Ur_physical,2);
+% params.ResampCutoff = ResampCutoff;
+% params.T = T;
+% 
+% results.estimate = estimate;
+% results.RMSEave_orig = RMSEave_orig;
+% results.RMSEave_proj = RMSEave_proj;
+% results.ResampPercent = ResampPercent;
+% results.Resamps = Resamps;
+% results.RMSEsave = RMSEsave;
+% results.RMSEsave_proj = RMSEsave_proj;
+
+% save(filename,params,results);
+

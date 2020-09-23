@@ -3,8 +3,8 @@ function dx = FLor95(T, x)
 % \frac{dx_i}{dt} = -x_{i-2}x_{i-1} + x_{i-1}x_{i+1} - x_i + F
 % F = 8, DIM=40
 
-    %F=3.5;
-    F=8;
+    F=3.5;
+    %F=8;
     DIM = size(x,1);
     
     dx = zeros(DIM,1);
