@@ -37,7 +37,7 @@ V_r = V(:, 1:Rlarge);
 
 Atilde = U_r' * X2 * V_r / S_r; % low -rank dynamics
 [W_r , D] = eig(Atilde);
-Phi = X2 * V_r*pinv(S_r) * W_r; % DMD modes
+Phi = X2 * V_r / S_r * W_r; % DMD modes
 lambda = diag(D); % discrete -time eigenvalues
 
 omega = log(lambda)/dt; % continuous -time eigenvalues
@@ -72,4 +72,16 @@ Rsmall=min(Rsmall,size(index_sort));
 Phi = Phi(:, 1:Rsmall);
 size(Phi)
 rank(Phi)
+% x1=X1(:,1);%the sloution at  t=0
+% b=Phi\x1;%how much time to project
+% %Time dynamic
+% ModelSteps= 1500; % Number of time steps in building model
+% % time_dynamics=zeros(numModes,length(T));
+% % T = 1500; % Number of time steps in building model
+% T=ModelSteps*dt;
+% time_dynamics=[];
+% for iter = 1:length( model_output)
+% time_dynamics(:,iter) =(b'.*exp(omega*T(iter)));%make full matrix space and time fot updating t
+% end
+% X_dmd = Phi*time_dynamics;
 end

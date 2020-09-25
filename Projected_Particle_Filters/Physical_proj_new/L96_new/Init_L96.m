@@ -14,7 +14,8 @@ LE=zeros(p,1);
 
 %Spin up
 t=0;
-for i = 1:Numsteps*2
+%for i = 1:Numsteps*2
+for i = 1:5000
 t = t+h;
 [q,LE] = getausproj(N,p,F,t,IC,h,q,LE);
 IC = dp4(F,t,IC,h);

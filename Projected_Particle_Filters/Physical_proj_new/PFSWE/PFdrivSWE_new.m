@@ -12,14 +12,14 @@ N =length(Built_Model);
 IC = Built_Model(:,(end-1)/2);
 %% Type of particle filter
 % Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
-iOPPF=0;
+iOPPF=1;
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection = 2;
-DataProjection =1;
-tolerance_physical =130; % POD_modes
-tolerance_data = 10; % POD_modes
-numModes_physical =130;% DMD_modes, for physical
-numModes_data =10; % DMD_modes, for data
+PhysicalProjection =2;
+DataProjection =2;
+tolerance_physical =10; % POD_modes
+tolerance_data =10; % POD_modes
+numModes_physical =60;% DMD_modes, for physical
+numModes_data =60; % DMD_modes, for data
 
 %model_output = Built_Model;
 model_output = Built_Model(:,(end-1)/4:(end-1)*3/4);
@@ -33,29 +33,29 @@ ResampCutoff = 0.3;
 % Number of computational steps and step size
 ObsMult=1; % Observe and every ObsMult steps
 h = dt/ObsMult;
-Numsteps=500;
+Numsteps=1000;
 NumstepsBig=size(Built_Model,2);
-% %% FOR PF
-%Observation Variance
-alpha =0.99;%alpha value for projected resampling
-alph = 0.001;%PF
-bet =1;
-epsR = bet;
-%Model Variance
-epsQ = alph;
-%Initial condition
-epsIC =0.01 ;
-
-
-% %% For PF-OP
-% alpha =.99;%alpha value for projected resampling
-% alph = 1;
-% bet = 0.01;
+% % %% FOR PF
+% %Observation Variance
+% alpha =0.99;%alpha value for projected resampling
+% alph = 0.001;%PF
+% bet =0.01;
 % epsR = bet;
 % %Model Variance
 % epsQ = alph;
 % %Initial condition
-% epsIC = 0.01;
+% epsIC =0.01 ;
+
+
+%% For PF-OP
+alpha =.99;%alpha value for projected resampling
+alph = 1;
+bet = 0.01;
+epsR = bet;
+%Model Variance
+epsQ = alph;
+%Initial condition
+epsIC = 0.01;
 %%
 % IC Variance
 epsOmega =0.0000001; %For inth = 1
@@ -154,7 +154,7 @@ for i=1:Numsteps
         Avg=(max(Tdiag)+min(Tdiag))/2;
         Tdiag = (Tdiag-Avg)/tempering;
         Tdiag = -Tdiag/2;
-
+        
         
         %Take log of the updated weights
         logw = Tdiag + log(wt);
@@ -199,7 +199,6 @@ for i=1:Numsteps
     
     RMSEave_orig = RMSEave_orig + RMSE_orig;
     RMSEave_proj = RMSEave_proj + RMSE_proj;
-%     XC_save_2= XC_save_2+ XC_save;
     %RMSEave_relRMSE =RMSEave_relRMSE+ relRMSE_orig;
     
     %     figure(1)
@@ -227,10 +226,11 @@ for i=1:Numsteps
     t = t+h;
 end
 % % No_proj=load('No_proj_RMSE.mat');%PF-OP
-No_proj=load('No_proj_PF.mat');%PF
+% No_proj=load('No_proj_PF.mat');%PF
+No_proj=load('No_proj_PFOP_1000t.mat');%PF1000 timestep
 RMSE_no_proj=No_proj.RMSEsave;
 TOLC=ptc12(9);
-figure(1)
+figure(3)
 semilogy(Time,RMSEsave,'Color', TOLC(1,:),'LineStyle','-','LineWidth', 2)
 hold on
 semilogy(Time,RMSEsave_proj,'Color', TOLC(2,:),'LineStyle','--','Marker','+','LineWidth', 2)
@@ -241,14 +241,16 @@ xlabel('Time','fontsize',14,'interpreter','latex','FontName', 'Times New Roman',
 ylabel('RMSE','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
 legend('Model Space','Projected Space','No Reduction','Observation Error','Location', 'Best','fontsize',13,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
 set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
- hold off
-% figure(2)
-% plot(Time,real(XC_save_ave),'Color', TOLC(1,:),'LineStyle','-','LineWidth', 2)
-% grid on
-% xlabel('Time','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
-% ylabel('Pattern Correlations ','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
-% % yticks ([0.9 0.99 0.9999 1])
-% set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
+hold off
+
+
+figure(4)
+plot(Time,real(XC_save_ave),'Color', TOLC(1,:),'LineStyle','-','LineWidth', 2)
+grid on
+xlabel('Time','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+ylabel('Pattern Correlations ','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+% yticks ([0.9 0.99 0.9999 1])
+set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
 
 RMSEave_orig = RMSEave_orig/Numsteps
 RMSEave_proj = RMSEave_proj/Numsteps

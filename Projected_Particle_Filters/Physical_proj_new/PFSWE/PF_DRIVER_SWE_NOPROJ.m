@@ -24,7 +24,7 @@ N =length(Built_Model);
 IC = Built_Model(:,(end-1)/2);
 %% Type of particle filter
 % Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
-iOPPF=0;
+iOPPF=1;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 PhysicalProjection = 0;
@@ -66,30 +66,30 @@ ResampCutoff = 0.3;
 % Number of computational steps and step size
 ObsMult=1; % Observe and every ObsMult steps
 h = dt/ObsMult;
-Numsteps=500;
+Numsteps=1000;
 NumstepsBig=size(Built_Model,2);
-%%  PF
-alpha =0.1;%alpha value for projected resampling
-alph = 0.001;%PF
-bet =1;
-epsR = bet;
-%Model Variance
-epsQ = alph;
-%Initial condition
-epsIC =0.01 ;
-% %% PF-OP
-% alpha =.99;%alpha value for projected resampling
-% %Observation Variance
-% alph = 1;
-% bet = 0.001;
-% %epsR = 0.01;
+% %%  PF
+% alpha =0.1;%alpha value for projected resampling
+% alph = 0.001;%PF
+% bet =1;
 % epsR = bet;
 % %Model Variance
-% %epsQ = 0.1;
 % epsQ = alph;
 % %Initial condition
-% epsIC = 0.01;
-% % IC Variance
+% epsIC =0.01 ;
+%% PF-OP
+alpha =.99;%alpha value for projected resampling
+%Observation Variance
+alph = 1;
+bet = 0.01;
+%epsR = 0.01;
+epsR = bet;
+%Model Variance
+%epsQ = 0.1;
+epsQ = alph;
+%Initial condition
+epsIC = 0.01;
+% IC Variance
 epsOmega =0.0000001; %For inth = 1
 % epsOmega =0.001; %For inth = 1000
 % epsIC = 1;
