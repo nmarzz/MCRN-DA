@@ -1,3 +1,5 @@
+clear;clc;
+
 %Runs
 %Q=1E-2, R=1E-2
 epsQ=1E-1;

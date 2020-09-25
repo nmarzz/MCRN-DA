@@ -18,12 +18,12 @@ iOPPF=1;
 % scenario 1: observe inth u and v's
 % scenario 2: observe inth everything
 % scenario 3: observe inth h
-scenario = 3; 
+scenario = 1; 
 [minidx,maxidx] = getScenarioIndex(scenario,N);
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =1;
-DataProjection =1;
-tolerance_physical =60; % POD_modes
+PhysicalProjection =2;
+DataProjection =2;
+tolerance_physical =10; % POD_modes
 tolerance_data =10; % POD_modes
 numModes_physical =60;% DMD_modes, for physical
 numModes_data =10; % DMD_modes, for data
@@ -105,8 +105,8 @@ Qnew=Q;
 x=V'*u;
 
 %Added by EVV
-HV=Hx(V,inth,minidx,maxidx);  % with our assumptions left multipling
-UPinvH=Hx(U,inth,minidx,maxidx)';
+HV=Hx(V,inth);  % with our assumptions left multipling
+UPinvH=Hx(U,inth)';
 
 Qpfixed = inv(inv(Qnew)+HV'*inv(Rfixed)*HV);
 QpHRinv = Qpfixed*HV'*inv(Rfixed);

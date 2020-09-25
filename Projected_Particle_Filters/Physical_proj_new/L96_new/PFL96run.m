@@ -28,8 +28,8 @@ model_output = Built_Model';
 iOPPF=1;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =3;
-DataProjection = 3;
+PhysicalProjection =2;
+DataProjection = 2;
 tolerance_physical = 10; % POD_modes
 tolerance_data = 5; % POD_modes
 %numModes_physical = 20;% DMD_modes/AUS_modes, for physical

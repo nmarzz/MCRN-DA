@@ -1,5 +1,5 @@
-function x=Hty(y,inth,N,L)
+function x=Hty(y,inth,N,L,minidx,maxidx)
 % Transpose of H
 x=zeros(N,L);
-x(1:inth:end,:) = y;
+x(minidx:inth:maxidx,:) = y;
 end

@@ -1,7 +1,7 @@
-function [M,IC,w,R,Rinv,Q,Omega,ICcov,Lones,Mzeros,Nzeros] = Init_simp(IC,N,inth,L,epsR,epsQ,epsOmega,epsIC, alph, bet)
+function [M,IC,w,R,Rinv,Q,Omega,ICcov,Lones,Mzeros,Nzeros] = Init_simp(IC,N,inth,L,epsR,epsQ,epsOmega,epsIC,minidx,maxidx)
 
 %M = Dimension of observation space.
-M = ceil(N/inth);
+M = size(minidx:inth:maxidx,2);
 
 %Init for Weights
 w = zeros(L,1);
@@ -9,13 +9,13 @@ w(:)=1/L;
 
 %Init for covariance matrices
 %R as the observation error covariance
-R = bet
+R = epsR;
 %*eye(N);
 %epsR;
 Rinv = 1/R;
 
 %Sig as model error covariance
-Q = alph
+Q = epsQ;
 %* eye(N);
 %epsQ;
 
