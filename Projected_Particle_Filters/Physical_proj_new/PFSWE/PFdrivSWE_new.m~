@@ -18,12 +18,12 @@ iOPPF=1;
 % scenario 1: observe inth u and v's
 % scenario 2: observe inth everything
 % scenario 3: observe inth h
-scenario = 1; 
+scenario = 3; 
 [minidx,maxidx] = getScenarioIndex(scenario,N);
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =2;
-DataProjection =2;
-tolerance_physical =10; % POD_modes
+PhysicalProjection =1;
+DataProjection =1;
+tolerance_physical =60; % POD_modes
 tolerance_data =10; % POD_modes
 numModes_physical =60;% DMD_modes, for physical
 numModes_data =10; % DMD_modes, for data
@@ -105,8 +105,8 @@ Qnew=Q;
 x=V'*u;
 
 %Added by EVV
-HV=Hx(V,inth);  % with our assumptions left multipling
-UPinvH=Hx(U,inth)';
+HV=Hx(V,inth,minidx,maxidx);  % with our assumptions left multipling
+UPinvH=Hx(U,inth,minidx,maxidx)';
 
 Qpfixed = inv(inv(Qnew)+HV'*inv(Rfixed)*HV);
 QpHRinv = Qpfixed*HV'*inv(Rfixed);
@@ -260,3 +260,35 @@ RMSEave_orig = RMSEave_orig/Numsteps
 RMSEave_proj = RMSEave_proj/Numsteps
 % RMSEave_relRMSE=RMSEave_relRMSE/Numsteps;
 ResampPercent = ObsMult*Resamps/Numsteps*100
+
+%% Save to mat file
+% filename = sprintf('swe_p%dd%d.mat',PhysicalProjection,DataProjection)
+
+% params.alpha = alpha;
+% params.PhysicalProjection = PhysicalProjection;
+% params.DataProjection = DataProjection;
+% params.epsQ = epsQ;
+% params.epsR=epsR;
+% params.epsIC = epsIC;
+% params.epsOmega = epsOmega;
+% params.L = L;
+% params.N = N;
+% params.iOPPF = iOPPF;
+% params.dt = dt;
+% params.h = h;
+% params.p_data = size(Ur_data,2);
+% params.p_physical = size(Ur_physical,2);
+% params.ResampCutoff = ResampCutoff;
+% params.T = T;
+% 
+% results.estimate = estimate;
+% results.RMSEave_orig = RMSEave_orig;
+% results.RMSEave_proj = RMSEave_proj;
+% results.ResampPercent = ResampPercent;
+% results.Resamps = Resamps;
+% results.RMSEsave = RMSEsave;
+% results.RMSEsave_proj = RMSEsave_proj;
+% results.ess = ess;
+% results.XC_save = XC;
+
+% save(filename,params,results);

@@ -344,3 +344,35 @@ title('Effective Sample Size')
 RMSEave_orig = RMSEave_orig/Numsteps
 RMSEave_proj = RMSEave_proj/Numsteps
 ResampPercent = ObsMult*Resamps/Numsteps*100
+
+%% Save to mat file
+% filename = sprintf('lorenz96_p%dd%d.mat',PhysicalProjection,DataProjection)
+
+% params.alpha = alpha;
+% params.PhysicalProjection = PhysicalProjection;
+% params.DataProjection = DataProjection;
+% params.epsQ = epsQ;
+% params.epsR=epsR;
+% params.epsIC = epsIC;
+% params.epsOmega = epsOmega;
+% params.L = L;
+% params.N = N;
+% params.iOPPF = iOPPF;
+% params.dt = dt;
+% params.h = h;
+% params.p_data = size(Ur_data,2);
+% params.p_physical = size(Ur_physical,2);
+% params.ResampCutoff = ResampCutoff;
+% params.T = T;
+% 
+% results.estimate = estimate;
+% results.RMSEave_orig = RMSEave_orig;
+% results.RMSEave_proj = RMSEave_proj;
+% results.ResampPercent = ResampPercent;
+% results.Resamps = Resamps;
+% results.RMSEsave = RMSEsave;
+% results.RMSEsave_proj = RMSEsave_proj;
+% results.ess = ess;
+% results.XC_save = XC;
+
+% save(filename,params,results);
