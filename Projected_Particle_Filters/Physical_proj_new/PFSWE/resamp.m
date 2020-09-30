@@ -1,6 +1,6 @@
-function [weights,X_update,numRS] = resamp(P,X,fracval)
+function [weights,X_update,numRS,Neff] = resamp(P,X,fracval)
 
-    Neff = 1/(sum(P.^2)) % Test effective particle size
+    Neff = 1/(sum(P.^2)); % Test effective particle size
     P = P./sum(P); % Ensure particle weights are normalised
 
     [N,L]=size(X);

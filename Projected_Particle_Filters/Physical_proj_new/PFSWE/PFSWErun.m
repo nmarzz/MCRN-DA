@@ -1,6 +1,6 @@
-%% Initialization
-clear all;clc;
-rng(1330);
+function [Time,RMSEsave, RMSEsave_proj, XC_save_ave, XC_save_proj, ESSsave, ResampPercent]=...
+    PFSWErun(numModes_physical,epsQ,tolerance_physical,iOPPF,PhysicalProjection,DataProjection)
+% rng(1330);
 % SWE preamble
 load('SWE_run_4days.mat');
 parsanim.H = zeros(pars.nx, pars.ny);
@@ -12,20 +12,20 @@ N =length(Built_Model);
 IC = Built_Model(:,(end-1)/2);
 %% Type of particle filter
 % Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
-iOPPF=1;
+% iOPPF=1;
 
 % Observed variables scenario following Paulina et al.
 % scenario 1: observe inth u and v's
 % scenario 2: observe inth everything
 % scenario 3: observe inth h
-scenario = 3; 
+scenario =2;
 [minidx,maxidx] = getScenarioIndex(scenario,N);
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =1;
-DataProjection =1;
-tolerance_physical =60; % POD_modes
+% % PhysicalProjection =1;
+% % DataProjection =1;
+% tolerance_physical =60; % POD_modes
 tolerance_data =10; % POD_modes
-numModes_physical =60;% DMD_modes, for physical
+% numModes_physical =60;% DMD_modes, for physical
 numModes_data =10; % DMD_modes, for data
 
 %model_output = Built_Model;
@@ -56,8 +56,8 @@ NumstepsBig=size(Built_Model,2);
 %% For PF-OP
 alpha =.99;%alpha value for projected resampling
 epsR = 0.01;
-%Model Variance
-epsQ = 1;
+%Model Variance2
+% epsQ = 1;
 %Initial condition
 epsIC = 0.01;
 %%
@@ -115,7 +115,6 @@ QpHRinv = Qpfixed*HV'*inv(Rfixed);
 % XC_save=[];
 for i=1:Numsteps
     t
-    %[U] = projectionToggle_data(DataProjection,Ur_data,p_data);
     if mod(i,ObsMult)==0
         %At observation times, Update particles and weights via likelihood, add noise
         if (iOPPF==0) % Standard Particle Filter
@@ -169,12 +168,11 @@ for i=1:Numsteps
         wt = exp(logw);
         wt = wt/sum(wt);
         %Resampling (with resamp.m that I provided or using the pseudo code in Peter Jan ,... paper)
-        [wt,x,NRS] = resamp(wt,x,ResampCutoff);
+        [wt,x,NRS,ESS] = resamp(wt,x,ResampCutoff);
         Resamps = Resamps + NRS;
         if (NRS==1)
             % Projected Resampling
             x = x + (alpha*(V'*U*U') + (1-alpha)*V')*(mvnrnd(zeros(1,N),epsOmega*ones(1,N),L)');
-            %x = x + V'*(alpha*(U*U') + (1-alpha))*(mvnrnd(zeros(1,N),epsOmega*ones(1,N),L)');
         end
     end
     
@@ -190,105 +188,36 @@ for i=1:Numsteps
     % Compare estimate and truth
     diff_orig= truth(:,i) - (V*estimate(:,i));
     diff_proj= V*(V'* truth(:,i) - estimate(:,i));
-    RMSE_orig = sqrt(diff_orig'*diff_orig/N)
-    RMSE_proj = sqrt(diff_proj'*diff_proj/N)
-    Ensbar = mean(V*estimate(:,i));
-    Trubar = mean( truth(:,i));
-    XC_save= (V*estimate(:,i)-Ensbar)'*(truth(:,i)-Trubar)/(norm(V*estimate(:,i)-Ensbar,2)*norm( truth(:,i)-Trubar,2));
-    %     diff_plot(:,i)= truth(:,i) - (V*estimate(:,i));
-    %diff_proj_plot(:,i)= V*(V'* truth(:,i) - estimate(:,i));
+    RMSE_orig = sqrt(diff_orig'*diff_orig/N);
+    RMSE_proj = sqrt(diff_proj'*diff_proj/N);
+    xbar=V*estimate(:,i);
+    truth_common=truth(:,i);
+    Ensbar = mean(xbar);
+    Trubar = mean(truth_common);
+    XC_save = (xbar-Ensbar)'*(truth_common-Trubar)/(norm(xbar-Ensbar,2)*norm(truth_common-Trubar));
     
-    %relRMSE_orig=sqrt(diff_orig'*diff_orig/N)/(sqrt(((truth(:,i))'*truth(:,i))/N));
-    %MAE_orig = (sum(abs(diff_orig)))/N;
-    
+    xbar=V*estimate(:,i);
+    truth_common=V*V'*truth(:,i);
+    Ensbar = mean(xbar);
+    Trubar = mean(truth_common);
+    XCproj = (xbar-Ensbar)'*(truth_common-Trubar)/(norm(xbar-Ensbar,2)*norm(truth_common-Trubar));
     RMSEave_orig = RMSEave_orig + RMSE_orig;
     RMSEave_proj = RMSEave_proj + RMSE_proj;
-    %RMSEave_relRMSE =RMSEave_relRMSE+ relRMSE_orig;
     
-    %     figure(1)
-    %     animate(t,V*estimate(:,i),pars,parsanim,'Mean')
-    %
-    %     figure(2)
-    %     animate(t,truth(:,i),pars,parsanim,'Truth')
-    %
-    %     figure(3)
-    %     animate(t,diff_orig,pars,parsanim,'Difference (original)')
-    %
-    %     figure(4)
-    %     animate(t,diff_proj,pars,parsanim,'Difference (projected)')
-    
-    % Save to plot
     if mod(i,ObsMult)==0
         %Save RMSE values
         Time(iRMSE)=t;
         RMSEsave(iRMSE)=RMSE_orig;
         RMSEsave_proj(iRMSE)=RMSE_proj;
         XC_save_ave(iRMSE)=XC_save;
+        XC_save_proj(iRMSE)=XCproj;
+        ESSsave(iRMSE)=ESS;
         iRMSE = iRMSE+1;
     end
     
     t = t+h;
 end
-% % No_proj=load('No_proj_RMSE.mat');%PF-OP
-% No_proj=load('No_proj_PF.mat');%PF
-% No_proj=load('No_proj_PFOP_1000t.mat');%PF1000 timestep
-% RMSE_no_proj=No_proj.RMSEsave;
-TOLC=ptc12(9);
-figure(3)
-semilogy(Time,RMSEsave,'Color', TOLC(1,:),'LineStyle','-','LineWidth', 2)
-hold on
-semilogy(Time,RMSEsave_proj,'Color', TOLC(2,:),'LineStyle','--','Marker','+','LineWidth', 2)
-% semilogy(Time,RMSE_no_proj,'Color', TOLC(7,:),'LineStyle',':','Marker','.','LineWidth',2)
-semilogy(Time,sqrt(epsR)*ones(size(Time,2),1),'k-.','LineWidth', 2)
-grid on
-xlabel('Time','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
-ylabel('RMSE','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
-% legend('Model Space','Projected Space','No Reduction','Observation Error','Location', 'Best','fontsize',13,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
-set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
-hold off
 
-
-figure(4)
-plot(Time,real(XC_save_ave),'Color', TOLC(1,:),'LineStyle','-','LineWidth', 2)
-grid on
-xlabel('Time','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
-ylabel('Pattern Correlations ','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
-% yticks ([0.9 0.99 0.9999 1])
-set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
-
-RMSEave_orig = RMSEave_orig/Numsteps
-RMSEave_proj = RMSEave_proj/Numsteps
-% RMSEave_relRMSE=RMSEave_relRMSE/Numsteps;
-ResampPercent = ObsMult*Resamps/Numsteps*100
-
-%% Save to mat file
-% filename = sprintf('swe_p%dd%d.mat',PhysicalProjection,DataProjection)
-
-% params.alpha = alpha;
-% params.PhysicalProjection = PhysicalProjection;
-% params.DataProjection = DataProjection;
-% params.epsQ = epsQ;
-% params.epsR=epsR;
-% params.epsIC = epsIC;
-% params.epsOmega = epsOmega;
-% params.L = L;
-% params.N = N;
-% params.iOPPF = iOPPF;
-% params.dt = dt;
-% params.h = h;
-% params.p_data = size(Ur_data,2);
-% params.p_physical = size(Ur_physical,2);
-% params.ResampCutoff = ResampCutoff;
-% params.T = T;
-% 
-% results.estimate = estimate;
-% results.RMSEave_orig = RMSEave_orig;
-% results.RMSEave_proj = RMSEave_proj;
-% results.ResampPercent = ResampPercent;
-% results.Resamps = Resamps;
-% results.RMSEsave = RMSEsave;
-% results.RMSEsave_proj = RMSEsave_proj;
-% results.ess = ess;
-% results.XC_save = XC;
-
-% save(filename,params,results);
+RMSEave_orig = RMSEave_orig/Numsteps;
+RMSEave_proj = RMSEave_proj/Numsteps;
+ResampPercent = ObsMult*Resamps/Numsteps*100;
