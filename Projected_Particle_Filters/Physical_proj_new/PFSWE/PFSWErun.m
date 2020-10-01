@@ -1,5 +1,5 @@
 function [Time,RMSEsave, RMSEsave_proj, XC_save_ave, XC_save_proj, ESSsave, ResampPercent]=...
-    PFSWErun(numModes_physical,epsQ,tolerance_physical,iOPPF,PhysicalProjection,DataProjection)
+    PFSWErun(numModes_physical,epsQ, epsR,tolerance_physical,iOPPF,PhysicalProjection,DataProjection,scenario,epsOmega, inth,Numsteps)
 % rng(1330);
 % SWE preamble
 load('SWE_run_4days.mat');
@@ -13,12 +13,6 @@ IC = Built_Model(:,(end-1)/2);
 %% Type of particle filter
 % Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
 % iOPPF=1;
-
-% Observed variables scenario following Paulina et al.
-% scenario 1: observe inth u and v's
-% scenario 2: observe inth everything
-% scenario 3: observe inth h
-scenario =2;
 [minidx,maxidx] = getScenarioIndex(scenario,N);
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 % % PhysicalProjection =1;
@@ -40,7 +34,7 @@ ResampCutoff = 0.3;
 % Number of computational steps and step size
 ObsMult=1; % Observe and every ObsMult steps
 h = dt/ObsMult;
-Numsteps=100;
+% Numsteps=10;
 NumstepsBig=size(Built_Model,2);
 % % %% FOR PF
 % %Observation Variance
@@ -55,18 +49,18 @@ NumstepsBig=size(Built_Model,2);
 
 %% For PF-OP
 alpha =.99;%alpha value for projected resampling
-epsR = 0.01;
+% epsR = 0.01;
 %Model Variance2
 % epsQ = 1;
 %Initial condition
 epsIC = 0.01;
 %%
 % IC Variance
-epsOmega =0.0000001; %For inth = 1
+% epsOmega =0.0000001; %For inth = 1
 % epsOmega =0.001; %For inth = 1000
-%Observe every inth variable.
+% %Observe every inth variable.
 % inth=1000;
-inth=1;
+% inth=1;
 %Call Init
 [M,IC,wt,R,Rinv,Q,Omega,ICcov,Lones,Mzeros] = Init_simp(IC,N,inth,L,epsR,epsQ,epsOmega,epsIC,minidx,maxidx);
 %Add noise N(0,ICcov) to ICs to form different particles

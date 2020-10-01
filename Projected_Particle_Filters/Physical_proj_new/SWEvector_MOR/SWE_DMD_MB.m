@@ -1,7 +1,7 @@
 clear all;close all;clc
 load('SWE_run_4days.mat');
 DataMatrix= x_save;%snapshot matrix
-r=130;
+r=100;
 VALUE=true;
 M = mean(DataMatrix, 2); % 2 = mean across columns
 stepVALUE=[1 10 30 60];
@@ -35,4 +35,9 @@ bb=out.b;
 Phi=out.Phi(:,stable_index);
 figure(4)
 stem(imag(Lambda(2:end)), abs(out.meanL2norm),'filled')
- set(gca, 'yscale','log')
+grid on
+set(gca, 'yscale','log')
+% xlim([-0.1 0.1])
+xlabel(' $\Im(\log(\lambda_i))$','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+ylabel('$\left| b_i \right|  $','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
