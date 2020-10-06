@@ -93,6 +93,7 @@ RMSEave_proj=0;
 % RMSEave_relRMSE=0;
 iRMSE=1;
 XC_save_ave=0;
+ESSsave=0;
 Q=V'*Q*V; %with projection
 Qnew=Q;
 
@@ -156,8 +157,8 @@ for i=1:Numsteps
         %Take log of the updated weights
         logw = Tdiag + log(wt);
         %To avoid underflow and overflow
-        logw=min(logw,709);
-        logw=max(logw,-709);
+%         logw=min(logw,709);
+%         logw=max(logw,-709);
         %Exponentiate and normalize
         wt = exp(logw);
         wt = wt/sum(wt);

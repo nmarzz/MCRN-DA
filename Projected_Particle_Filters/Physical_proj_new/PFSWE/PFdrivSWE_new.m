@@ -18,11 +18,11 @@ iOPPF=1;
 % scenario 1: observe inth u and v's
 % scenario 2: observe inth everything
 % scenario 3: observe inth h
-scenario = 3; 
+scenario = 2;
 [minidx,maxidx] = getScenarioIndex(scenario,N);
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =1;
-DataProjection =1;
+PhysicalProjection =2;
+DataProjection =2;
 tolerance_physical =60; % POD_modes
 tolerance_data =10; % POD_modes
 numModes_physical =60;% DMD_modes, for physical
@@ -99,6 +99,7 @@ RMSEave_proj=0;
 % RMSEave_relRMSE=0;
 iRMSE=1;
 XC_save_ave=0;
+ESSsave=0;
 Q=V'*Q*V; %with projection
 Qnew=Q;
 
@@ -162,14 +163,14 @@ for i=1:Numsteps
         
         %Take log of the updated weights
         logw = Tdiag + log(wt);
-        %To avoid underflow and overflow
-        logw=min(logw,709);
-        logw=max(logw,-709);
+        %         %To avoid underflow and overflow
+        %         logw=min(logw,709);
+        %         logw=max(logw,-709);
         %Exponentiate and normalize
         wt = exp(logw);
         wt = wt/sum(wt);
         %Resampling (with resamp.m that I provided or using the pseudo code in Peter Jan ,... paper)
-        [wt,x,NRS] = resamp(wt,x,ResampCutoff);
+        [wt,x,NRS,ESS] = resamp(wt,x,ResampCutoff);
         Resamps = Resamps + NRS;
         if (NRS==1)
             % Projected Resampling
@@ -224,6 +225,7 @@ for i=1:Numsteps
         RMSEsave(iRMSE)=RMSE_orig;
         RMSEsave_proj(iRMSE)=RMSE_proj;
         XC_save_ave(iRMSE)=XC_save;
+        ESSsave(iRMSE)=ESS;
         iRMSE = iRMSE+1;
     end
     
@@ -253,9 +255,15 @@ plot(Time,real(XC_save_ave),'Color', TOLC(1,:),'LineStyle','-','LineWidth', 2)
 grid on
 xlabel('Time','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
 ylabel('Pattern Correlations ','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
-% yticks ([0.9 0.99 0.9999 1])
 set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
-
+%%
+figure(4)
+plot(Time,real(ESSsave),'Color', TOLC(1,:),'LineStyle','-','LineWidth', 2)
+grid on
+xlabel('Time','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+ylabel('Pattern Correlations ','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
+%%
 RMSEave_orig = RMSEave_orig/Numsteps
 RMSEave_proj = RMSEave_proj/Numsteps
 % RMSEave_relRMSE=RMSEave_relRMSE/Numsteps;

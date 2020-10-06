@@ -85,11 +85,13 @@ tt.TileSpacing = 'compact';
 tt.Padding = 'compact';
 %%
 figure(2)
-plot(Time,ESSsave)
+plot(Time,real(ESSsave))
 grid on
 xlabel('Time','fontsize',12,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold');
 ylabel('ESS','fontsize',12,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold');
 set(gca, 'FontName', 'Times New Roman', 'FontSize', 12)
+
+
 % %% Save to mat file
 % filename = sprintf('SWE_%2d%2d_%4d_%2d.mat',PhysicalProjection,DataProjection,epsQ,epsR)
 % params.PhysicalProjection = PhysicalProjection;
