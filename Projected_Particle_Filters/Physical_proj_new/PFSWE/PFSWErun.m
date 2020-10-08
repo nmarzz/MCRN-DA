@@ -157,8 +157,8 @@ for i=1:Numsteps
         %Take log of the updated weights
         logw = Tdiag + log(wt);
         %To avoid underflow and overflow
-%         logw=min(logw,709);
-%         logw=max(logw,-709);
+        %         logw=min(logw,709);
+        %         logw=max(logw,-709);
         %Exponentiate and normalize
         wt = exp(logw);
         wt = wt/sum(wt);
@@ -190,12 +190,16 @@ for i=1:Numsteps
     Ensbar = mean(xbar);
     Trubar = mean(truth_common);
     XC_save = (xbar-Ensbar)'*(truth_common-Trubar)/(norm(xbar-Ensbar,2)*norm(truth_common-Trubar));
+    %%
+    Ensbar = mean(V*estimate(:,i));
+    Trubar = mean( truth(:,i));
+    XCproj= (V*estimate(:,i)-Ensbar)'*(truth(:,i)-Trubar)/(norm(V*estimate(:,i)-Ensbar,2)*norm( truth(:,i)-Trubar,2));
     
-    xbar=V*estimate(:,i);
-    truth_common=V*V'*truth(:,i);
-    Ensbar = mean(xbar);
-    Trubar = mean(truth_common);
-    XCproj = (xbar-Ensbar)'*(truth_common-Trubar)/(norm(xbar-Ensbar,2)*norm(truth_common-Trubar));
+    %     xbar=V*estimate(:,i);
+    %     truth_common=V*V'*truth(:,i);
+    %     Ensbar = mean(xbar);
+    %     Trubar = mean(truth_common);
+    %     XCproj = (xbar-Ensbar)'*(truth_common-Trubar)/(norm(xbar-Ensbar,2)*norm(truth_common-Trubar));
     RMSEave_orig = RMSEave_orig + RMSE_orig;
     RMSEave_proj = RMSEave_proj + RMSE_proj;
     
