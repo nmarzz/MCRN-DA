@@ -3,7 +3,7 @@ clear;clc;
 %Runs
 %Q=1E-2, R=1E-2
 epsQ=1E-1;
-epsR=1E-2;
+epsR=R;
 Num=10;
 Mult=40/Num;
 for j=1:Num
@@ -33,7 +33,7 @@ legend('RMSE','RMSE(projected)','Obs Err')
 xlabel('Model Dimension');
 ylabel('RMSE');
 title('RMSE');
-
+hold off
 subplot(1,4,2)
 plot(numModes,XCave)
 xlabel('Model Dimension');

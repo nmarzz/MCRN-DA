@@ -268,41 +268,41 @@ for i=1:Numsteps
 end
 
 %Display the RMSE vs. time
-[~,Steps] = size(Time)
-ObsErr = linspace(sqrt(epsR),sqrt(epsR),Steps);
-ModErr = linspace(sqrt(epsQ),sqrt(epsQ),Steps);
-figure(2)
-plot(Time,RMSEsave)
-hold on
-plot(Time,RMSEsave_proj)
-plot(Time, ObsErr,'k--')
-plot(Time,ModErr,'r--')
-%axis([t0 tf 0 2])
-legend('RMSE','RMSE projected','Observation Error','Model Error','Location','NorthWest')
-xlabel('Time')
-ylabel('RMSE')
-title('Root Mean Squared Error')
-
-figure(3)
-XCave=mean(XCsave)
-plot(Time,XCsave)
-hold on
-plot(Time, XCprojsave,'k--')
-legend('XC','XCproj')
-xlabel('Time')
-ylabel('XC')
-title('Pattern Correlation Coefficient')
-
-
-figure(4)
-ESSave=mean(ESSsave)
-plot(Time,ESSsave)
-hold on
-Cutoff = linspace(L*ResampCutoff,L*ResampCutoff,Steps);
-plot(Time, Cutoff,'k--')
-xlabel('Time')
-ylabel('ESS')
-title('Effective Sample Size')
+% [~,Steps] = size(Time)
+% ObsErr = linspace(sqrt(epsR),sqrt(epsR),Steps);
+% ModErr = linspace(sqrt(epsQ),sqrt(epsQ),Steps);
+% figure(2)
+% plot(Time,RMSEsave)
+% hold on
+% plot(Time,RMSEsave_proj)
+% plot(Time, ObsErr,'k--')
+% plot(Time,ModErr,'r--')
+% %axis([t0 tf 0 2])
+% legend('RMSE','RMSE projected','Observation Error','Model Error','Location','NorthWest')
+% xlabel('Time')
+% ylabel('RMSE')
+% title('Root Mean Squared Error')
+% 
+% figure(3)
+% XCave=mean(XCsave)
+% plot(Time,XCsave)
+% hold on
+% plot(Time, XCprojsave,'k--')
+% legend('XC','XCproj')
+% xlabel('Time')
+% ylabel('XC')
+% title('Pattern Correlation Coefficient')
+% 
+% 
+% figure(4)
+% ESSave=mean(ESSsave)
+% plot(Time,ESSsave)
+% hold on
+% Cutoff = linspace(L*ResampCutoff,L*ResampCutoff,Steps);
+% plot(Time, Cutoff,'k--')
+% xlabel('Time')
+% ylabel('ESS')
+% title('Effective Sample Size')
 
 % figure(2)
 % contourf(diff_plot,'LineStyle','none')

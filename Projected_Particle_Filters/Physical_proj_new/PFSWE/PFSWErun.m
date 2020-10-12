@@ -1,5 +1,5 @@
 function [Time,RMSEsave, RMSEsave_proj, XC_save_ave, XC_save_proj, ESSsave, ResampPercent]=...
-    PFSWErun(numModes_physical,epsQ, epsR,tolerance_physical,iOPPF,PhysicalProjection,DataProjection,scenario,epsOmega, inth,Numsteps)
+    PFSWErun(numModes_data,epsQ, epsR,tolerance_data,iOPPF,PhysicalProjection,DataProjection,scenario,epsOmega, inth,Numsteps)
 % rng(1330);
 % SWE preamble
 load('SWE_run_4days.mat');
@@ -17,10 +17,10 @@ IC = Built_Model(:,(end-1)/2);
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 % % PhysicalProjection =1;
 % % DataProjection =1;
-% tolerance_physical =60; % POD_modes
-tolerance_data =10; % POD_modes
-% numModes_physical =60;% DMD_modes, for physical
-numModes_data =10; % DMD_modes, for data
+tolerance_physical =10; % POD_modes
+% tolerance_data =10; % POD_modes
+numModes_physical =10;% DMD_modes, for physical
+% numModes_data =10; % DMD_modes, for data
 
 %model_output = Built_Model;
 model_output = Built_Model(:,(end-1)/4:(end-1)*3/4);
