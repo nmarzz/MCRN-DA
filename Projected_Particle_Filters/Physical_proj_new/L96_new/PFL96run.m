@@ -1,4 +1,4 @@
-function [Time,RMSEsave, RMSEsave_proj, XCsave, XCprojsave, ESSsave, ResampPercent]=PFL96run(numModes_physical,epsQ)
+function [Time,RMSEsave, RMSEsave_proj, XCsave, XCprojsave, ESSsave, ResampPercent]=PFL96run(tolerance_physical,numModes_physical,phys_proj,data_proj,epsQ,epsR)
 %% Initialization
 %close all; clear all;clc;
 %rng(1331);
@@ -28,14 +28,14 @@ model_output = Built_Model';
 iOPPF=1;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =2;
-DataProjection = 2;
-tolerance_physical = 10; % POD_modes
+PhysicalProjection =phys_proj;
+DataProjection = data_proj;
+% tolerance_physical = 10; % POD_modes
 tolerance_data = 5; % POD_modes
 %numModes_physical = 20;% DMD_modes/AUS_modes, for physical
 %numModes_data = 20; % DMD_modes/AUS_modes, for data
 %numModes_physical = 10;% DMD_modes/AUS_modes, for physical
-numModes_data = 4; % DMD_modes/AUS_modes, for data
+numModes_data = 5; % DMD_modes/AUS_modes, for data
 
 [Ur_physical,p_physical,pzeros_physical] = ...
     Projection_physical_type(PhysicalProjection, numModes_physical,tolerance_physical,N,model_output,dt);
@@ -59,7 +59,7 @@ ObsMult=5; % Observe and every ObsMult steps
 
 %Observation Variance
 %epsR = 0.1;
-epsR = 0.01;
+%epsR = 0.01;
 %epsR = 0.25;
 %Model Variance
 %epsQ = 0.1;
@@ -77,7 +77,7 @@ epsIC = epsQ;
 %inth=2;
 inth=1;
 %Call Init
-p_physical
+
 if PhysicalProjection == 3
    NumLEs=p_physical;
 else 
@@ -342,6 +342,6 @@ end
 
 
 %%
-RMSEave_orig = RMSEave_orig/Numsteps
-RMSEave_proj = RMSEave_proj/Numsteps
-ResampPercent = ObsMult*Resamps/Numsteps*100
+RMSEave_orig = RMSEave_orig/Numsteps;
+RMSEave_proj = RMSEave_proj/Numsteps;
+ResampPercent = ObsMult*Resamps/Numsteps*100;

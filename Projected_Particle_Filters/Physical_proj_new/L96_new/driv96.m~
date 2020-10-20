@@ -2,7 +2,7 @@ clear;clc;
 
 %Runs
 %Q=1E-2, R=1E-2
-PhysicalProjection = 3;
+PhysicalProjection = 1;
 DataProjection= 1;
 inth = 1;
 iOPPF = 1;
@@ -27,7 +27,7 @@ params.epsQ = epsQ;
 params.epsR=epsR;
 params.iOPPF = iOPPF;
 % params.ObsErr=ObsErr;
-params.numModes=Mult:Mult:Num;
+params.numModes=Mult:Mult;
 params.Num=Num;
 params.Mult = Mult;
 results.RMSEsave = RMSEsave;
