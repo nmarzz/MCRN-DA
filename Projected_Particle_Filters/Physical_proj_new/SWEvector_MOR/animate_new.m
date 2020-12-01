@@ -9,12 +9,7 @@ clear all; close all; clc;
 %% POD
 % load('SWE_POD_r2.mat')
 % load('SWE_POD_r10.mat')
-% load('SWE_POD_r20_new.mat')
-% modeloutput=modeloutput_truncated;
-%% POD
-% load('SWE_POD_r2.mat')
-% load('SWE_POD_r10.mat')
-load('SWE_POD_r50_new.mat')
+load('SWE_POD_r30_new.mat')
 modeloutput=modeloutput_truncated;
 %% DMD
 % load('SWE_DMD_r2.mat')
@@ -62,17 +57,17 @@ plot_frames = false;
 % Decide whether to show height in metres or km
 if mean(plot_height_range) > 1000
     height_scale = 0.001;
-    height_title = 'Truth ';
+    height_title = 'POD(r=30)';
 else
     height_scale = 1;
-    height_title = 'Truth';
+    height_title = 'POD(r=30)';
 end
 
 disp(['Maximum orography height = ' num2str(max(H(:))) ' m']);
 
 % Loop through the frames of the animation
-% filename = 'testnew51.gif';
-for it = L
+filename = 'testnew51.gif';
+for it =1:60: L
     clf
     
     % Extract the height and velocity components for this frame
@@ -141,20 +136,20 @@ for it = L
     
     % To make an animation we can save the frames as a
     % sequence of images
-        if plot_frames
-            imwrite(frame2im(getframe(gcf)),...
-                ['frame' num2str(it,'%03d') '.png']);
-        end
-%     pause(1)
-%     frame = getframe(gcf);
-%     im = frame2im(frame);
-%     [imind,cm] = rgb2ind(im,256);
-%     % Write to the GIF File
-%     if it == 1
-%         imwrite(imind,cm,filename,'gif', 'Loopcount',inf,'DelayTime',1);
-%     else
-%         imwrite(imind,cm,filename,'gif','WriteMode','append');
-%     end
+%         if plot_frames
+%             imwrite(frame2im(getframe(gcf)),...
+%                 ['frame' num2str(it,'%03d') '.png']);
+%         end
+    pause(1)
+    frame = getframe(gcf);
+    im = frame2im(frame);
+    [imind,cm] = rgb2ind(im,256);
+    % Write to the GIF File
+    if it == 1
+        imwrite(imind,cm,filename,'gif', 'Loopcount',inf,'DelayTime',1);
+    else
+        imwrite(imind,cm,filename,'gif','WriteMode','append');
+    end
 end
 
 % % Axis units are thousands of kilometers (x and y are in metres)

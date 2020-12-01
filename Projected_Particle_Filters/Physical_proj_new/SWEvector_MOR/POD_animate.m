@@ -115,8 +115,8 @@ else
     height_title = 'Height (m)';
 end
 
-for it = slice
-    figure(11)
+for it = 1:60:slice
+%     figure(11)
     t1 = tiledlayout(2,1,'TileSpacing','Compact');
     nexttile
     %plot original velocity
@@ -149,45 +149,61 @@ for it = slice
     title('POD(r=30)')
     colormap(cmocean('curl'));
     set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
+        % To make an animation we can save the frames as a
+    % sequence of images
+        if plot_frames
+            imwrite(frame2im(getframe(gcf)),...
+                ['frame' num2str(it,'%03d') '.png']);
+        end
+    pause(1)
+    frame = getframe(gcf);
+    im = frame2im(frame);
+    [imind,cm] = rgb2ind(im,256);
+    % Write to the GIF File
+    if it == 1
+        imwrite(imind,cm,filename,'gif', 'Loopcount',inf,'DelayTime',1);
+    else
+        imwrite(imind,cm,filename,'gif','WriteMode','append');
+    end
 end
-for it = slice
-    figure(12)
-    tiledlayout(2,1,'TileSpacing','Compact');
-    nexttile;
-    %plot original velocity
-    handle = image(x_1000km, y_1000km, (h'+H').*height_scale);
-    set(handle,'CDataMapping','scaled');
-    hold on
-    warning off
-    contour(x_1000km, y_1000km, H',[1:1000:8001],'k');
-    warning on
-    
-    quiver(x_1000km(3:interval:end), y_1000km(3:interval:end), ...
-        u(3:interval:end, 3:interval:end)',...
-        v(3:interval:end, 3:interval:end)','k');
-    set(gca,'xlim',[0 25],'Ylim',[0 5])
-    title('Model')
-     set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
-     caxis([-1 1])
-    nexttile;
-    %plot truncated velocity
-    handle = image(x_1000km, y_1000km, (h_EE'+H').*height_scale);
-    set(handle,'CDataMapping','scaled');
-    hold on
-    warning off
-    contour(x_1000km, y_1000km, H',[1:1000:8001],'k');
-    warning on
-    
-    quiver(x_1000km(3:interval:end), y_1000km(3:interval:end), ...
-        u_EE(3:interval:end, 3:interval:end)',...
-        v_EE(3:interval:end, 3:interval:end)','k');
-    set(gca,'xlim',[0 25],'Ylim',[0 5])
-    title('POD(r=30)')
-    colormap('redblue')
-    set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
-    hold off
-    colorbar('southoutside')
-
-
-
-end
+% for it = slice
+%     figure(12)
+%     tiledlayout(2,1,'TileSpacing','Compact');
+%     nexttile;
+%     %plot original velocity
+%     handle = image(x_1000km, y_1000km, (h'+H').*height_scale);
+%     set(handle,'CDataMapping','scaled');
+%     hold on
+%     warning off
+%     contour(x_1000km, y_1000km, H',[1:1000:8001],'k');
+%     warning on
+%     
+%     quiver(x_1000km(3:interval:end), y_1000km(3:interval:end), ...
+%         u(3:interval:end, 3:interval:end)',...
+%         v(3:interval:end, 3:interval:end)','k');
+%     set(gca,'xlim',[0 25],'Ylim',[0 5])
+%     title('Model')
+%      set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
+%      caxis([-1 1])
+%     nexttile;
+%     %plot truncated velocity
+%     handle = image(x_1000km, y_1000km, (h_EE'+H').*height_scale);
+%     set(handle,'CDataMapping','scaled');
+%     hold on
+%     warning off
+%     contour(x_1000km, y_1000km, H',[1:1000:8001],'k');
+%     warning on
+%     
+%     quiver(x_1000km(3:interval:end), y_1000km(3:interval:end), ...
+%         u_EE(3:interval:end, 3:interval:end)',...
+%         v_EE(3:interval:end, 3:interval:end)','k');
+%     set(gca,'xlim',[0 25],'Ylim',[0 5])
+%     title('POD(r=30)')
+%     colormap('redblue')
+%     set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
+%     hold off
+%     colorbar('southoutside')
+% 
+% 
+% 
+% end

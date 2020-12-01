@@ -12,8 +12,22 @@ elseif DataProjection == 1
     Nzeros=zeros(p,1);
 elseif DataProjection == 2
     %DMD
-    %numModes=300;  % number of DMD_modes you want to use
-    Ur_data=buildDMD(numModes,Built_Model,dt);
+    DataMatrix=Built_Model;%snapshot matrix
+    r=numModes;
+    VALUE=true;
+    M = mean(DataMatrix, 2); % 2 = mean across columns
+    stepVALUE=-1;
+    out1 = dmd( DataMatrix, dt, r, 'removemean', VALUE,'step',stepVALUE,'sortbyb', VALUE);
+%     out1 = dmd( DataMatrix, dt, r,'sortbyb', VALUE);
+    bM = norm(M);
+    Mnormalized = M/bM;
+%     manually adding the mean value of data back among the modes
+    out1.Phi = [Mnormalized(:), out1.Phi];
+    out1.b = [bM; out1.b];
+    out1.omega = [0; out1.omega];
+    out1.lambda = [1; out1.lambda];
+%%
+    Ur_data=out1.Phi;
     p = size(Ur_data,2);
     Nzeros=zeros(p,1);
 elseif DataProjection == 3

@@ -1,20 +1,22 @@
-function [Time,RMSEsave, RMSEsave_proj, XCsave, XCprojsave, ESSsave, ResampPercent]=PFL96run(tolerance_physical,numModes_physical,phys_proj,data_proj,epsQ,epsR,iOPPF,N)
-%% Initialization
+function [Time,RMSEsave, RMSEsave_proj, XCsave, XCprojsave, ESSsave, ResampPercent]=...
+    PFL96run_1(tolerance_physical,numModes_physical,phys_proj,data_proj,epsQ,epsR,iOPPF,N)
 rng(1331);
 F = @FLor95; %Physical model
+% N =100; % N:Original model dimension
 % Build Model (via ODE45)
-dt=1.E-3; % Model output time step
+dt=1.E-2; % Model output time step
 ModelSteps = 50000; % Number of time steps in building model
+% ModelSteps = 100000; % Number of time steps in building model
 T=ModelSteps*dt;
 Built_Model= buildModel(N,F,ModelSteps,T);
 model_output = Built_Model';
+
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 PhysicalProjection =phys_proj;
 DataProjection = data_proj;
 tolerance_data = 5; % POD_modes
 %numModes_physical = 20;% DMD_modes/AUS_modes, for physical
 %numModes_data = 20; % DMD_modes/AUS_modes, for data
-%numModes_physical = 30;% DMD_modes/AUS_modes, for physical
 numModes_data = 5; % DMD_modes/AUS_modes, for data
 
 [Ur_physical,p_physical,pzeros_physical] = ...
@@ -28,18 +30,21 @@ IC(1)=1; % Particle ICs
 
 %alpha=0.35;%alpha value for projected resampling
 alpha=0.99;%alpha value for projected resampling
-ResampCutoff=0.3;
+% ResampCutoff=0.3;
+ResampCutoff=0.5;
 
 % Number of computational steps and step size
 h=1.E-2;
 Numsteps=T/h;
 
 ObsMult=10; % Observe and every ObsMult steps(10 with F=3.5, 5 with F=8)
-epsOmega =1e-3;%Observation Variance
-%Initial condition
-epsIC = epsQ;
-%Observe every inth variable.
+
+%Observation Variance
+epsOmega =1e-2;
+epsIC =epsQ;
+%inth=2;
 inth=1;
+%Call Init
 if PhysicalProjection == 3
     NumLEs=p_physical;
 else
@@ -102,6 +107,7 @@ Qnew=V'*Qfixed*V;
 Qpfixed = inv(inv(Qnew)+V'*H'*inv(Rfixed)*H*V);
 QpHRinv = Qpfixed*V'*H'*inv(Rfixed);
 
+
 for i=1:Numsteps
     
     if mod(i,ObsMult)==0
@@ -114,7 +120,6 @@ for i=1:Numsteps
             % Update observation covariance
             R = U' * PinvH * Rfixed * PinvH' * U;
             RinvtInno = R\Innov;
-            %Rinv = inv(R);
         else % IOPPF ==1, Optimal proposal PF
             %Added by EVV
             Innov1=repmat(y(:,i),1,L)-H*V*x;
@@ -137,31 +142,20 @@ for i=1:Numsteps
         tempering = 1.2; % Tempering usually a little larger than 1.
         Avg=(max(Tdiag)+min(Tdiag))/2;
         Tdiag = (Tdiag-Avg)/tempering;
-        Tdiag = -Tdiag/2;
-        %Take log of the updated weights
-        logw = Tdiag + log(w);
-        %To avoid underflow and overflow
-        logw=min(logw,709);
-        logw=max(logw,-709);
-        %Exponentiate and normalize
-        w = exp(logw);
-        w = w/min(sum(w),realmax);
-        w = w/sum(w);
-%         LH = exp(-Tdiag/2); %%%% <<<< divided exponent by 2; this is part of the normal distribution
-%         w=LH.*w;
-%         %Normalize weights
-%         [dim,~] = size(w);
-%         Lones = ones(dim,1);
-%         w=w/(w'*Lones);
+        LH = exp(-Tdiag/2); %%%% <<<< divided exponent by 2; this is part of the normal distribution
+        w=LH.*w;
+        %Normalize weights
+        [dim,~] = size(w);
+        Lones = ones(dim,1);
+        w=w/(w'*Lones);
+        
         %Resampling (with resamp.m that I provided or using the pseudo code in Peter Jan ,... paper)
-        [w,x,NRS] = resamp(w,x,ResampCutoff);
+        [w,x,NRS,ESS] = resamp(w,x,ResampCutoff);
         Resamps = Resamps + NRS;
         
         if (NRS==1)
             % Projected Resampling
             x = x + V'*(alpha*(U*U') + (1-alpha)*eye(N))*(mvnrnd(zeros(1,N),epsOmega*ones(1,N),L)');
-            %x = x + V'*(alpha*(U*U') + (1-alpha)*eye(N,1))*(mvnrnd(zeros(N,1),Omega,L)');
-            %x = x + (alpha*(U*U') + (1-alpha)*eye(N,1))*(mvnrnd(zeros(N,1),Omega,L)');
         end
         
     end
@@ -190,10 +184,10 @@ for i=1:Numsteps
     
     % propogate particles
     x = V'*dp4(F,t,V0*x,h);
+    
     % Compare estimate and truth
     diff_orig= truth(:,i) - (V*estimate(:,i));
     diff_proj= (V * V'* truth(:,i)) - (V*estimate(:,i));
-    
     RMSE_orig = sqrt(diff_orig'*diff_orig/N);
     RMSE_proj = sqrt(diff_proj'*diff_proj/N);
     
@@ -212,6 +206,8 @@ for i=1:Numsteps
     Trubar = mean(truth_common);
     XCproj = (xbar-Ensbar)'*(truth_common-Trubar)/(norm(xbar-Ensbar,2)*norm(truth_common-Trubar));
     
+    
+    
     % Save to plot
     if mod(i,ObsMult)==0
         %Save RMSE values
@@ -226,9 +222,8 @@ for i=1:Numsteps
     
     t = t+h;
 end
-
-
 %%
-RMSEave_orig = RMSEave_orig/Numsteps
-RMSEave_proj = RMSEave_proj/Numsteps
-ResampPercent = ObsMult*Resamps/Numsteps*100
+RMSEave_orig = RMSEave_orig/Numsteps;
+RMSEave_proj = RMSEave_proj/Numsteps;
+ResampPercent = ObsMult*Resamps/Numsteps*100;
+

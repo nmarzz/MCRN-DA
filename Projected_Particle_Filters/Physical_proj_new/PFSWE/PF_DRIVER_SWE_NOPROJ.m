@@ -1,13 +1,5 @@
 %% Initialization
-% clear all;clc;
-% rng(1331);
-% % SWE preamble
-% load('SWE_run_1day.mat');
-% F = @(t,x) formod(t,x,dt,pars);
-% Built_Model= x_save;
-% N =length(Built_Model);
-% IC = Built_Model(:,1);
-%%
+
 clear all;clc;close all;
 rng(1330);
 % SWE preamble

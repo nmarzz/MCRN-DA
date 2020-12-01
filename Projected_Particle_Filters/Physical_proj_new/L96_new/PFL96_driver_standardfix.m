@@ -1,9 +1,9 @@
 %% Initialization
 close all; clear all;clc;
-%rng(1331);
+%% This code is to run 
 rng(1330);
 F = @FLor95; %Physical model
-N = 100; % N:Original model dimension
+N = 40; % N:Original model dimension
 %N =40; % N:Original model dimension
 % Build Model (via ODE45)
 dt=1.E-3; % Model output time step
@@ -27,14 +27,14 @@ model_output = Built_Model';
 iOPPF=0;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =1;
-DataProjection = 1;
+PhysicalProjection =2;
+DataProjection =2;
 tolerance_physical = 30; % POD_modes
 tolerance_data = 30; % POD_modes
 %numModes_physical = 20;% DMD_modes/AUS_modes, for physical
 %numModes_data = 20; % DMD_modes/AUS_modes, for data
-numModes_physical = 8;% DMD_modes/AUS_modes, for physical
-numModes_data = 2; % DMD_modes/AUS_modes, for data
+numModes_physical =30;% DMD_modes/AUS_modes, for physical
+numModes_data = 5; % DMD_modes/AUS_modes, for data
 
 [Ur_physical,p_physical,pzeros_physical] = ...
     Projection_physical_type(PhysicalProjection, numModes_physical,tolerance_physical,N,model_output,dt);
@@ -53,7 +53,7 @@ ResampCutoff=0.3;
 h=1.E-2;
 Numsteps=T/h;
 
-ObsMult=50; % Observe and every ObsMult steps
+ObsMult=5; % Observe and every ObsMult steps
 
 %Observation Variance
 epsR = 0.01;
@@ -62,15 +62,15 @@ epsR = 0.01;
 epsQ = 1;
 % IC Variance
 %epsOmega =0.0027;
-epsOmega =0.0001;
+epsOmega =1e-3;
 %epsOmega =0.01;
 %Initial condition
-epsIC = 0.01;
+epsIC = epsQ;
 %Observe every inth variable.
 %inth=2;
 inth=1;
-%Call Init
-p_physical
+% %Call Init
+% p_physical
 if PhysicalProjection == 3
    NumLEs=p_physical;
 else 
@@ -267,18 +267,18 @@ ModErr = linspace(sqrt(epsQ),sqrt(epsQ),Steps);
 % ylabel('RMSE')
 % title('RMSE')
 
-TOLC=ptc12(9,'check');
-figure
-semilogy(Time,RMSEsave,'Color', TOLC(1,:),'LineStyle','-','LineWidth', 2)
-hold on
-semilogy(Time,RMSEsave_proj,'Color', TOLC(2,:),'LineStyle','--','Marker','+','LineWidth', 2)
-semilogy(Time,RMSEave_orig,'Color', TOLC(7,:),'LineStyle',':','Marker','.','LineWidth',2)
-semilogy(Time,sqrt(bet)*ones(size(Time,2),1),'k-.','LineWidth', 2)
-grid on
-xlabel('Time','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
-ylabel('RMSE','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
-legend('Model Space','Projected Space','No Reduction','Observation Error','Location', 'Best','fontsize',13,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
-set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
+% TOLC=ptc12(9,'check');
+% figure
+% semilogy(Time,RMSEsave,'Color', TOLC(1,:),'LineStyle','-','LineWidth', 2)
+% hold on
+% semilogy(Time,RMSEsave_proj,'Color', TOLC(2,:),'LineStyle','--','Marker','+','LineWidth', 2)
+% semilogy(Time,RMSEave_orig,'Color', TOLC(7,:),'LineStyle',':','Marker','.','LineWidth',2)
+% semilogy(Time,sqrt(bet)*ones(size(Time,2),1),'k-.','LineWidth', 2)
+% grid on
+% xlabel('Time','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+% ylabel('RMSE','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+% legend('Model Space','Projected Space','No Reduction','Observation Error','Location', 'Best','fontsize',13,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+% set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
 % figure(2)
 % contourf(diff_plot,'LineStyle','none')
 % colormap(redblue)

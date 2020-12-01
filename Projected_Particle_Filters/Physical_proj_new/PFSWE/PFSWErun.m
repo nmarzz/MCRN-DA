@@ -109,7 +109,7 @@ QpHRinv = Qpfixed*HV'*inv(Rfixed);
 % diff_proj_plot=[];
 % XC_save=[];
 for i=1:Numsteps
-    t
+    t;
     if mod(i,ObsMult)==0
         %At observation times, Update particles and weights via likelihood, add noise
         if (iOPPF==0) % Standard Particle Filter
@@ -217,6 +217,6 @@ for i=1:Numsteps
     t = t+h;
 end
 
-RMSEave_orig = RMSEave_orig/Numsteps;
-RMSEave_proj = RMSEave_proj/Numsteps;
-ResampPercent = ObsMult*Resamps/Numsteps*100;
+RMSEave_orig = RMSEave_orig/Numsteps
+RMSEave_proj = RMSEave_proj/Numsteps
+ResampPercent = ObsMult*Resamps/Numsteps*100
