@@ -3,6 +3,7 @@ clear all;clc;
 rng(1330);
 % SWE preamble
 load('SWE_run_4days.mat');
+
 parsanim.H = zeros(pars.nx, pars.ny);
 parsanim.x=(0:pars.nx-1).*pars.dx; % Zonal distance coordinate (m)
 parsanim.y=(0:pars.ny-1).*pars.dy; % Meridional distance coordinate (m)
@@ -21,8 +22,8 @@ iOPPF=1;
 scenario = 2;
 [minidx,maxidx] = getScenarioIndex(scenario,N);
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =2;
-DataProjection =2;
+PhysicalProjection =1;
+DataProjection =1;
 tolerance_physical =60; % POD_modes
 tolerance_data =10; % POD_modes
 numModes_physical =60;% DMD_modes, for physical
@@ -35,10 +36,10 @@ model_output = Built_Model(:,(end-1)/4:(end-1)*3/4);
 [Ur_data,p_data,pzeros_data] = Projection_data_type(DataProjection ,numModes_data,tolerance_data,N,model_output,dt);
 
 %% Particle Filter Information
-L=20;%Number of particles
+L=5;%Number of particles
 ResampCutoff = 0.3;
 % Number of computational steps and step size
-ObsMult=1; % Observe and every ObsMult steps
+ObsMult=60; % Observe and every ObsMult steps
 h = dt/ObsMult;
 Numsteps=100;
 NumstepsBig=size(Built_Model,2);
@@ -55,9 +56,9 @@ NumstepsBig=size(Built_Model,2);
 
 %% For PF-OP
 alpha =.99;%alpha value for projected resampling
-epsR = 0.01;
+epsR =1e-2;
 %Model Variance
-epsQ = 1;
+epsQ = 1e-2;
 %Initial condition
 epsIC = 0.01;
 %%
@@ -231,38 +232,38 @@ for i=1:Numsteps
     
     t = t+h;
 end
-% % No_proj=load('No_proj_RMSE.mat');%PF-OP
-% No_proj=load('No_proj_PF.mat');%PF
-% No_proj=load('No_proj_PFOP_1000t.mat');%PF1000 timestep
-% RMSE_no_proj=No_proj.RMSEsave;
-TOLC=ptc12(9);
-figure(3)
-semilogy(Time,RMSEsave,'Color', TOLC(1,:),'LineStyle','-','LineWidth', 2)
-hold on
-semilogy(Time,RMSEsave_proj,'Color', TOLC(2,:),'LineStyle','--','Marker','+','LineWidth', 2)
-% semilogy(Time,RMSE_no_proj,'Color', TOLC(7,:),'LineStyle',':','Marker','.','LineWidth',2)
-semilogy(Time,sqrt(epsR)*ones(size(Time,2),1),'k-.','LineWidth', 2)
-grid on
-xlabel('Time','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
-ylabel('RMSE','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
-% legend('Model Space','Projected Space','No Reduction','Observation Error','Location', 'Best','fontsize',13,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
-set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
-hold off
-
-
-figure(4)
-plot(Time,real(XC_save_ave),'Color', TOLC(1,:),'LineStyle','-','LineWidth', 2)
-grid on
-xlabel('Time','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
-ylabel('Pattern Correlations ','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
-set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
-%%
-figure(4)
-plot(Time,real(ESSsave),'Color', TOLC(1,:),'LineStyle','-','LineWidth', 2)
-grid on
-xlabel('Time','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
-ylabel('Pattern Correlations ','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
-set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
+% % % No_proj=load('No_proj_RMSE.mat');%PF-OP
+% % No_proj=load('No_proj_PF.mat');%PF
+% % No_proj=load('No_proj_PFOP_1000t.mat');%PF1000 timestep
+% % RMSE_no_proj=No_proj.RMSEsave;
+% TOLC=ptc12(9);
+% figure(3)
+% semilogy(Time,RMSEsave,'Color', TOLC(1,:),'LineStyle','-','LineWidth', 2)
+% hold on
+% semilogy(Time,RMSEsave_proj,'Color', TOLC(2,:),'LineStyle','--','Marker','+','LineWidth', 2)
+% % semilogy(Time,RMSE_no_proj,'Color', TOLC(7,:),'LineStyle',':','Marker','.','LineWidth',2)
+% semilogy(Time,sqrt(epsR)*ones(size(Time,2),1),'k-.','LineWidth', 2)
+% grid on
+% xlabel('Time','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+% ylabel('RMSE','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+% % legend('Model Space','Projected Space','No Reduction','Observation Error','Location', 'Best','fontsize',13,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+% set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
+% hold off
+% 
+% 
+% figure(4)
+% plot(Time,real(XC_save_ave),'Color', TOLC(1,:),'LineStyle','-','LineWidth', 2)
+% grid on
+% xlabel('Time','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+% ylabel('Pattern Correlations ','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+% set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
+% %%
+% figure(4)
+% plot(Time,real(ESSsave),'Color', TOLC(1,:),'LineStyle','-','LineWidth', 2)
+% grid on
+% xlabel('Time','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+% ylabel('Pattern Correlations ','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
+% set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
 %%
 RMSEave_orig = RMSEave_orig/Numsteps
 RMSEave_proj = RMSEave_proj/Numsteps

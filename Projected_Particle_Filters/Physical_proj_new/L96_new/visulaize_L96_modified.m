@@ -1,38 +1,26 @@
 close all;clear all;clc;
-% % %% DMD Physical and DMD for data Q=1 R=1e-2
-% % a_1=load('SWEp_ 2 2_ 1_1.000000e-02_   1_2_5.mat');%L=5
-% % a_2=load('SWEp_ 2 2_ 1_1.000000e-02_   1_2_10.mat');%L=10
-% % a_3=load('SWEp_ 2 2_ 1_1.000000e-02_   1_2_20.mat');  %L=20
-% %%
-% a_1=load('SWEp_ 1 1_ 1_1.000000e-02_   1_1_5.mat');%senario=1
-% a_2=load('SWEp_ 1 1_ 1_1.000000e-02_   1_2_5., mat');%senario=2
-% a_3=load('SWEp_ 1 1_ 1_1.000000e-02_   1_3_5.mat');%senario=3
-%% Q=1e-2, POD, inth=1,10,100, L=5
-a_1=load( 'SWEp_ 1 1_1.000000e-02_1.000000e-02_   1_2_5.mat');%inth=1
-a_2=load('SWEp_ 1 1_1.000000e-02_1.000000e-02_  10_2_5.mat');%inth=10
-a_3=load('SWEp_ 1 1_1.000000e-02_1.000000e-02_ 100_2_5.mat');%inth=100
 
-%% Q=1e-1, POD, inth=1,10,100, L=5
-% a_1= load('SWEp_ 1 1_1.000000e-01_1.000000e-02_   1_2_5.mat');%inth=1
-% a_2= load('SWEp_ 1 1_1.000000e-01_1.000000e-02_  10_2_5.mat');%inth=10
-% a_3= load('SWEp_ 1 1_1.000000e-01_1.000000e-02_ 100_2_5.mat');%inth=100
-% 
-% %% Q=1, POD, inth=1,10,100, L=5
-% a_1= load('SWEp_ 1 1_ 1_1.000000e-02_   1_2_5.mat');%inth=1
-% a_2= load('SWEp_ 1 1_ 1_1.000000e-02_  10_2_5.mat');%inth=10
-% a_3=load('SWEp_ 1 1_ 1_1.000000e-02_ 100_2_5.mat');%inth=100
-% %% Q=1e-2,DMD, inth=1,10,100, L=5
-% a_1=load( 'SWEp_ 2 2_1.000000e-02_1.000000e-02_   1_2_5.mat');%inth=1
-% a_2=load('SWEp_ 2 2_1.000000e-02_1.000000e-02_  10_2_5.mat');%inth=10
-% a_3=load('SWEp_ 2 2_1.000000e-02_1.000000e-02_ 100_2_5.mat');%inth=100
-% %% Q=1e-1, DMD, inth=1,10,100, L=5
-% a_1= load('SWEp_ 2 2_1.000000e-01_1.000000e-02_   1_2_5.mat');%inth=1
-% a_2=load('SWEp_ 2 2_1.000000e-01_1.000000e-02_  10_2_5.mat');%inth=10
-% a_3=load('SWEp_ 2 2_1.000000e-01_1.000000e-02_ 100_2_5.mat');%inth=100
-% %% Q=1, DMD, inth=1,10,100, L=5
-% a_1=load('SWEp_ 2 2_ 1_1.000000e-02_   1_2_5.mat');%inth=1
-% a_2=load('SWEp_ 2 2_ 1_1.000000e-02_  10_2_5.mat');%inth=10
-% a_3= load('SWEp_ 2 2_ 1_1.000000e-02_ 100_2_5.mat');%inth=100
+% % Q=1e-2,Q=1e-1,Q=1, POD, N=1000, F=8
+% a_1=load('L968p_ 1 1_1.000000e-02_1.000000e-02_1000.mat');%Q=1e-2
+% a_2=load('L968p_ 1 1_1.000000e-01_1.000000e-02_1000.mat');%Q=1e-1
+% a_3=load('L968p_ 1 1_ 1_1.000000e-02_1000.mat');%Q=1
+
+% %% Q=1e-2,Q=1e-1,Q=1, POD, N=100, F=3.5
+% a_1= load('L963.5p_ 1 1_1.000000e-02_1.000000e-02_ 100.mat');%Q=1e-2
+% a_2= load('L963.5p_ 1 1_1.000000e-01_1.000000e-02_ 100.mat');%Q=1e-1
+% a_3=load( 'L963.5p_ 1 1_ 1_1.000000e-02_ 100.mat');%Q=1
+
+% %% Q=1e-2,Q=1e-1,Q=1, POD, N=200, F=3.5
+% a_1= load('L963.5p_ 1 1_1.000000e-02_1.000000e-02_ 200.mat');%Q=1e-2
+% a_2= load('L963.5p_ 1 1_1.000000e-01_1.000000e-02_ 200.mat');%Q=1e-1
+% a_3= load('L963.5p_ 1 1_ 1_1.000000e-02_ 200.mat');%Q=1
+%  'L963.5p_ 1 1_1.000000e-02_1.000000e-02_ 300.mat'
+%  'L963.5p_ 1 1_1.000000e-01_1.000000e-02_ 300.mat'
+%  'L963.5p_ 1 1_ 1_1.000000e-02_ 300.mat
+ %% Q=1, POD, N=400, F=4, F=6, F=8
+  a_1= load('L964p_ 1 1_ 1_1.000000e-02_ 400.mat');
+  a_2= load('L966p_ 1 1_ 1_1.000000e-02_ 400.mat');
+  a_3= load('L966p_ 1 1_ 1_1.000000e-02_ 400.mat');
 %%
 b_1=a_1.results;
 c_1=a_1.params;
@@ -47,9 +35,9 @@ PhysicalProjection=c_1.PhysicalProjection;
 DataProjection=c_1.DataProjection;
 epsQ=c_1.epsQ;
 epsR=c_1.epsR;
-iOPPF=c_1.iOPPF ;
 numModes=c_1.numModes;
 Num=c_1.Num;
+Mult=c_1.Mult;
 %%
 RMSEsave_1=b_1.RMSEsave;
 RMSEsave_proj_1=b_1.RMSEsave_proj ;
@@ -73,7 +61,7 @@ XCprojsave_3=b_3.XCsave_proj ;
 ESSsave_3=b_3.ESSsave;
 RSpercent_3=b_3.ResampPercent;
 %%
-Mult=100/Num;
+% Mult=200/Num;
 for j=1:Num
     numModes(j)=j*Mult;
     RMSEave_1(j) = mean(RMSEsave_1(:,j));
@@ -115,12 +103,18 @@ hold on
 plot(numModes,real(RMSEave_2),'Color', TOLC(11,:),'LineStyle',':','LineWidth', 1.5)
 plot(numModes,real(RMSEave_3),'Color', TOLC(4,:),'LineStyle','--','LineWidth', 1.5)
 plot(numModes,ObsErr,'k-.','LineWidth', 1.5)
-legend('01','10','100','ObsErr',...
+% legend('$Q = 1e-2$','$Q = 1e-1$','$Q = 1$',...
+%     'interpreter','latex',...
+%     'FontWeight','normal',...
+%     'FontSize',12,...
+%     'FontName','Times',...
+%     'Location','Best')
+% 
+legend('F=4','F=6','F=8',...
     'FontWeight','normal',...
     'FontSize',12,...
     'FontName','Times',...
     'Location','Best')
-% 
 xlabel('Model Dimensions',...
     'FontUnits','points',...
     'FontWeight','normal',...
@@ -142,7 +136,7 @@ set(gca,...
     'FontWeight','normal',...
     'FontSize',14,...
     'FontName','Times')
-xlim([min(numModes) max(numModes)/1.2500])
+xlim([min(numModes) max(numModes)])
 set(gca,...
     'FontUnits','points',...
     'FontWeight','normal',...
@@ -239,7 +233,7 @@ grid on
 hold on
 plot(numModes,RSpercent_2,'Color', TOLC(11,:),'LineStyle',':','LineWidth', 1.5)
 plot(numModes,RSpercent_3,'Color', TOLC(4,:),'LineStyle','--','LineWidth', 1.5)
-xlim([min(numModes) max(numModes)/1.2500])
+xlim([min(numModes) max(numModes)])
 % legend('L=05','L=10','L=20',...
 %     'FontWeight','normal',...
 %     'FontSize',12,...
@@ -250,7 +244,13 @@ xlim([min(numModes) max(numModes)/1.2500])
 %     'FontSize',12,...
 %     'FontName','Times',...
 %     'Location','Best')
-legend('01','10','100',...
+% legend('$Q = 1e-2$','$Q = 1e-1$','$Q = 1$',...
+%     'interpreter','latex',...
+%     'FontWeight','normal',...
+%     'FontSize',12,...
+%     'FontName','Times',...
+%     'Location','Best')
+legend('F=4','F=6','F=8',...
     'FontWeight','normal',...
     'FontSize',12,...
     'FontName','Times',...

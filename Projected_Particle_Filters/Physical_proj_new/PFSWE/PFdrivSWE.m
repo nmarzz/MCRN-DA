@@ -20,7 +20,7 @@ IC = Built_Model(:,1);
 % ylabel('N ')
 %% Type of particle filter
 % Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
-iOPPF=0;
+iOPPF=1;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 PhysicalProjection = 1;

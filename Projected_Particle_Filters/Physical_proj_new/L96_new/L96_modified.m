@@ -1,87 +1,70 @@
 function [Time,RMSEsave, RMSEsave_proj, XC_save_ave, XC_save_proj, ESSsave, ResampPercent]=...
-    PFSWErun(numModes_physical,epsQ, epsR,tolerance_physical,iOPPF,PhysicalProjection,DataProjection,scenario,epsOmega, inth,Numsteps)
-% rng(1330);
-% SWE preamble
-load('SWE_run_4days.mat');
-% dt=dt*60;
-parsanim.H = zeros(pars.nx, pars.ny);
-parsanim.x=(0:pars.nx-1).*pars.dx; % Zonal distance coordinate (m)
-parsanim.y=(0:pars.ny-1).*pars.dy; % Meridional distance coordinate (m)
-F = @(t,x) formod(t,x,dt,pars);
-Built_Model= x_save;
-N =length(Built_Model);
-IC = Built_Model(:,(end-1)/2);
-%% Type of particle filter
-% Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
-% iOPPF=1;
-[minidx,maxidx] = getScenarioIndex(scenario,N);
+    L96_modified(numModes_physical,epsQ, epsR,tolerance_physical,PhysicalProjection,DataProjection,ObsMult,N)
+rng(1331);
+F = @FLor95; %Physical model
+% N =200; % N:Original model dimension
+% Build Model (via ODE45)
+dt=1.E-2; % Model output time step
+ModelSteps = 50000; % Number of time steps in building model
+% ModelSteps = 100000; % Number of time steps in building model
+T=ModelSteps*dt;
+Built_Model= buildModel(N,F,ModelSteps,T);
+Built_Model= Built_Model';
+IC = zeros(N,1);
+IC(1)=1; % Particle ICs
+iOPPF=1;
+
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-% % PhysicalProjection =1;
-% % DataProjection =1;
-% tolerance_physical =10; % POD_modes
+% PhysicalProjection =1;
+% DataProjection =1;
+% tolerance_physical =100; % POD_modes
 tolerance_data =10; % POD_modes
-% numModes_physical =10;% DMD_modes, for physical
+% numModes_physical =60;% DMD_modes, for physical
 numModes_data =10; % DMD_modes, for data
 
-%model_output = Built_Model;
-model_output = Built_Model(:,(end-1)/4:(end-1)*3/4);
+model_output = Built_Model;
+
 [Ur_physical,p_physical,pzeros_physical] = ...
     Projection_physical_type(PhysicalProjection ,numModes_physical,tolerance_physical,N,model_output,dt);
 [Ur_data,p_data,pzeros_data] = Projection_data_type(DataProjection ,numModes_data,tolerance_data,N,model_output,dt);
 
 %% Particle Filter Information
-L=5;%Number of particles
-ResampCutoff = 0.3;
+L=20;%Number of particles
+ResampCutoff = 0.5;
 % Number of computational steps and step size
-ObsMult=60; % Observe and every ObsMult steps
-h = dt/ObsMult;
-% Numsteps=10;
+% ObsMult=5; % % Observe and every ObsMult steps(10 with F=3.5, 5 with F=8)
+h = dt;
 NumstepsBig=size(Built_Model,2);
-% % %% FOR PF
-% %Observation Variance
-% alpha =0.99;%alpha value for projected resampling
-% alph = 0.001;%PF
+Numsteps=T/h;
+alpha=0.99;
+% alph=1e-1;
 % epsR =0.01;
-% epsR = epsR;
-% %Model Variance
 % epsQ = alph;
-% %Initial condition
-% epsIC =0.01 ;
-
-%% For PF-OP
-alpha =.99;%alpha value for projected resampling
-% epsR = 0.01;
-%Model Variance2
-% epsQ = 1;
-%Initial condition
-epsIC = 0.01;
+epsIC =epsQ;
 %%
 % IC Variance
-% epsOmega =0.0000001; %For inth = 1
-% epsOmega =0.001; %For inth = 1000
-% %Observe every inth variable.
-% inth=1000;
-% inth=1;
-%Call Init
-[M,IC,wt,R,Rinv,Q,Omega,ICcov,Lones,Mzeros] = Init_simp(IC,N,inth,L,epsR,epsQ,epsOmega,epsIC,minidx,maxidx);
+epsOmega =1e-2;
+
+inth=1;
+[M,IC,wt,R,Rinv,Q,Omega,ICcov,Lones,Mzeros]  = Init_simp_modified(IC,N,inth,L,epsR,epsQ,epsOmega,epsIC);
 %Add noise N(0,ICcov) to ICs to form different particles
 u = repmat(IC,1,L) + mvnrnd(zeros(1,N),ICcov*ones(1,N),L)'; % Noise for IC
 %% Generate observations from "Truth"
-y=zeros(size(IC(minidx:inth:maxidx),1),NumstepsBig);
+y=zeros(size(IC(1:inth:N),1),NumstepsBig);
 gen_ics = IC;
 t = 0;
 for i = 1:NumstepsBig
     truth(:,i) = gen_ics;
-    gen_ics = formod(t,gen_ics,dt,pars);
+    gen_ics =dp4(F,t,gen_ics,h);
     if mod(i,ObsMult) == 0
-        y(:,i) = truth(minidx:inth:maxidx,i);
+        y(:,i) = truth(1:inth:N,i);
     end
     t = t + h;
 end
 y = y + mvnrnd(Mzeros',R*ones(1,M),NumstepsBig)'; % Add noise to observations
 %% Get projection matrices
-[V] =projectionToggle_Physical(PhysicalProjection,Ur_physical,p_physical);
-[U] =projectionToggle_data(DataProjection,Ur_data,p_data);
+[V] =projectionToggle_Physical(PhysicalProjection,N,Ur_physical,p_physical);
+[U] =projectionToggle_data(DataProjection,N,Ur_data,p_data);
 Rfixed = R;
 %%
 
@@ -101,14 +84,11 @@ Qnew=Q;
 x=V'*u;
 
 %Added by EVV
-HV=Hx(V,inth,minidx,maxidx);  % with our assumptions left multipling
-UPinvH=Hx(U,inth,minidx,maxidx)';
+HV=Hx(V,inth,1,N);  % with our assumptions left multipling
+UPinvH=Hx(U,inth,1,N)';
 
 Qpfixed = inv(inv(Qnew)+HV'*inv(Rfixed)*HV);
 QpHRinv = Qpfixed*HV'*inv(Rfixed);
-% diff_plot=[];
-% diff_proj_plot=[];
-% XC_save=[];
 for i=1:Numsteps
     t;
     if mod(i,ObsMult)==0
@@ -175,12 +155,8 @@ for i=1:Numsteps
     
     % Estimate the truth
     estimate(:,i) = x*wt;
-    
+    x = V'*dp4(F,t,V*x,h);
     % Get projection of the Data Model
-    for k = 1:size(x,2) % formod isn't vectorized
-        % propogate particles
-        x(:,k) = V'*formod(t,V*x(:,k),dt,pars);
-    end
     % Compare estimate and truth
     diff_orig= truth(:,i) - (V*estimate(:,i));
     diff_proj= V*(V'* truth(:,i) - estimate(:,i));
@@ -195,12 +171,6 @@ for i=1:Numsteps
     Ensbar = mean(V*estimate(:,i));
     Trubar = mean( truth(:,i));
     XCproj= (V*estimate(:,i)-Ensbar)'*(truth(:,i)-Trubar)/(norm(V*estimate(:,i)-Ensbar,2)*norm( truth(:,i)-Trubar,2));
-    
-    %     xbar=V*estimate(:,i);
-    %     truth_common=V*V'*truth(:,i);
-    %     Ensbar = mean(xbar);
-    %     Trubar = mean(truth_common);
-    %     XCproj = (xbar-Ensbar)'*(truth_common-Trubar)/(norm(xbar-Ensbar,2)*norm(truth_common-Trubar));
     RMSEave_orig = RMSEave_orig + RMSE_orig;
     RMSEave_proj = RMSEave_proj + RMSE_proj;
     
@@ -218,6 +188,6 @@ for i=1:Numsteps
     t = t+h;
 end
 
-RMSEave_orig = RMSEave_orig/Numsteps
-RMSEave_proj = RMSEave_proj/Numsteps
-ResampPercent = ObsMult*Resamps/Numsteps*100
+RMSEave_orig = RMSEave_orig/Numsteps;
+RMSEave_proj = RMSEave_proj/Numsteps;
+ResampPercent = ObsMult*Resamps/Numsteps*100;
