@@ -3,7 +3,6 @@ function [Time,RMSEsave, RMSEsave_proj, XC_save_ave, XC_save_proj, ESSsave, Resa
 % rng(1330);
 % SWE preamble
 load('SWE_run_4days.mat');
-% dt=dt*60;
 parsanim.H = zeros(pars.nx, pars.ny);
 parsanim.x=(0:pars.nx-1).*pars.dx; % Zonal distance coordinate (m)
 parsanim.y=(0:pars.ny-1).*pars.dy; % Meridional distance coordinate (m)

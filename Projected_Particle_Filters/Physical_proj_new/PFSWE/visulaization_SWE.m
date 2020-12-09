@@ -31,7 +31,7 @@ epsOmega=c.epsOmega;
 iOPPF=c.iOPPF ;
 numModes=c.numModes;
 Num=c.Num;
-
+Mult=c.Mult;
 %%
 RMSEsave=b.RMSEsave;
 RMSEsave_proj=b.RMSEsave_proj ;
@@ -41,7 +41,7 @@ ESSsave=b.ESSsave;
 RSpercent=b.ResampPercent;
 Time=b.Time;
 %%
-Mult=100/Num;
+
 for j=1:Num
     numModes(j)=j*Mult;
     RMSEave(j) = mean(RMSEsave(:,j));

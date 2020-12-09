@@ -18,9 +18,9 @@ iOPPF=1;
 % PhysicalProjection =1;
 % DataProjection =1;
 % tolerance_physical =100; % POD_modes
-tolerance_data =10; % POD_modes
+tolerance_data =5; % POD_modes
 % numModes_physical =60;% DMD_modes, for physical
-numModes_data =10; % DMD_modes, for data
+numModes_data =5; % DMD_modes, for data
 
 model_output = Built_Model;
 
@@ -112,7 +112,7 @@ for i=1:Numsteps
             Innov1=repmat(y(:,i),1,L)-HV*x;
             if PhysicalProjection == 0
                 [sizepzp,~] = size(pzeros_physical);
-                x = x + QpHRinv*Innov1 + mvnrnd(pzeros_physical',Qpfixed*ones(1,sizepzp),L)';
+                x = x + QpHRinv*Innov1 + mvnrnd(pzeros_physical',Qpfixed,L)';
             else
                 x = x + QpHRinv*Innov1 + mvnrnd(pzeros_physical,Qpfixed,L)';
             end

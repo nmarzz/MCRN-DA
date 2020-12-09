@@ -9,8 +9,13 @@ Mult=N/Num;
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 PhysicalProjection =2;
 DataProjection =2 ;
-
 for j=1:Num
+    numModes_physical=j*Mult;%DMD
+    tolerance_physical=j*Mult;%POD
+    [Time(:,j),RMSEsave(:,j), RMSEsave_proj(:,j), XCsave(:,j), XCprojsave(:,j), ESSsave(:,j), ResampPercent(:,j)]= L96_modified...
+        (numModes_physical,epsQ, epsR,tolerance_physical,PhysicalProjection,DataProjection,ObsMult,N);
+end
+for j=Num
     numModes_physical=j*Mult;%DMD
     tolerance_physical=j*Mult;%POD
     if numModes_physical==N
@@ -20,7 +25,6 @@ for j=1:Num
         (numModes_physical,epsQ, epsR,tolerance_physical,PhysicalProjection,DataProjection,ObsMult,N);
 end
 %% Save to mat file
-PhysicalProjection=2;
 filename = sprintf('L968p_%2d%2d_%2d_%2d_%4d.mat',PhysicalProjection,DataProjection,epsQ,epsR,N)
 params.PhysicalProjection = PhysicalProjection;
 params.DataProjection = DataProjection;

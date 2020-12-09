@@ -34,10 +34,10 @@ alpha=0.99;%alpha value for projected resampling
 ResampCutoff=0.5;
 
 % Number of computational steps and step size
-h=1.E-2;
+h = dt;
 Numsteps=T/h;
 
-ObsMult=10; % Observe and every ObsMult steps(10 with F=3.5, 5 with F=8)
+ObsMult=5; % Observe and every ObsMult steps(10 with F=3.5, 5 with F=8)
 
 %Observation Variance
 epsOmega =1e-2;

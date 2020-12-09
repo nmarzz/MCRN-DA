@@ -16,7 +16,7 @@ elseif DataProjection == 2
     r=numModes;
     VALUE=true;
     M = mean(DataMatrix, 2); % 2 = mean across columns
-    stepVALUE=-1;
+    stepVALUE=[1 10 30 60 90 120];
     out1 = dmd( DataMatrix, dt, r, 'removemean', VALUE,'step',stepVALUE,'sortbyb', VALUE);
 %     out1 = dmd( DataMatrix, dt, r,'sortbyb', VALUE);
     bM = norm(M);
