@@ -24,9 +24,9 @@ scenario = 2;
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 PhysicalProjection =1;
 DataProjection =1;
-tolerance_physical =60; % POD_modes
+tolerance_physical =10; % POD_modes
 tolerance_data =10; % POD_modes
-numModes_physical =60;% DMD_modes, for physical
+numModes_physical =10;% DMD_modes, for physical
 numModes_data =10; % DMD_modes, for data
 
 %model_output = Built_Model;
@@ -58,7 +58,7 @@ NumstepsBig=size(Built_Model,2);
 alpha =.99;%alpha value for projected resampling
 epsR =1e-2;
 %Model Variance
-epsQ = 1e-2;
+epsQ = 1E-1;
 %Initial condition
 epsIC = 0.01;
 %%
@@ -67,7 +67,7 @@ epsOmega =0.0000001; %For inth = 1
 % epsOmega =0.001; %For inth = 1000
 %Observe every inth variable.
 % inth=1000;
-inth=1;
+inth=100;
 %Call Init
 [M,IC,wt,R,Rinv,Q,Omega,ICcov,Lones,Mzeros] = Init_simp(IC,N,inth,L,epsR,epsQ,epsOmega,epsIC,minidx,maxidx);
 %Add noise N(0,ICcov) to ICs to form different particles
@@ -112,11 +112,13 @@ UPinvH=Hx(U,inth,minidx,maxidx)';
 
 Qpfixed = inv(inv(Qnew)+HV'*inv(Rfixed)*HV);
 QpHRinv = Qpfixed*HV'*inv(Rfixed);
-% diff_plot=[];
+ diff_plot=[];
 % diff_proj_plot=[];
 % XC_save=[];
+ ess=[];
 for i=1:Numsteps
-    t
+    
+%     t
     %[U] = projectionToggle_data(DataProjection,Ur_data,p_data);
     if mod(i,ObsMult)==0
         %At observation times, Update particles and weights via likelihood, add noise
@@ -190,7 +192,10 @@ for i=1:Numsteps
         x(:,k) = V'*formod(t,V*x(:,k),dt,pars);
     end
     % Compare estimate and truth
+%     true(:,i)=truth(:,i);
+    ess(:,i)=V*estimate(:,i);
     diff_orig= truth(:,i) - (V*estimate(:,i));
+    diff_plot(:,i)= truth(:,i) - (V*estimate(:,i));
     diff_proj= V*(V'* truth(:,i) - estimate(:,i));
     RMSE_orig = sqrt(diff_orig'*diff_orig/N)
     RMSE_proj = sqrt(diff_proj'*diff_proj/N)
@@ -269,3 +274,4 @@ RMSEave_orig = RMSEave_orig/Numsteps
 RMSEave_proj = RMSEave_proj/Numsteps
 % RMSEave_relRMSE=RMSEave_relRMSE/Numsteps;
 ResampPercent = ObsMult*Resamps/Numsteps*100
+% save('SWE_POD.mat','ess','truth','diff_plot')

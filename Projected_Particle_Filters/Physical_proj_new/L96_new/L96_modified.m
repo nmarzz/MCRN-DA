@@ -20,7 +20,7 @@ iOPPF=1;
 % tolerance_physical =100; % POD_modes
 tolerance_data =5; % POD_modes
 % numModes_physical =60;% DMD_modes, for physical
-numModes_data =5; % DMD_modes, for data
+numModes_data =6; % DMD_modes, for data
 
 model_output = Built_Model;
 

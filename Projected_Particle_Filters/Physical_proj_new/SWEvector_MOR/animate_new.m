@@ -2,24 +2,23 @@
 % a shallow water model. It should be called only after shallow_water_model
 % has been run.
 clear all; close all; clc;
-% load('SWE.mat')
-% % clear all; close all; clc;
-% load('SWE_run_4days.mat');
-% modeloutput= x_save;
+load('SWE_run_4days.mat');
+modeloutput= x_save;
 %% POD
 % load('SWE_POD_r2.mat')
 % load('SWE_POD_r10.mat')
-load('SWE_POD_r30_new.mat')
-modeloutput=modeloutput_truncated;
+% load('SWE_POD_r30_new.mat')
+% a=load('SWE_POD.mat');
+% modeloutput=a.ess;
 %% DMD
 % load('SWE_DMD_r2.mat')
 % load('SWE_DMD_r10.mat')
 % load('SWE_DMD_r20.mat')
 % modeloutput=X_dmd;
 
-L=length(t_save);%number of snapshots
-m=length(y);%y-dimension
-n=length(x);%x-dimension
+L=length(modeloutput(1,:));%number of snapshots
+m=50;%y-dimension
+n=254;%x-dimension
 N_gridpoints=m*n;%each snapshot has x*y-dimensions
 
 u=modeloutput(1:N_gridpoints,:);v=modeloutput(N_gridpoints+1:N_gridpoints*2,:);h=modeloutput((N_gridpoints*2)+1:end,:);
@@ -57,17 +56,17 @@ plot_frames = false;
 % Decide whether to show height in metres or km
 if mean(plot_height_range) > 1000
     height_scale = 0.001;
-    height_title = 'POD(r=30)';
+    height_title = 'Height (h), Truth';
 else
     height_scale = 1;
-    height_title = 'POD(r=30)';
+    height_title = 'Height (h), Truth';
 end
 
 disp(['Maximum orography height = ' num2str(max(H(:))) ' m']);
 
 % Loop through the frames of the animation
-filename = 'testnew51.gif';
-for it =1:60: L
+% filename = 'testnew51.gif';
+for it =1:60:48
     clf
     
     % Extract the height and velocity components for this frame
@@ -89,24 +88,37 @@ for it =1:60: L
     warning off
     contour(x_1000km, y_1000km, H',[1:1000:8001],'k');
     warning on
-    
-    % Plot the velocity vectors
-    quiver(x_1000km(3:interval:end), y_1000km(3:interval:end), ...
-        u(3:interval:end, 3:interval:end)',...
-        v(3:interval:end, 3:interval:end)','k');
+%     
+%     % Plot the velocity vectors
+%     quiver(x_1000km(3:interval:end), y_1000km(3:interval:end), ...
+%         u(3:interval:end, 3:interval:end)',...
+%         v(3:interval:end, 3:interval:end)','k');
     
     % Write the axis labels, title and time of the frame
-%     xlabel('X distance (1000s of km)');
-%     ylabel('Y distance (1000s of km)');
-    title(['\bf' height_title]);
+    xlabel('x '  ,'FontUnits','points',...
+    'FontWeight','normal',...
+    'FontSize',14,...
+    'FontName','Times');
+    ylabel('y ', 'FontUnits','points',...
+    'FontWeight','normal',...
+    'FontSize',14,...
+    'FontName','Times');
+    title([ height_title],'FontUnits','points',...
+    'FontWeight','normal',...
+    'FontSize',14,...
+    'FontName','Times');
 %     text(0, max(y_1000km), ['Time = ' num2str(t_save(it)./3600) ' hours'],...
 %         'verticalalignment','bottom','fontsize',12);
     
     % Set other axes properties and plot a colorbar
-    daspect([1 0.5 1]);
+    daspect([1 1 1]);
     axis([0 max(x_1000km) 0 max(y_1000km)]);
     colorbar
-    
+    set(gca,...
+    'FontUnits','points',...
+    'FontWeight','normal',...
+    'FontSize',14,...
+    'FontName','Times')
     %   % Compute the vorticity
     %   vorticity = zeros(size(u));
     %   vorticity(2:end-1,2:end-1) = (1/dy).*(u(2:end-1,1:end-2)-u(2:end-1,3:end)) ...
@@ -130,9 +142,9 @@ for it =1:60: L
     %     colorbar
     
     % Now render this frame
-    warning off
-    drawnow
-    warning on
+%     warning off
+%     drawnow
+%     warning on
     
     % To make an animation we can save the frames as a
     % sequence of images
@@ -140,16 +152,16 @@ for it =1:60: L
 %             imwrite(frame2im(getframe(gcf)),...
 %                 ['frame' num2str(it,'%03d') '.png']);
 %         end
-    pause(1)
-    frame = getframe(gcf);
-    im = frame2im(frame);
-    [imind,cm] = rgb2ind(im,256);
-    % Write to the GIF File
-    if it == 1
-        imwrite(imind,cm,filename,'gif', 'Loopcount',inf,'DelayTime',1);
-    else
-        imwrite(imind,cm,filename,'gif','WriteMode','append');
-    end
+%     pause(1)
+%     frame = getframe(gcf);
+%     im = frame2im(frame);
+%     [imind,cm] = rgb2ind(im,256);
+%     % Write to the GIF File
+%     if it == 1
+%         imwrite(imind,cm,filename,'gif', 'Loopcount',inf,'DelayTime',1);
+%     else
+%         imwrite(imind,cm,filename,'gif','WriteMode','append');
+%     end
 end
 
 % % Axis units are thousands of kilometers (x and y are in metres)

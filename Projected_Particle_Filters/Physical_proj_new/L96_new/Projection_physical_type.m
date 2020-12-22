@@ -13,11 +13,13 @@ elseif PhysicalProjection == 1
 elseif PhysicalProjection == 2
     %DMD
     DataMatrix=Built_Model;%snapshot matrix
-    r=numModes;
-    VALUE=true;
+    Nsteps = size(DataMatrix, 2); % number of columns
+    stepVALUE = round( linspace(1, Nsteps, 5) ); % steps at which b coefficients will be computed
+    VALUEmean=true;
+    VALUEsortbyb=true;
     M = mean(DataMatrix, 2); % 2 = mean across columns
-    stepVALUE=[1 10 30 60 90 120];
-    out1 = dmd( DataMatrix, dt, r, 'removemean', VALUE,'step',stepVALUE,'sortbyb', VALUE);
+    r=numModes;
+    out1 = dmd( DataMatrix, dt, r-1, 'removemean', VALUEmean,'step',stepVALUE,'sortbyb', VALUEsortbyb);
 % %     out = dmd( DataMatrix, dt, r);
     bM = norm(M);
     Mnormalized = M/bM;

@@ -3,14 +3,14 @@ close all; clear;clc;
 %Runs
 epsOmega =0.0000001; %For inth = 1
 %Observe every inth variable.
-inth=1;
 Numsteps=100;
 %Q=1E-2, R=1E-2
-epsQ=1;
+inth=10;
+epsQ=1E-1;
 epsR=1E-2;
 Num=10;
 Mult=100/Num;
-
+L=05;
 %% Type of particle filter
 % Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
 iOPPF=1;
@@ -21,14 +21,17 @@ DataProjection =2 ;
 % scenario 1: observe inth u and v's
 % scenario 2: observe inth everything
 % scenario 3: observe inth h
-scenario =1 ;
+scenario =2 ;
+Num_trails=10;
 for j=1:Num
-    numModes_physical=j*Mult;%DMD
+    for k=1:Num_trails
+    numModes_physical=j*Mult+1;%DMD
     tolerance_physical=j*Mult;%POD
-    [Time(:,j),RMSEsave(:,j), RMSEsave_proj(:,j), XCsave(:,j), XCprojsave(:,j), ESSsave(:,j), ResampPercent(:,j)]=PFSWErun...
-        (numModes_physical,epsQ,epsR,tolerance_physical,iOPPF,PhysicalProjection,DataProjection,scenario,epsOmega, inth,Numsteps);
+    [Time(:,j,k),RMSEsave(:,j,k), RMSEsave_proj(:,j,k), XCsave(:,j,k), XCprojsave(:,j,k), ESSsave(:,j,k), ResampPercent(:,j,k)]=PFSWErun...
+   (numModes_physical,epsQ,epsR,tolerance_physical,iOPPF,PhysicalProjection,DataProjection,scenario,epsOmega, inth,Numsteps,L);
+    end
 end
-L=5;
+
 % % %% Save to mat file
 filename = sprintf('SWEp_%2d%2d_%2d_%2d_%4d_%d_%d.mat',PhysicalProjection,DataProjection,epsQ,epsR,inth,scenario,L)
 params.PhysicalProjection = PhysicalProjection;
@@ -36,7 +39,6 @@ params.DataProjection = DataProjection;
 params.epsQ = epsQ;
 params.epsR=epsR;
 params.iOPPF = iOPPF;
-% params.ObsErr=ObsErr;
 params.numModes=numModes_physical;
 params.Num=Num;
 params.Mult=Mult;

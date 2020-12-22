@@ -1,6 +1,5 @@
 function [Time,RMSEsave, RMSEsave_proj, XC_save_ave, XC_save_proj, ESSsave, ResampPercent]=...
-    PFSWErun(numModes_physical,epsQ, epsR,tolerance_physical,iOPPF,PhysicalProjection,DataProjection,scenario,epsOmega, inth,Numsteps)
-% rng(1330);
+    PFSWErun(numModes_physical,epsQ, epsR, tolerance_physical ,iOPPF,PhysicalProjection,DataProjection,scenario,epsOmega, inth,Numsteps,L)
 % SWE preamble
 load('SWE_run_4days.mat');
 parsanim.H = zeros(pars.nx, pars.ny);
@@ -17,10 +16,10 @@ IC = Built_Model(:,(end-1)/2);
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 % % PhysicalProjection =1;
 % % DataProjection =1;
-% tolerance_physical =10; % POD_modes
-tolerance_data =10; % POD_modes
-% numModes_physical =10;% DMD_modes, for physical
-numModes_data =10; % DMD_modes, for data
+% tolerance_physical =40; % POD_modes
+tolerance_data =11; % POD_modes
+% numModes_physical =40;% DMD_modes, for physical
+numModes_data =11; % DMD_modes, for data
 
 %model_output = Built_Model;
 model_output = Built_Model(:,(end-1)/4:(end-1)*3/4);
@@ -29,7 +28,7 @@ model_output = Built_Model(:,(end-1)/4:(end-1)*3/4);
 [Ur_data,p_data,pzeros_data] = Projection_data_type(DataProjection ,numModes_data,tolerance_data,N,model_output,dt);
 
 %% Particle Filter Information
-L=5;%Number of particles
+% L=5;%Number of particles
 ResampCutoff = 0.3;
 % Number of computational steps and step size
 ObsMult=60; % Observe and every ObsMult steps
@@ -184,7 +183,8 @@ for i=1:Numsteps
     diff_orig= truth(:,i) - (V*estimate(:,i));
     diff_proj= V*(V'* truth(:,i) - estimate(:,i));
     RMSE_orig = sqrt(diff_orig'*diff_orig/N);
-    RMSE_proj = sqrt(diff_proj'*diff_proj/N);
+    Nq=size(V,2);
+    RMSE_proj = sqrt(diff_proj'*diff_proj/Nq);
     xbar=V*estimate(:,i);
     truth_common=truth(:,i);
     Ensbar = mean(xbar);

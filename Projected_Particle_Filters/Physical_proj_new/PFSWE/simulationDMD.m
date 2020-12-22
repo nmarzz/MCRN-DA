@@ -11,23 +11,22 @@ if exist(filename,'file') % if file exists, load out1
     disp("Loaded from "+filename);
 else
     DataMatrix=Built_Model;%snapshot matrix
+    Nsteps = size(DataMatrix, 2); % number of columns
     r=numModes;
     VALUE=true;
     M = mean(DataMatrix, 2); % 2 = mean across columns
-    stepVALUE=[1 10 30 60 90 120];
+    stepVALUE = round( linspace(1, Nsteps, 5) ); % steps at which b coefficients will be computed
+    %stepVALUE=[1 100 200 300 500];
 %     out1 = dmd( DataMatrix, dt, r, 'removemean', VALUE, 'sortbyb', VALUE);
-    out1 = dmd( DataMatrix, dt, r, 'removemean', VALUE,'step',stepVALUE,'sortbyb', VALUE);
+    out1 = dmd( DataMatrix, dt, r-1, 'removemean', VALUE,'step',stepVALUE,'sortbyb', VALUE);
     bM = norm(M);
     Mnormalized = M/bM;
     % manually adding the mean value of data back among the modes
     out1.Phi = [Mnormalized(:), out1.Phi];
     out1.b = [bM; out1.b];
-    %out1.b = [bb, out1.b];
-    %mego= out1.omega+0;
     out1.omega = [0; out1.omega];
     out1.lambda = [1; out1.lambda];
-    %   
-    % out = dmd( DataMatrix, dt, r, 'step', VALUE)
+
     disp('Yep, simulating-DMD hard!');
     save(filename,'out1') % store into filename our output variables
     disp("Saved to "+filename);

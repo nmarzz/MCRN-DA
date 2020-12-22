@@ -17,11 +17,8 @@ IC =Built_Model(:,1);
 iOPPF=0;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-<<<<<<< Updated upstream
 PhysicalProjection = 1;
-=======
 PhysicalProjection =1;
->>>>>>> Stashed changes
 DataProjection = 0;
 tolerance_physical = 50; % POD_modes
 tolerance_data = 20; % POD_modes

@@ -7,9 +7,9 @@ DataProjection=3;
 inth = 1;
 iOPPF = 1;
 %Q=1E-2, R=1E-2
-epsQ=1E-1;
+epsQ=1;
 epsR=1e-2;
-Num=8;
+Num=40;
 N=40;
 Mult=N/Num;
 for j=1:Num
@@ -25,7 +25,7 @@ end
 %change this value with every run
 PhysicalProjection =3;
 % to save the file
-filename = sprintf('L98_%2d%2d_%2d_%2d_%2d_%2d.mat',PhysicalProjection,DataProjection,epsQ,epsR,iOPPF,N)
+filename = sprintf('L98new_%2d%2d_%2d_%2d_%2d_%2d.mat',PhysicalProjection,DataProjection,epsQ,epsR,iOPPF,N)
 params.PhysicalProjection = PhysicalProjection;
 params.DataProjection = DataProjection;
 params.epsQ = epsQ;

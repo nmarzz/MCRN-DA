@@ -6,7 +6,7 @@ F = 8;
 % F=3.5;
 %  F=4;
 % F=6;
-% F=3;
+% % F=3;
 DIM = size(x,1);
 
 dx = zeros(DIM,1);
