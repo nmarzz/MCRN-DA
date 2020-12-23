@@ -17,7 +17,7 @@ IC = Built_Model(:,(end-1)/2);
 % % PhysicalProjection =1;
 % % DataProjection =1;
 % tolerance_physical =40; % POD_modes
-tolerance_data =11; % POD_modes
+tolerance_data =10; % POD_modes
 % numModes_physical =40;% DMD_modes, for physical
 numModes_data =11; % DMD_modes, for data
 
