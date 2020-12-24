@@ -1,6 +1,6 @@
 function [Time,RMSEsave, RMSEsave_proj, XC_save_ave, XC_save_proj, ESSsave, ResampPercent]=...
     L96_modified(numModes_physical,epsQ, epsR,tolerance_physical,PhysicalProjection,DataProjection,ObsMult,N)
-rng(1331);
+% rng(1331);
 F = @FLor95; %Physical model
 % N =200; % N:Original model dimension
 % Build Model (via ODE45)
@@ -17,9 +17,9 @@ iOPPF=1;
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 % PhysicalProjection =1;
 % DataProjection =1;
-% tolerance_physical =100; % POD_modes
+% tolerance_physical =5; % POD_modes
 tolerance_data =5; % POD_modes
-% numModes_physical =60;% DMD_modes, for physical
+% numModes_physical =6;% DMD_modes, for physical
 numModes_data =6; % DMD_modes, for data
 
 model_output = Built_Model;
@@ -160,8 +160,9 @@ for i=1:Numsteps
     % Compare estimate and truth
     diff_orig= truth(:,i) - (V*estimate(:,i));
     diff_proj= V*(V'* truth(:,i) - estimate(:,i));
+    Nq=size(V,2);
     RMSE_orig = sqrt(diff_orig'*diff_orig/N);
-    RMSE_proj = sqrt(diff_proj'*diff_proj/N);
+    RMSE_proj = sqrt(diff_proj'*diff_proj/Nq);
     xbar=V*estimate(:,i);
     truth_common=truth(:,i);
     Ensbar = mean(xbar);
@@ -189,5 +190,5 @@ for i=1:Numsteps
 end
 
 RMSEave_orig = RMSEave_orig/Numsteps;
-RMSEave_proj = RMSEave_proj/Numsteps;
-ResampPercent = ObsMult*Resamps/Numsteps*100;
+RMSEave_proj = RMSEave_proj/Numsteps
+ResampPercent = ObsMult*Resamps/Numsteps*100

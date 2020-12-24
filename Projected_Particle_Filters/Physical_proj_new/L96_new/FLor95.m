@@ -4,7 +4,7 @@ function dx = FLor95(T, x)
 % F = 8, DIM=40
 F = 8;
 % F=3.5;
-%  F=4;
+% F=4;
 % F=6;
 % % F=3;
 DIM = size(x,1);

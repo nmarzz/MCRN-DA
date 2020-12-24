@@ -10,13 +10,13 @@ epsQ=1E-1; %Run for epsQ=1
 epsR=1E-2;
 Num=10;
 Mult=100/Num;
-L=05;
+L=20;
 %% Type of particle filter
 % Use of standard PF or OP-PF (iOPPF=0 => standard PF, iOPPF=1 => OP-PF)
 iOPPF=1;
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =1;
-DataProjection =1 ;
+PhysicalProjection =2;
+DataProjection =2 ;
 % Observed variables scenario following Paulina et al.
 % scenario 1: observe inth u and v's
 % scenario 2: observe inth everything
