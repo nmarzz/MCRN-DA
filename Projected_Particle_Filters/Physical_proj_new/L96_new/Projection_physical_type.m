@@ -7,29 +7,17 @@ if PhysicalProjection == 0
     Nzeros=zeros(Model_Dimension,1);
 elseif PhysicalProjection == 1
     %POD
-    Ur_physical= buildPOD(tolerance,Built_Model);
+    [Ur_physical,filename] = simulationPOD(tolerance,Built_Model);
+    %     Ur_physical= buildPOD(tolerance,Built_Model);
     p = size(Ur_physical,2);
     Nzeros=zeros(p,1);
 elseif PhysicalProjection == 2
     %DMD
-    DataMatrix=Built_Model;%snapshot matrix
-    Nsteps = size(DataMatrix, 2); % number of columns
-    stepVALUE = round( linspace(1, Nsteps, 5) ); % steps at which b coefficients will be computed
-    VALUEmean=true;
-    VALUEsortbyb=true;
-    M = mean(DataMatrix, 2); % 2 = mean across columns
-    r=numModes;
-    out1 = dmd( DataMatrix, dt, r-1, 'removemean', VALUEmean,'step',stepVALUE,'sortbyb', VALUEsortbyb);
-% %     out = dmd( DataMatrix, dt, r);
-    bM = norm(M);
-    Mnormalized = M/bM;
-    % manually adding the mean value of data back among the modes
-    out1.Phi = [Mnormalized(:), out1.Phi];
-    out1.b = [bM; out1.b];
-    out1.omega = [0; out1.omega];
-    out1.lambda = [1; out1.lambda];
+    %numModes=300;  % number of DMD_modes you want to use
+    [out,filename_1] =simulationDMD(numModes,Built_Model,dt);
+    %     Ur_data=out1.Phi;
+    Ur_physical=out.Phi;
     
-    Ur_physical=out1.Phi;
     p = size(Ur_physical,2);
     Nzeros=zeros(p,1);
     

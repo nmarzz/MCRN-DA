@@ -2,10 +2,10 @@ function dx = FLor95(T, x)
 % Evaluates the right hand side of the Lorenz '96 system
 % \frac{dx_i}{dt} = -x_{i-2}x_{i-1} + x_{i-1}x_{i+1} - x_i + F
 % F = 8, DIM=40
-F = 8;
+% F = 8;
 % F=3.5;
 % F=4;
-% F=6;
+F=6;
 % % F=3;
 DIM = size(x,1);
 

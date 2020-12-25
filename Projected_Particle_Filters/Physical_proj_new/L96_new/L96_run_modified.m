@@ -2,7 +2,7 @@ close all; clear;clc;
 ObsMult=5; % % Observe and every ObsMult steps(10 with F=3.5, 5 with F=8)
 epsQ=1E-1;
 epsR=1E-2;
-N=40;
+N=400;
 Num=40;
 Mult=N/Num;
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
@@ -23,7 +23,7 @@ for j=1:Num
 end
 %% Save to mat file
 PhysicalProjection=1;
-filename = sprintf('L968_%2d%2d_%2d_%2d_%4d.mat',PhysicalProjection,DataProjection,epsQ,epsR,N)
+filename = sprintf('L966_%2d%2d_%2d_%2d_%4d.mat',PhysicalProjection,DataProjection,epsQ,epsR,N)
 params.PhysicalProjection = PhysicalProjection;
 params.DataProjection = DataProjection;
 params.epsQ = epsQ;
