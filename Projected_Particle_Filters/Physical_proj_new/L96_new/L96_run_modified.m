@@ -6,8 +6,8 @@ N=400;
 Num=40;
 Mult=N/Num;
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =1;
-DataProjection =1 ;
+PhysicalProjection =2;
+DataProjection =2 ;
 Num_trials=10;
 for j=1:Num
     for k=1:Num_trials
@@ -23,7 +23,7 @@ for j=1:Num
 end
 %% Save to mat file
 PhysicalProjection=1;
-filename = sprintf('L966_%2d%2d_%2d_%2d_%4d.mat',PhysicalProjection,DataProjection,epsQ,epsR,N)
+filename = sprintf('L968_%2d%2d_%2d_%2d_%4d.mat',PhysicalProjection,DataProjection,epsQ,epsR,N)
 params.PhysicalProjection = PhysicalProjection;
 params.DataProjection = DataProjection;
 params.epsQ = epsQ;

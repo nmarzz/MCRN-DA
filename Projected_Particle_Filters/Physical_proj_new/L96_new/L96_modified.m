@@ -189,6 +189,6 @@ for i=1:Numsteps
     t = t+h;
 end
 
-RMSEave_orig = RMSEave_orig/Numsteps
+RMSEave_orig = RMSEave_orig/Numsteps;
 RMSEave_proj = RMSEave_proj/Numsteps;
 ResampPercent = ObsMult*Resamps/Numsteps*100;
