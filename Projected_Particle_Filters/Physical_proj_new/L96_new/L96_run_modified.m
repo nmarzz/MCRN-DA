@@ -1,6 +1,6 @@
 close all; clear;clc;
 ObsMult=5; % % Observe and every ObsMult steps(10 with F=3.5, 5 with F=8)
-epsQ=1E-1;
+epsQ=1;
 epsR=1E-2;
 N=400;
 Num=40;
@@ -17,7 +17,7 @@ for j=1:Num
         if nummodes==N
             PhysicalProjection=0;
         end
-        [Time(:,j,k),RMSEsave(:,j,k), RMSEsave_proj(:,j,k), XCsave(:,j,k), XCprojsave(:,j,k), ESSsave(:,j,k), ResampPercent(:,j,k)]= L96_modified...
+        [Time(:,j,k),RMSEsave(:,j,k), RMSEsave_proj(:,j,k), ResampPercent(:,j,k)]= L96_modified...
             (numModes_physical,epsQ, epsR,tolerance_physical,PhysicalProjection,DataProjection,ObsMult,N);
     end
 end
