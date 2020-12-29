@@ -14,14 +14,9 @@ IC = Built_Model(:,(end-1)/2);
 % iOPPF=1;
 [minidx,maxidx] = getScenarioIndex(scenario,N);
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-% % PhysicalProjection =1;
-% % DataProjection =1;
-% tolerance_physical =40; % POD_modes
 tolerance_data =10; % POD_modes
-% numModes_physical =40;% DMD_modes, for physical
 numModes_data =11; % DMD_modes, for data
 
-%model_output = Built_Model;
 model_output = Built_Model(:,(end-1)/2:(end-1)*3/4);
 [Ur_physical,p_physical,pzeros_physical] = ...
     Projection_physical_type(PhysicalProjection ,numModes_physical,tolerance_physical,N,model_output,dt);
@@ -35,31 +30,12 @@ ObsMult=60; % Observe and every ObsMult steps
 h = dt/ObsMult;
 % Numsteps=10;
 NumstepsBig=size(Built_Model,2);
-% % %% FOR PF
-% %Observation Variance
-% alpha =0.99;%alpha value for projected resampling
-% alph = 0.001;%PF
-% epsR =0.01;
-% epsR = epsR;
-% %Model Variance
-% epsQ = alph;
-% %Initial condition
-% epsIC =0.01 ;
+
 
 %% For PF-OP
 alpha =.99;%alpha value for projected resampling
-% epsR = 0.01;
-%Model Variance2
-% epsQ = 1;
-%Initial condition
-epsIC = 0.01;
+epsIC = epsQ;
 %%
-% IC Variance
-% epsOmega =0.0000001; %For inth = 1
-% epsOmega =0.001; %For inth = 1000
-% %Observe every inth variable.
-% inth=1000;
-% inth=1;
 %Call Init
 [M,IC,wt,R,Rinv,Q,Omega,ICcov,Lones,Mzeros] = Init_simp(IC,N,inth,L,epsR,epsQ,epsOmega,epsIC,minidx,maxidx);
 %Add noise N(0,ICcov) to ICs to form different particles
