@@ -22,7 +22,7 @@ for j=1:Num
     end
 end
 %% Save to mat file
-PhysicalProjection=1;
+PhysicalProjection=2;
 filename = sprintf('L968_%2d%2d_%2d_%2d_%4d.mat',PhysicalProjection,DataProjection,epsQ,epsR,N)
 params.PhysicalProjection = PhysicalProjection;
 params.DataProjection = DataProjection;
