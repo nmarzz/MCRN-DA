@@ -27,7 +27,7 @@ model_output = Built_Model(:,(end-1)/2:(end-1)*3/4);
 ResampCutoff = 0.3;
 % Number of computational steps and step size
 ObsMult=60; % Observe and every ObsMult steps
-h = dt/ObsMult;
+h = dt;
 % Numsteps=10;
 NumstepsBig=size(Built_Model,2);
 
