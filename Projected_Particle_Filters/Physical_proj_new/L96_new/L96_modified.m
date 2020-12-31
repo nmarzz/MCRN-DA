@@ -1,14 +1,14 @@
 function [Time,RMSEsave, RMSEsave_proj, ResampPercent]=...
-    L96_modified(numModes_physical,epsQ, epsR,tolerance_physical,PhysicalProjection,DataProjection,ObsMult,N)
+    L96_modified(numModes_physical,epsQ, epsR,tolerance_physical,PhysicalProjection,DataProjection,ObsMult,N, F)
 % rng(1331);
-F = @FLor95; %Physical model
+RHS = @(T,x)FLor95(T,x,F); %Physical model
 % N =200; % N:Original model dimension
 % Build Model (via ODE45)
 dt=1.E-2; % Model output time step
-ModelSteps = 50000; % Number of time steps in building model
+ModelSteps = 500; % Number of time steps in building model
 % ModelSteps = 100000; % Number of time steps in building model
 T=ModelSteps*dt;
-Built_Model= buildModel(N,F,ModelSteps,T);
+Built_Model= buildModel(N,RHS,ModelSteps,T);
 Built_Model= Built_Model';
 IC = zeros(N,1);
 IC(1)=1; % Particle ICs
@@ -55,7 +55,7 @@ gen_ics = IC;
 t = 0;
 for i = 1:NumstepsBig
     truth(:,i) = gen_ics;
-    gen_ics =dp4(F,t,gen_ics,h);
+    gen_ics =dp4(RHS,t,gen_ics,h);
     if mod(i,ObsMult) == 0
         y(:,i) = truth(1:inth:N,i);
     end
@@ -155,7 +155,7 @@ for i=1:Numsteps
     
     % Estimate the truth
     estimate(:,i) = x*wt;
-    x = V'*dp4(F,t,V*x,h);
+    x = V'*dp4(RHS,t,V*x,h);
     % Get projection of the Data Model
     % Compare estimate and truth
     diff_orig= truth(:,i) - (V*estimate(:,i));
