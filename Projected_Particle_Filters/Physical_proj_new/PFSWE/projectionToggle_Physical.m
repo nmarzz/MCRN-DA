@@ -10,3 +10,4 @@ elseif PhysicalModelProjection == 2
     V = getDMD( Ur,p );
 end
 
+assert(isreal(V),"Projection matrix has to be real-valued");

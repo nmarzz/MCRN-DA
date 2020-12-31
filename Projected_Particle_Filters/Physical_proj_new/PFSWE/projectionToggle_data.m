@@ -12,4 +12,4 @@ elseif DataModelProjection == 2
 %    [U,~] = getausproj(Model_Dimension,p,Fmod,t,est,h,q,LE);
 end
 
-
+assert(isreal(U),"Projection matrix has to be real-valued");
