@@ -1,5 +1,5 @@
 close all; clear;clc;
-
+tic;
 %% CHOOSE PARAMETERS HERE
 F = 8; % Lorenz'96 Forcing
 ObsMult=5; % % Observe and every ObsMult steps(10 with F=3.5, 5 with F=8)
@@ -30,25 +30,30 @@ params.PhysicalProjection = PhysicalProjection;
 params.DataProjection = DataProjection;
 params.epsQ = epsQ;
 params.epsR=epsR;
-params.numModes=numModes_physical;
 params.Num=Num;
 params.N=N;
 params.Mult=Mult;
 
 %% Main simulation loop
+
 for j=1:Num
-    for k=1:Num_trials
-        disp("Mode choice " +  j + "/" + Num + " - Trial " + k + "/" + Num_trials); 
-        numModes_physical=j*Mult+1;%DMD
-        tolerance_physical=j*Mult;%POD
-        nummodes=numModes_physical-1;
-        if nummodes==N
-            PhysicalProjection=0;
-        end
+    numModes_physical=j*Mult+1;%DMD
+    tolerance_physical=j*Mult;%POD
+    nummodes=numModes_physical-1;
+    if nummodes==N
+        PhysicalProjection=0;
+    end
+    params.numModes=numModes_physical; % update to last simulation that was reached for storage purposes
+    
+    parfor k=1:Num_trials % REPLACE WITH PLAIN FOR IF YOU DON'T WANT PARALLEL EXECUTION
         [Time(:,j,k),RMSEsave(:,j,k), RMSEsave_proj(:,j,k), ResampPercent(:,j,k)]= L96_modified...
             (numModes_physical,epsQ, epsR,tolerance_physical,PhysicalProjection,DataProjection,ObsMult,N, F);
     end
+    disp("COMPLETED: Mode choice " +  j + "/" + Num + " - Trials: " + Num_trials + " - TOTAL RUNTIME " + string( duration([0, 0, toc]) )); 
+    
 end
+
+
 %% Storage of results
 
 results.RMSEsave = RMSEsave;
