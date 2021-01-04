@@ -11,8 +11,8 @@ Num=40; % number of differend order choices
 Num_trials=10;
 
 % Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =2;
-DataProjection =2;
+PhysicalProjection =1;
+DataProjection =1;
 
 Mult=N/Num; % don't touch this!
 

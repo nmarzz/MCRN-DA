@@ -46,7 +46,7 @@ epsIC =epsQ;
 epsOmega =1e-2;
 
 inth=1;
-[M,IC,wt,R,Rinv,Q,Omega,ICcov,Lones,Mzeros]  = Init_simp_modified(IC,N,inth,L,epsR,epsQ,epsOmega,epsIC);
+[M,IC,wt,R,Rinv,Q,Omega,ICcov,Lones,Mzeros]  = Init_simp_modified(IC,N,inth,L,epsR,epsQ,epsOmega,epsIC,RHS,h);
 %Add noise N(0,ICcov) to ICs to form different particles
 u = repmat(IC,1,L) + mvnrnd(zeros(1,N),ICcov*ones(1,N),L)'; % Noise for IC
 %% Generate observations from "Truth"

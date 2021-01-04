@@ -1,7 +1,7 @@
 close all;clear all;clc;
 % filename='L96_F8_POD_POD_Q0.10_R0.01_N0040.mat';
 % a_1= load('L96_F8_POD_POD_Q0.10_R0.01_N0040.mat');
-a_1= load('L96_F4_DMD_DMD_Q0.10_R0.01_N0040.mat');
+a_1=load('L96_F4_POD_POD_Q0.10_R0.01_N0040.mat');
 
 b_1=a_1.results;
 c_1=a_1.params;
@@ -12,14 +12,14 @@ epsR=c_1.epsR;
 RMSEsave_1=b_1.RMSEsave;
 figure(2)
 TOLC=ptc12(12);
-RMSEmean = squeeze(mean(RMSEsave_1(1:4000,:),3));
+RMSEmean = squeeze(mean(RMSEsave_1,3));
 plot(RMSEmean(:,2),'Color', TOLC(1,:),'LineStyle','-', 'LineWidth', 1.5)
 hold on;
 grid on;
 plot(RMSEmean(:,4),'Color', TOLC(9,:),'LineStyle','-','LineWidth', 1.5);
 plot(RMSEmean(:,5),'Color', TOLC(7,:),'LineStyle','-','LineWidth', 1.5);
 plot(RMSEmean(:,6),'Color', TOLC(4,:),'LineStyle','-','LineWidth', 1.5);
-plot(RMSEmean(:,8),'Color', TOLC(11,:),'LineStyle','-','LineWidth', 1.5);
+plot(RMSEmean(:,7),'Color', TOLC(11,:),'LineStyle','-','LineWidth', 1.5);
 xlabel('Time','FontUnits','points',...
     'FontWeight','normal',...
     'FontSize',14,...
@@ -30,7 +30,7 @@ ylabel(' Mean RMSE','FontUnits','points',...
     'FontSize',14,...
     'FontName','Times')
 %     'FontName','Times');
-h = legend({'$10$', '$20$','$25$', '$30$', '$40$'}, 'interpreter','latex',...
+h = legend({'$10$', '$20$','$25$', '$30$', '$35$'}, 'interpreter','latex',...
    'FontWeight','bold',...
     'FontSize',12,...
     'FontName','Times');
