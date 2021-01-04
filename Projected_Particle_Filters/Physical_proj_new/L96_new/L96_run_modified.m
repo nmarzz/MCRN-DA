@@ -1,18 +1,18 @@
 close all; clear;clc;
 tic;
 %% CHOOSE PARAMETERS HERE
-F = 8; % Lorenz'96 Forcing
+F =4; % Lorenz'96 Forcing
 ObsMult=5; % % Observe and every ObsMult steps(10 with F=3.5, 5 with F=8)
-epsQ=1; % model covariance
+epsQ=1E-1; % model covariance
 epsR=1E-2; % observation covariance
 
-N=40; % model size
-Num=5; % number of differend order choices
+N=400; % model size
+Num=40; % number of differend order choices
 Num_trials=10;
 
 % Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 PhysicalProjection =2;
-DataProjection =2 ;
+DataProjection =2;
 
 Mult=N/Num; % don't touch this!
 
@@ -49,7 +49,7 @@ for j=1:Num
         [Time(:,j,k),RMSEsave(:,j,k), RMSEsave_proj(:,j,k), ResampPercent(:,j,k)]= L96_modified...
             (numModes_physical,epsQ, epsR,tolerance_physical,PhysicalProjection,DataProjection,ObsMult,N, F);
     end
-    disp("COMPLETED: Mode choice " +  j + "/" + Num + " - Trials: " + Num_trials + " - TOTAL RUNTIME " + string( duration([0, 0, toc]) )); 
+    disp("COMPLETED: Mode choice " +  j + "/" + Num + " - Trials: " + Num_trials+ " - TOTAL RUNTIME " + string( duration([0, 0, toc]) )); 
     
 end
 

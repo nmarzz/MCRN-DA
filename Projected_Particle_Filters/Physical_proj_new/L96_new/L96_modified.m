@@ -5,7 +5,7 @@ RHS = @(T,x)FLor95(T,x,F); %Physical model
 % N =200; % N:Original model dimension
 % Build Model (via ODE45)
 dt=1.E-2; % Model output time step
-ModelSteps = 500; % Number of time steps in building model
+ModelSteps = 50000; % Number of time steps in building model
 % ModelSteps = 100000; % Number of time steps in building model
 T=ModelSteps*dt;
 Built_Model= buildModel(N,RHS,ModelSteps,T);
@@ -76,8 +76,8 @@ RMSEave_orig=0;
 RMSEave_proj=0;
 % RMSEave_relRMSE=0;
 iRMSE=1;
-XC_save_ave=0;
-ESSsave=0;
+% XC_save_ave=0;
+% ESSsave=0;
 Q=V'*Q*V; %with projection
 Qnew=Q;
 
@@ -163,15 +163,15 @@ for i=1:Numsteps
     Nq=size(V,2);
     RMSE_orig = sqrt(diff_orig'*diff_orig/N);
     RMSE_proj = sqrt(diff_proj'*diff_proj/Nq);
-    xbar=V*estimate(:,i);
-    truth_common=truth(:,i);
-    Ensbar = mean(xbar);
-    Trubar = mean(truth_common);
-    XC_save = (xbar-Ensbar)'*(truth_common-Trubar)/(norm(xbar-Ensbar,2)*norm(truth_common-Trubar));
-    %%
-    Ensbar = mean(V*estimate(:,i));
-    Trubar = mean( truth(:,i));
-    XCproj= (V*estimate(:,i)-Ensbar)'*(truth(:,i)-Trubar)/(norm(V*estimate(:,i)-Ensbar,2)*norm( truth(:,i)-Trubar,2));
+%     xbar=V*estimate(:,i);
+%     truth_common=truth(:,i);
+%     Ensbar = mean(xbar);
+%     Trubar = mean(truth_common);
+%     XC_save = (xbar-Ensbar)'*(truth_common-Trubar)/(norm(xbar-Ensbar,2)*norm(truth_common-Trubar));
+%     %%
+%     Ensbar = mean(V*estimate(:,i));
+%     Trubar = mean( truth(:,i));
+%     XCproj= (V*estimate(:,i)-Ensbar)'*(truth(:,i)-Trubar)/(norm(V*estimate(:,i)-Ensbar,2)*norm( truth(:,i)-Trubar,2));
     RMSEave_orig = RMSEave_orig + RMSE_orig;
     RMSEave_proj = RMSEave_proj + RMSE_proj;
     
@@ -180,15 +180,15 @@ for i=1:Numsteps
         Time(iRMSE)=t;
         RMSEsave(iRMSE)=RMSE_orig;
         RMSEsave_proj(iRMSE)=RMSE_proj;
-        XC_save_ave(iRMSE)=XC_save;
-        XC_save_proj(iRMSE)=XCproj;
-        ESSsave(iRMSE)=ESS;
+%         XC_save_ave(iRMSE)=XC_save;
+%         XC_save_proj(iRMSE)=XCproj;
+%         ESSsave(iRMSE)=ESS;
         iRMSE = iRMSE+1;
     end
     
     t = t+h;
 end
 
-RMSEave_orig = RMSEave_orig/Numsteps;
+RMSEave_orig = RMSEave_orig/Numsteps
 RMSEave_proj = RMSEave_proj/Numsteps;
 ResampPercent = ObsMult*Resamps/Numsteps*100;
