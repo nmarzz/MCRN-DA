@@ -1,119 +1,109 @@
-clear all; close all; clc;
-load('SWE_run_4days.mat');
+a=load('SWE_run_4days.mat');
 % modeloutput= x_save;
-load('SWE_POD.mat')
+b=load('SWE_POD.mat');
 modeloutput= diff_plot;
+modeloutput=abs(complex(modeloutput));
+x=a.x;
+y=a.y;
+H=b.H;
+% modeloutput= diff_plot;
 L=length(modeloutput(1,:));%number of snapshots
-m=length(y);%y-dimension
-n=length(x);%x-dimension
+m=length(H(1,:));%y-dimension
+n=length(H(:,1));%x-dimension
 N_gridpoints=m*n;%each snapshot has x*y-dimensions
 
 u=modeloutput(1:N_gridpoints,:);v=modeloutput(N_gridpoints+1:N_gridpoints*2,:);h=modeloutput((N_gridpoints*2)+1:end,:);
 u_save=reshape(u,n,m,L);v_save=reshape(v,n,m,L);h_save=reshape(h,n,m,L);
 x_1000km = x.*1e-6;
 y_1000km = y.*1e-6;
-plot_height_range = [9500 10500];
-% Set colormap to have 64 entries
-ncol=64;
-% colormap(jet(ncol));
-colormap(cmocean('curl'));
-% Interval between arrows in the velocity vector plot
-interval = 6;
+plot_height_range = [9500 10300];
 
+
+interval = 6;
 % Set this to "true" to save each frame as a png file
 plot_frames = false;
-
 % Decide whether to show height in metres or km
 if mean(plot_height_range) > 1000
     height_scale = 0.001;
-    height_title = 'Velocity Field ($u$ and $v$), Difference';
+    height_title = 'Height Error';
+    Velocity_title = 'Velocity Field Error';
 else
     height_scale = 1;
-    height_title = 'Velocity Field ($u$ and $v$), Difference';
+    height_title = 'Height Error';
+    Velocity_title = 'Velocity Field Error';
 end
-% it=60*24;
-it=50;
+it=1440;
 % Extract the height and velocity components for this frame
-h = squeeze(h_save(:,:,it));
-u = squeeze(u_save(:,:,it));
-v = squeeze(v_save(:,:,it));
-% Plot the height field
-% it_1=60*48;
- it_1=100;
-% Extract the height and velocity components for this frame
-h_1= squeeze(h_save(:,:,it_1));
-u_1 = squeeze(u_save(:,:,it_1));
-v_1 = squeeze(v_save(:,:,it_1));
-% it_2=60*72;
-% % Extract the height and velocity components for this frame
-% h_2= squeeze(h_save(:,:,it_2));
-% u_2 = squeeze(u_save(:,:,it_2));
-% v_2 = squeeze(v_save(:,:,it_2));
-%   warning on
+h_error = squeeze(h_save(:,:,it));
+u_error = squeeze(u_save(:,:,it));
+v_error= squeeze(v_save(:,:,it));
 figure(1)
+% colormap(cmocean('thermal'));
+colormap(cmocean('curl'));
 tt = tiledlayout(2,1);
 hh(1)=nexttile;
-qp=quiver(x_1000km(3:interval:end), y_1000km(3:interval:end), ...
-    u(3:interval:end, 3:interval:end)',...
-    v(3:interval:end, 3:interval:end)');
-set(qp,'AutoScale','on', 'AutoScaleFactor', 2,'color',[0 0 0])
-legend('Scale: 2m/s')
-ylabel('$y $',...
-    'interpreter','latex',...
-    'FontWeight','normal',...
-    'FontSize',14,...
-    'FontName','Times')
-% daspect([1 1 1]);
-txt = {'($a$)'};
-text(1,0.5,txt,...
-    'interpreter','latex',...
-    'FontWeight','normal',...
-    'FontSize',14,...
-    'FontName','Times')
-axis([0 max(x_1000km) 0 max(y_1000km)]);
-% colorbar
-set(gca,...
-    'FontUnits','points',...
-    'FontWeight','normal',...
-    'FontSize',14,...
-    'FontName','Times')
+% qp=quiver(x_1000km(3:interval:end), y_1000km(3:interval:end), ...
+%     u_error(3:interval:end, 3:interval:end)',...
+%     v_error(3:interval:end, 3:interval:end)');
+% set(qp,'AutoScale','on', 'AutoScaleFactor', 2,'color',[0 0 0])
+handle = image(x_1000km, y_1000km, (u_error'+v_error').*height_scale);
+set(handle,'CDataMapping','scaled');
+set(gca,'ydir','normal');
 
-%%
-hh(2)=nexttile;
-qp1=quiver(x_1000km(3:interval:end), y_1000km(3:interval:end), ...
-    u_1(3:interval:end, 3:interval:end)',...
-    v_1(3:interval:end, 3:interval:end)');
-set(qp1,'AutoScale','on', 'AutoScaleFactor', 2,'color',[0 0 0])
-legend('Scale: 2m/s')
-xlabel('$x $'  ,'interpreter','latex',...
-    'FontWeight','normal',...
-    'FontSize',14,...
-    'FontName','Times')
 ylabel('$y $',...
     'interpreter','latex',...
     'FontWeight','normal',...
     'FontSize',14,...
     'FontName','Times')
-txt = {'($b$)'};
-text(1,0.5,txt,...
+colorbar
+cbarhandle = colorbar;
+% caxis([0 3.5e-4]);
+axis([0 max(x_1000km) 0 max(y_1000km)]);
+xlabel('$x$',...
     'interpreter','latex',...
     'FontWeight','normal',...
     'FontSize',14,...
     'FontName','Times')
-% daspect([1 1 1]);
-axis([0 max(x_1000km) 0 max(y_1000km)]);
-% colorbar
 set(gca,...
     'FontUnits','points',...
     'FontWeight','normal',...
     'FontSize',14,...
     'FontName','Times')
-%%
-sgtitle([height_title],...
+daspect([1.5 1 1]);
+title([Velocity_title],...
     'interpreter','latex',...
     'FontWeight','bold',...
     'FontSize',14,...
     'FontName','Times')
-%%
-tt.TileSpacing = 'compact';
-tt.Padding = 'compact';
+hold off
+
+hh(2)=nexttile;
+handle = image(x_1000km, y_1000km, (h_error'+H').*height_scale);
+set(handle,'CDataMapping','scaled');
+set(gca,'ydir','normal');
+%caxis(plot_height_range.*height_scale);
+
+xlabel('$x$',...
+    'interpreter','latex',...
+    'FontWeight','normal',...
+    'FontSize',14,...
+    'FontName','Times')
+ylabel('$y $',...
+    'interpreter','latex',...
+    'FontWeight','normal',...
+    'FontSize',14,...
+    'FontName','Times')
+
+axis([0 max(x_1000km) 0 max(y_1000km)]);
+colorbar
+caxis([0 3.5e-4]);
+title([height_title],...
+    'interpreter','latex',...
+    'FontWeight','bold',...
+    'FontSize',14,...
+    'FontName','Times')
+set(gca,...
+    'FontUnits','points',...
+    'FontWeight','normal',...
+    'FontSize',14,...
+    'FontName','Times')

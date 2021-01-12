@@ -1,6 +1,6 @@
 %% Initialization
 clear all;clc;
-rng(1330);
+% rng(1330);
 % SWE preamble
 load('SWE_run_4days.mat');
 
@@ -24,13 +24,13 @@ scenario = 2;
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
 PhysicalProjection =1;
 DataProjection =1;
-tolerance_physical =10; % POD_modes
+tolerance_physical =20; % POD_modes
 tolerance_data =10; % POD_modes
 numModes_physical =10;% DMD_modes, for physical
 numModes_data =10; % DMD_modes, for data
 
 %model_output = Built_Model;
-model_output = Built_Model(:,(end-1)/4:(end-1)*3/4);
+model_output = Built_Model(:,(end-1)/2:(end-1)*3/4);
 [Ur_physical,p_physical,pzeros_physical] = ...
     Projection_physical_type(PhysicalProjection ,numModes_physical,tolerance_physical,N,model_output,dt);
 [Ur_data,p_data,pzeros_data] = Projection_data_type(DataProjection ,numModes_data,tolerance_data,N,model_output,dt);
@@ -40,8 +40,8 @@ L=5;%Number of particles
 ResampCutoff = 0.3;
 % Number of computational steps and step size
 ObsMult=60; % Observe and every ObsMult steps
-h = dt/ObsMult;
-Numsteps=100;
+h = dt;
+Numsteps=1440;
 NumstepsBig=size(Built_Model,2);
 % % %% FOR PF
 % %Observation Variance
@@ -60,7 +60,7 @@ epsR =1e-2;
 %Model Variance
 epsQ = 1E-1;
 %Initial condition
-epsIC = 0.01;
+epsIC = epsQ;
 %%
 % IC Variance
 epsOmega =0.0000001; %For inth = 1
@@ -112,13 +112,13 @@ UPinvH=Hx(U,inth,minidx,maxidx)';
 
 Qpfixed = inv(inv(Qnew)+HV'*inv(Rfixed)*HV);
 QpHRinv = Qpfixed*HV'*inv(Rfixed);
- diff_plot=[];
+diff_plot=[];
 % diff_proj_plot=[];
 % XC_save=[];
- ess=[];
+ess=[];
 for i=1:Numsteps
     
-%     t
+    %     t
     %[U] = projectionToggle_data(DataProjection,Ur_data,p_data);
     if mod(i,ObsMult)==0
         %At observation times, Update particles and weights via likelihood, add noise
@@ -192,21 +192,17 @@ for i=1:Numsteps
         x(:,k) = V'*formod(t,V*x(:,k),dt,pars);
     end
     % Compare estimate and truth
-%     true(:,i)=truth(:,i);
     ess(:,i)=V*estimate(:,i);
     diff_orig= truth(:,i) - (V*estimate(:,i));
-    diff_plot(:,i)= truth(:,i) - (V*estimate(:,i));
+    diff_plot(:,i)= log10(abs(truth(:,i) - (V*estimate(:,i))));
     diff_proj= V*(V'* truth(:,i) - estimate(:,i));
     RMSE_orig = sqrt(diff_orig'*diff_orig/N)
-    RMSE_proj = sqrt(diff_proj'*diff_proj/N)
+    Nq=size(V,2);
+    RMSE_proj = sqrt(diff_proj'*diff_proj/Nq);
     Ensbar = mean(V*estimate(:,i));
     Trubar = mean( truth(:,i));
     XC_save= (V*estimate(:,i)-Ensbar)'*(truth(:,i)-Trubar)/(norm(V*estimate(:,i)-Ensbar,2)*norm( truth(:,i)-Trubar,2));
-    %     diff_plot(:,i)= truth(:,i) - (V*estimate(:,i));
-    %diff_proj_plot(:,i)= V*(V'* truth(:,i) - estimate(:,i));
-    
-    %relRMSE_orig=sqrt(diff_orig'*diff_orig/N)/(sqrt(((truth(:,i))'*truth(:,i))/N));
-    %MAE_orig = (sum(abs(diff_orig)))/N;
+
     
     RMSEave_orig = RMSEave_orig + RMSE_orig;
     RMSEave_proj = RMSEave_proj + RMSE_proj;
@@ -237,6 +233,13 @@ for i=1:Numsteps
     
     t = t+h;
 end
+
+%%
+RMSEave_orig = RMSEave_orig/Numsteps
+RMSEave_proj = RMSEave_proj/Numsteps
+% RMSEave_relRMSE=RMSEave_relRMSE/Numsteps;
+ResampPercent = ObsMult*Resamps/Numsteps*100
+save('SWE_POD.mat','ess','truth','diff_plot','H')
 % % % No_proj=load('No_proj_RMSE.mat');%PF-OP
 % % No_proj=load('No_proj_PF.mat');%PF
 % % No_proj=load('No_proj_PFOP_1000t.mat');%PF1000 timestep
@@ -254,8 +257,8 @@ end
 % % legend('Model Space','Projected Space','No Reduction','Observation Error','Location', 'Best','fontsize',13,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
 % set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
 % hold off
-% 
-% 
+%
+%
 % figure(4)
 % plot(Time,real(XC_save_ave),'Color', TOLC(1,:),'LineStyle','-','LineWidth', 2)
 % grid on
@@ -269,9 +272,3 @@ end
 % xlabel('Time','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
 % ylabel('Pattern Correlations ','fontsize',14,'interpreter','latex','FontName', 'Times New Roman','fontweight','bold')
 % set(gca, 'FontName', 'Times New Roman', 'FontSize', 14)
-%%
-RMSEave_orig = RMSEave_orig/Numsteps
-RMSEave_proj = RMSEave_proj/Numsteps
-% RMSEave_relRMSE=RMSEave_relRMSE/Numsteps;
-ResampPercent = ObsMult*Resamps/Numsteps*100
-% save('SWE_POD.mat','ess','truth','diff_plot')
