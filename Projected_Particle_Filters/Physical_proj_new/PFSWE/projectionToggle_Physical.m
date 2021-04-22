@@ -3,7 +3,8 @@ function [V] = projectionToggle_Physical(PhysicalModelProjection,Ur,p)
 % V: orthonormal columns, physical model 
 % p: rank of projection
 if PhysicalModelProjection == 0
-    V = 1;
+%     V = 1;
+      V = sparse(eye(p));
 elseif PhysicalModelProjection == 1
     V = getpod(Ur,p);
 elseif PhysicalModelProjection == 2

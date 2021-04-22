@@ -5,9 +5,9 @@ epsOmega =0.0000001; %For inth = 1
 %Observe every inth variable.
 Numsteps=1440;
 inth=1;%observations run for 10,100,1000 
-epsQ=1E-1; %Run for epsQ=1
+epsQ=1; %Run for epsQ=1
 epsR=1E-2;
-Num=10; % number of model reduction orders
+Num=1; % number of model reduction orders
 L=05; % number of particles
 
 % Observed variables scenario following Paulina et al.
@@ -20,10 +20,10 @@ scenario =2 ;
 iOPPF=1;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =1;
-DataProjection =1 ;
+PhysicalProjection =0;
+DataProjection =0;
 
-Num_trials=10;
+Num_trials=20;
 
 Mult=100/Num; % don't touch!
 

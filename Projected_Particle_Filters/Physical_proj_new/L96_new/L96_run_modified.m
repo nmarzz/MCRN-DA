@@ -1,18 +1,18 @@
 close all; clear;clc;
 tic;
 %% CHOOSE PARAMETERS HERE
-F =3; % Lorenz'96 Forcing
+F =4; % Lorenz'96 Forcing
 ObsMult=5; % % Observe and every ObsMult step
-epsQ=1E-1; % model covariance
+epsQ=1; % model covariance
 epsR=1E-2; % observation covariance
 
-N=40; % model size
-Num=8; % number of differend order choices
+N=400; % model size
+Num=1; % number of differend order choices
 Num_trials=10;
 
 % Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =2;
-DataProjection =2;
+PhysicalProjection =0;
+DataProjection =0;
 
 Mult=N/Num; % don't touch this!
 

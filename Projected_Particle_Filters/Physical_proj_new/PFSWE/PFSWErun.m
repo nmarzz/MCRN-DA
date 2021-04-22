@@ -106,7 +106,7 @@ for i=1:Numsteps
             Innov1=repmat(y(:,i),1,L)-HV*x;
             if PhysicalProjection == 0
                 [sizepzp,~] = size(pzeros_physical);
-                x = x + QpHRinv*Innov1 + mvnrnd(pzeros_physical',Qpfixed*ones(1,sizepzp),L)';
+                x = x + QpHRinv*Innov1 + mvnrnd(pzeros_physical',(Qpfixed*ones(1,sizepzp)')',L)';
             else
                 x = x + QpHRinv*Innov1 + mvnrnd(pzeros_physical,Qpfixed,L)';
             end

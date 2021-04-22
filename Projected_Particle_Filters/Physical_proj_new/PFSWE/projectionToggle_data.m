@@ -3,7 +3,8 @@ function [U] = projectionToggle_data(DataModelProjection,Ur,p)
 % U: orthonormal columns,data model
 % p: rank of projection
 if DataModelProjection == 0
-    U = 1;
+%     U = 1;
+      U = sparse(eye(p));
 elseif DataModelProjection == 1
     U = getpod(Ur,p);
 elseif DataModelProjection == 2
