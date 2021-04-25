@@ -3,11 +3,11 @@ close all; clear;clc;
 %% SET ALL PARAMETERS HERE
 epsOmega =0.0000001; %For inth = 1
 %Observe every inth variable.
-Numsteps=1440;
+Numsteps=1441;
 inth=1;%observations run for 10,100,1000 
-epsQ=1; %Run for epsQ=1
+epsQ=1E-1; %Run for epsQ=1
 epsR=1E-2;
-Num=1; % number of model reduction orders
+Num=10; % number of model reduction orders
 L=05; % number of particles
 
 % Observed variables scenario following Paulina et al.
@@ -20,8 +20,8 @@ scenario =2 ;
 iOPPF=1;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =0;
-DataProjection =0;
+PhysicalProjection =2;
+DataProjection =2;
 
 Num_trials=20;
 
@@ -58,7 +58,7 @@ for j=1:Num
     params.numModes=numModes_physical; % update to last simulation that was reached for storage purposes
     
     for k=1:Num_trials % REPLACE WITH PLAIN FOR IF YOU DON'T WANT PARALLEL EXECUTION
-        [Time(:,j,k),RMSEsave(:,j,k), RMSEsave_proj(:,j,k),ResampPercent(:,j,k)]=PFSWErun...
+        [Time(:,j,k),RMSEsave(:,j,k),ResampPercent(:,j,k),ESSsave(:,j,k)]=PFSWErun...
             (numModes_physical,epsQ,epsR,tolerance_physical,iOPPF,PhysicalProjection,DataProjection,scenario,epsOmega, inth,Numsteps,L);
     end
     disp("SWE CHECKPOINT: Mode choice " +  j + "/" + Num + " - Trials: " + Num_trials + " - TOTAL RUNTIME " + string( duration([0, 0, toc]) )); 
@@ -68,8 +68,9 @@ end
 %% Results storage
 
 results.RMSEsave = RMSEsave;
-results.RMSEsave_proj = RMSEsave_proj;
+% results.RMSEsave_proj = RMSEsave_proj;
 results.ResampPercent =ResampPercent;
+results.ESS=ESSsave;
 results.Time =Time;
 
 %% Save to drive

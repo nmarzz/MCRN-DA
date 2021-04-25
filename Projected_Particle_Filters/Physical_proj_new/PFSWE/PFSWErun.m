@@ -1,4 +1,4 @@
-function [Time,RMSEsave, RMSEsave_proj, ResampPercent]=...
+function [Time,RMSEsave,ResampPercent,ESSsave]=...
     PFSWErun(numModes_physical,epsQ, epsR, tolerance_physical ,iOPPF,PhysicalProjection,DataProjection,scenario,epsOmega, inth,Numsteps,L)
 % SWE preamble
 load('SWE_run_4days.mat');
@@ -24,7 +24,7 @@ model_output = Built_Model(:,(end-1)/2:(end-1)*3/4);
 
 %% Particle Filter Information
 % L=5;%Number of particles
-ResampCutoff = 0.3;
+ResampCutoff = 0.5;
 % Number of computational steps and step size
 ObsMult=60; % Observe and every ObsMult steps
 h = dt;
@@ -68,7 +68,7 @@ RMSEave_proj=0;
 % RMSEave_relRMSE=0;
 iRMSE=1;
 % % XC_save_ave=0;
-% % ESSsave=0;
+ESSsave=0;
 Q=V'*Q*V; %with projection
 Qnew=Q;
 
@@ -157,10 +157,10 @@ for i=1:Numsteps
     end
     % Compare estimate and truth
     diff_orig= truth(:,i) - (V*estimate(:,i));
-    diff_proj= V*(V'* truth(:,i) - estimate(:,i));
+%     diff_proj= V*(V'* truth(:,i) - estimate(:,i));
     RMSE_orig = sqrt(diff_orig'*diff_orig/N);
-    Nq=size(V,2);
-    RMSE_proj = sqrt(diff_proj'*diff_proj/Nq);
+%     Nq=size(V,2);
+%     RMSE_proj = sqrt(diff_proj'*diff_proj/Nq);
     %xbar=V*estimate(:,i);
     %truth_common=truth(:,i);
     %Ensbar = mean(xbar);
@@ -177,16 +177,16 @@ for i=1:Numsteps
     %     Trubar = mean(truth_common);
     %     XCproj = (xbar-Ensbar)'*(truth_common-Trubar)/(norm(xbar-Ensbar,2)*norm(truth_common-Trubar));
     RMSEave_orig = RMSEave_orig + RMSE_orig;
-    RMSEave_proj = RMSEave_proj + RMSE_proj;
+%     RMSEave_proj = RMSEave_proj + RMSE_proj;
     
     if mod(i,ObsMult)==0
         %Save RMSE values
         Time(iRMSE)=t;
         RMSEsave(iRMSE)=RMSE_orig;
-        RMSEsave_proj(iRMSE)=RMSE_proj;
+%         RMSEsave_proj(iRMSE)=RMSE_proj;
 %         XC_save_ave(iRMSE)=XC_save;
 %         XC_save_proj(iRMSE)=XCproj;
-%         ESSsave(iRMSE)=ESS;
+         ESSsave(iRMSE)=ESS;
         iRMSE = iRMSE+1;
     end
     
@@ -194,5 +194,5 @@ for i=1:Numsteps
 end
 
 RMSEave_orig = RMSEave_orig/Numsteps
-RMSEave_proj = RMSEave_proj/Numsteps;
+% RMSEave_proj = RMSEave_proj/Numsteps;
 ResampPercent = ObsMult*Resamps/Numsteps*100;
