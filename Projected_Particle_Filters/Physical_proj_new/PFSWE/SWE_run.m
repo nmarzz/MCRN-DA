@@ -4,11 +4,11 @@ close all; clear;clc;
 epsOmega =0.0000001; %For inth = 1
 %Observe every inth variable.
 Numsteps=1441;
-inth=1;%observations run for 10,100,1000 
-epsQ=1E-1; %Run for epsQ=1
+inth=100;%observations run for 10,100,1000 
+epsQ=1; %Run for epsQ=1
 epsR=1E-2;
-Num=10; % number of model reduction orders
-L=05; % number of particles
+Num=1; % number of model reduction orders
+L=5; % numbe3r of particles
 
 % Observed variables scenario following Paulina et al.
 % scenario 1: observe inth u and v's
@@ -20,10 +20,10 @@ scenario =2 ;
 iOPPF=1;
 
 %% Projection_type(0 = no projection, 1 POD, 2 DMD, 3 AUS)
-PhysicalProjection =2;
-DataProjection =2;
+PhysicalProjection =0;
+DataProjection =0;
 
-Num_trials=20;
+Num_trials=10;
 
 Mult=100/Num; % don't touch!
 
