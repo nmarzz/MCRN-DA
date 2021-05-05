@@ -134,7 +134,8 @@ for i=1:Numsteps
             Hnq = UPinvH*HV;
             Rnew = R + Hnq*Qnew*Hnq';
 %             RinvtInno = Rnew\Innov;
-            RinvtInno = pinv(full(Rnew))*Innov;
+%             RinvtInno = pinv(full(Rnew))*Innov;
+            RinvtInno =pseudoinverse(Rnew)*Innov;
 %             any(isnan(RinvtInno))
 %             RinvtInno = RinvtInno*Innov;
             

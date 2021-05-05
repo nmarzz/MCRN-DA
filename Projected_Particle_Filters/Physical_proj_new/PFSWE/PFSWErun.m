@@ -117,8 +117,8 @@ for i=1:Numsteps
             R = UPinvH * Rfixed * UPinvH';
             Hnq = UPinvH*HV;
             Rnew = R + Hnq*Qnew*Hnq';
-            RinvtInno = Rnew\Innov;
-            any(isnan(RinvtInno));
+            RinvtInno =pseudoinverse(Rnew)*Innov;
+%             any(isnan(RinvtInno));
 %             RinvtInno = inv(Rnew);
             
 

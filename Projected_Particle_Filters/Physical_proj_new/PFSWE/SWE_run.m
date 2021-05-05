@@ -61,7 +61,7 @@ for j=1:Num
         [Time(:,j,k),RMSEsave(:,j,k),ResampPercent(:,j,k),ESSsave(:,j,k)]=PFSWErun...
             (numModes_physical,epsQ,epsR,tolerance_physical,iOPPF,PhysicalProjection,DataProjection,scenario,epsOmega, inth,Numsteps,L);
     end
-    disp("SWE CHECKPOINT: Mode choice " +  j + "/" + Num + " - Trials: " + Num_trials + " - TOTAL RUNTIME " + string( duration([0, 0, toc]) )); 
+%     disp("SWE CHECKPOINT: Mode choice " +  j + "/" + Num + " - Trials: " + Num_trials + " - TOTAL RUNTIME " + string( duration([0, 0, toc]) )); 
 
 end
 
