@@ -1,7 +1,7 @@
 close all;clear all;clc;
 % filename='L96_F8_POD_POD_Q0.10_R0.01_N0040.mat';
-% a_1= load('L96_F8_POD_POD_Q0.10_R0.01_N0040.mat');
-a_1=load('L96_F4_POD_POD_Q0.10_R0.01_N0040.mat');
+%a_1= load('L96_F8_POD_POD_Q0.10_R0.01_N0040.mat');
+% a_1=load('L96_F4_POD_POD_Q0.10_R0.01_N0040.mat');
 
 b_1=a_1.results;
 c_1=a_1.params;
